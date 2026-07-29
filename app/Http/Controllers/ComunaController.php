@@ -1,0 +1,179 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Comuna;
+use App\Models\Region;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+
+class ComunaController extends Controller
+{
+    /**
+     * Mostrar el listado de comunas.
+     */
+    public function index(Request $request)
+    {
+        $busqueda = $request->input('buscar');
+
+        $comunas = Comuna::query()
+            ->with('region')
+            ->when($busqueda, function ($query, $busqueda) {
+                $query->where(function ($subquery) use ($busqueda) {
+                    $subquery
+                        ->where('nombre', 'like', "%{$busqueda}%")
+                        ->orWhere('codigo', 'like', "%{$busqueda}%")
+                        ->orWhereHas('region', function ($regionQuery) use ($busqueda) {
+                            $regionQuery->where('nombre', 'like', "%{$busqueda}%");
+                        });
+                });
+            })
+            ->orderBy('nombre')
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('comunas.index', compact('comunas', 'busqueda'));
+    }
+
+    /**
+     * Mostrar el formulario para crear una comuna.
+     */
+    public function create()
+    {
+        $regiones = Region::query()
+            ->where('activo', true)
+            ->orderBy('nombre')
+            ->get();
+
+        return view('comunas.create', compact('regiones'));
+    }
+
+    /**
+     * Guardar una nueva comuna.
+     */
+    public function store(Request $request)
+    {
+        $datos = $request->validate([
+            'region_id' => [
+                'required',
+                'integer',
+                Rule::exists('regiones', 'id'),
+            ],
+            'codigo' => [
+                'required',
+                'string',
+                'max:10',
+                Rule::unique('comunas', 'codigo'),
+            ],
+            'nombre' => [
+                'required',
+                'string',
+                'max:120',
+            ],
+            'activo' => [
+                'required',
+                'boolean',
+            ],
+        ], [
+            'region_id.required' => 'Debes seleccionar una región.',
+            'region_id.exists' => 'La región seleccionada no es válida.',
+            'codigo.required' => 'El código de la comuna es obligatorio.',
+            'codigo.unique' => 'El código ingresado ya está registrado.',
+            'codigo.max' => 'El código no puede superar los 10 caracteres.',
+            'nombre.required' => 'El nombre de la comuna es obligatorio.',
+            'nombre.max' => 'El nombre no puede superar los 120 caracteres.',
+            'activo.required' => 'Debes seleccionar el estado de la comuna.',
+            'activo.boolean' => 'El estado seleccionado no es válido.',
+        ]);
+
+        Comuna::create($datos);
+
+        return redirect()
+            ->route('comunas.index')
+            ->with('success', 'Comuna creada correctamente.');
+    }
+
+    /**
+     * Mostrar el detalle de una comuna.
+     */
+    public function show(Comuna $comuna)
+    {
+        $comuna->load('region');
+
+        return view('comunas.show', compact('comuna'));
+    }
+
+    /**
+     * Mostrar el formulario para editar una comuna.
+     */
+    public function edit(Comuna $comuna)
+    {
+        $regiones = Region::query()
+            ->where(function ($query) use ($comuna) {
+                $query
+                    ->where('activo', true)
+                    ->orWhere('id', $comuna->region_id);
+            })
+            ->orderBy('nombre')
+            ->get();
+
+        return view('comunas.edit', compact('comuna', 'regiones'));
+    }
+
+    /**
+     * Actualizar una comuna.
+     */
+    public function update(Request $request, Comuna $comuna)
+    {
+        $datos = $request->validate([
+            'region_id' => [
+                'required',
+                'integer',
+                Rule::exists('regiones', 'id'),
+            ],
+            'codigo' => [
+                'required',
+                'string',
+                'max:10',
+                Rule::unique('comunas', 'codigo')->ignore($comuna->id),
+            ],
+            'nombre' => [
+                'required',
+                'string',
+                'max:120',
+            ],
+            'activo' => [
+                'required',
+                'boolean',
+            ],
+        ], [
+            'region_id.required' => 'Debes seleccionar una región.',
+            'region_id.exists' => 'La región seleccionada no es válida.',
+            'codigo.required' => 'El código de la comuna es obligatorio.',
+            'codigo.unique' => 'El código ingresado ya está registrado.',
+            'codigo.max' => 'El código no puede superar los 10 caracteres.',
+            'nombre.required' => 'El nombre de la comuna es obligatorio.',
+            'nombre.max' => 'El nombre no puede superar los 120 caracteres.',
+            'activo.required' => 'Debes seleccionar el estado de la comuna.',
+            'activo.boolean' => 'El estado seleccionado no es válido.',
+        ]);
+
+        $comuna->update($datos);
+
+        return redirect()
+            ->route('comunas.index')
+            ->with('success', 'Comuna actualizada correctamente.');
+    }
+
+    /**
+     * Eliminar una comuna.
+     */
+    public function destroy(Comuna $comuna)
+    {
+        $comuna->delete();
+
+        return redirect()
+            ->route('comunas.index')
+            ->with('success', 'Comuna eliminada correctamente.');
+    }
+}
