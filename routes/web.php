@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CategoriaServicioController;
 use App\Http\Controllers\ComunaController;
+use App\Http\Controllers\HorarioDisponibleController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\ReservaWizardController;
 use App\Http\Controllers\ServicioExperienciaController;
@@ -34,6 +35,18 @@ Route::resource(
 ]);
 
 Route::patch(
+    'horarios-disponibles/{horario}/activar',
+    [HorarioDisponibleController::class, 'activar']
+)->name('horarios-disponibles.activar');
+
+Route::resource(
+    'horarios-disponibles',
+    HorarioDisponibleController::class
+)->parameters([
+    'horarios-disponibles' => 'horario',
+]);
+
+Route::patch(
     '/servicios-experiencias/{servicio}/activar',
     [ServicioExperienciaController::class, 'activar']
 )->name('servicios-experiencias.activar');
@@ -45,25 +58,73 @@ Route::resource(
     'servicios-experiencias' => 'servicio',
 ]);
 
-Route::prefix('reservas')->name('reservas.')->group(function () {
-    Route::get('/crear/cliente', [ReservaWizardController::class, 'cliente'])
-        ->name('cliente');
+Route::prefix('reservas')
+    ->name('reservas.')
+    ->group(function () {
+        Route::get(
+            '/crear/cliente',
+            [ReservaWizardController::class, 'cliente']
+        )->name('cliente');
 
-    Route::post('/crear/cliente', [ReservaWizardController::class, 'guardarCliente'])
-        ->name('cliente.guardar');
+        Route::post(
+            '/crear/cliente',
+            [ReservaWizardController::class, 'guardarCliente']
+        )->name('cliente.guardar');
 
-    Route::get('/crear/datos-reserva', [ReservaWizardController::class, 'reserva'])
-        ->name('datos');
+        Route::get(
+            '/crear/datos-reserva',
+            [ReservaWizardController::class, 'reserva']
+        )->name('datos');
 
-    Route::post('/crear/datos-reserva', [ReservaWizardController::class, 'guardarReserva'])
-        ->name('datos.guardar');
+        Route::post(
+            '/crear/datos-reserva',
+            [ReservaWizardController::class, 'guardarReserva']
+        )->name('datos.guardar');
 
-    Route::get('/crear/confirmacion', [ReservaWizardController::class, 'confirmacion'])
-        ->name('confirmacion');
+        /*
+        |--------------------------------------------------------------------------
+        | Consultar servicios disponibles por fecha
+        |--------------------------------------------------------------------------
+        */
+        Route::get(
+            '/servicios-disponibles',
+            [
+                ReservaWizardController::class,
+                'consultarServiciosDisponibles',
+            ]
+        )->name('servicios-disponibles');
 
-    Route::post('/crear/finalizar', [ReservaWizardController::class, 'finalizar'])
-        ->name('finalizar');
-});
+        /*
+        |--------------------------------------------------------------------------
+        | Consultar horarios de un servicio
+        |--------------------------------------------------------------------------
+        */
+        Route::get(
+            '/consultar-horarios',
+            [
+                ReservaWizardController::class,
+                'consultarHorarios',
+            ]
+        )->name('consultar-horarios');
+
+        Route::get(
+            '/crear/confirmacion',
+            [ReservaWizardController::class, 'confirmacion']
+        )->name('confirmacion');
+
+        Route::post(
+            '/crear/finalizar',
+            [ReservaWizardController::class, 'finalizar']
+        )->name('finalizar');
+
+        Route::get(
+            '/comunas-por-region/{region}',
+            [
+                ReservaWizardController::class,
+                'comunasPorRegion',
+            ]
+        )->name('comunas-por-region');
+    });
 
 Route::get(
     '/reservas/comunas-por-region/{region}',

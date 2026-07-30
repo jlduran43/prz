@@ -12,7 +12,7 @@
         | También se admite el código almacenado en la sesión.
         */
         $datosCliente = $datosCliente ?? session('reserva.cliente', []);
-        $datosReserva = $datosReserva ?? session('reserva.reserva', []);
+        $datosReserva = $datosReserva ?? session('reserva.datos', []);
 
         $codigoTipoCliente = $datosCliente['codigo_tipo_cliente'] ?? ($datosCliente['tipo_cliente_codigo'] ?? null);
 
@@ -66,72 +66,24 @@
             <div class="card-header">
                 <h3 class="card-title">
                     <i class="fas fa-star mr-1"></i>
-                    Servicios y experiencias
+                    Servicios disponibles
                 </h3>
             </div>
 
             <div class="card-body">
-                <p class="text-muted mb-4">
-                    Puedes seleccionar hasta 2 servicios en total.
+                <p class="text-muted mb-3">
+                    Selecciona hasta dos servicios. Después podrás indicar
+                    una fecha y un horario para cada uno.
                 </p>
 
-                <div id="serviciosContainer" class="row">
-                    @foreach ($categoriasServicio as $categoria)
-                        <div class="col-lg-6 mb-4">
-                            <div class="service-category-card h-100">
-
-                                <div class="service-category-header">
-                                    <div>
-                                        <h5 class="mb-1">
-                                            {{ $categoria->nombre }}
-                                        </h5>
-
-                                        <p class="text-muted small mb-0">
-                                            Selecciona uno o más servicios
-                                            de esta categoría.
-                                        </p>
-                                    </div>
-
-                                    <span class="badge badge-primary">
-                                        <span class="category-count" data-category="{{ $categoria->id }}">
-                                            0
-                                        </span>
-                                        seleccionados
-                                    </span>
-                                </div>
-
-                                <div class="service-options">
-                                    @forelse ($categoria->servicios as $servicio)
-                                        <label class="service-option" for="servicio_{{ $servicio->id }}">
-                                            <input type="checkbox" name="servicios[]" id="servicio_{{ $servicio->id }}"
-                                                value="{{ $servicio->id }}" class="service-checkbox"
-                                                data-category="{{ $categoria->id }}" data-nombre="{{ $servicio->nombre }}"
-                                                data-precio="{{ $servicio->precio }}"
-                                                data-tipo-cobro="{{ $servicio->tipo_cobro }}" @checked(in_array($servicio->id, old('servicios', $datosReserva['servicios'] ?? [])))>
-
-                                            <span class="service-option-content">
-                                                <span class="service-name">
-                                                    {{ $servicio->nombre }}
-                                                </span>
-                                            </span>
-
-                                            <span class="service-check-icon">
-                                                <i class="fas fa-check"></i>
-                                            </span>
-                                        </label>
-                                    @empty
-                                        <div class="text-muted">
-                                            No hay servicios disponibles.
-                                        </div>
-                                    @endforelse
-                                </div>
-
-                            </div>
-                        </div>
-                    @endforeach
+                <div id="mensaje-servicios" class="alert alert-info mb-3">
+                    <i class="fas fa-spinner fa-spin mr-1"></i>
+                    Cargando servicios disponibles...
                 </div>
 
-                <div class="service-selection-summary">
+                <div id="contenedor-servicios" class="row" hidden></div>
+
+                <div class="service-selection-summary mt-3">
                     <div>
                         <span class="d-block font-weight-bold">
                             Servicios seleccionados
@@ -162,6 +114,25 @@
                         {{ $message }}
                     </div>
                 @enderror
+            </div>
+        </div>
+
+        <div class="card card-warning">
+            <div class="card-header">
+                <h3 class="card-title">
+                    <i class="fas fa-clock mr-1"></i>
+                    Horarios de los servicios
+                </h3>
+            </div>
+
+            <div class="card-body">
+
+                <div class="alert alert-info mb-3">
+                    Selecciona un horario para cada servicio.
+                </div>
+
+                <div id="horariosPorServicio"></div>
+
             </div>
         </div>
 
@@ -375,84 +346,11 @@
             </div>
         </div>
 
-        {{-- Fecha y horario --}}
-        <div class="card card-secondary">
-            <div class="card-header">
-                <h3 class="card-title">
-                    <i class="fas fa-calendar-alt mr-1"></i>
-                    Fecha y horario
-                </h3>
-            </div>
-
-            <div class="card-body">
-                <div class="row">
-
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label for="fecha">
-                                Fecha
-                                <span class="text-danger">*</span>
-                            </label>
-
-                            <input type="date" name="fecha" id="fecha"
-                                class="form-control
-                                    @error('fecha') is-invalid @enderror"
-                                value="{{ old('fecha', $datosReserva['fecha'] ?? '') }}"
-                                min="{{ now()->format('Y-m-d') }}" required>
-
-                            @error('fecha')
-                                <span class="invalid-feedback">
-                                    {{ $message }}
-                                </span>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label for="hora_inicio">
-                                Hora de ingreso
-                                <span class="text-danger">*</span>
-                            </label>
-
-                            <input type="time" name="hora_inicio" id="hora_inicio"
-                                class="form-control
-                                    @error('hora_inicio') is-invalid @enderror"
-                                value="{{ old('hora_inicio', $datosReserva['hora_inicio'] ?? '') }}" required>
-
-                            @error('hora_inicio')
-                                <span class="invalid-feedback">
-                                    {{ $message }}
-                                </span>
-                            @enderror
-                        </div>
-                    </div>
-
-                    <div class="col-md-4">
-                        <div class="form-group">
-                            <label for="hora_termino">
-                                Hora de salida
-                                <span class="text-danger">*</span>
-                            </label>
-
-                            <input type="time" name="hora_termino" id="hora_termino"
-                                class="form-control
-                                    @error('hora_termino') is-invalid @enderror"
-                                value="{{ old('hora_termino', $datosReserva['hora_termino'] ?? '') }}" required>
-
-                            @error('hora_termino')
-                                <span class="invalid-feedback">
-                                    {{ $message }}
-                                </span>
-                            @enderror
-                        </div>
-                    </div>
-
-                </div>
-            </div>
-
+        {{-- Botones de navegación --}}
+        <div class="card">
             <div class="card-footer">
                 <div class="row align-items-center">
+
                     <div class="col-6 text-left">
                         <a href="{{ route('reservas.cliente') }}" class="btn btn-secondary">
                             <i class="fas fa-arrow-left mr-1"></i>
@@ -466,6 +364,7 @@
                             <i class="fas fa-arrow-right ml-1"></i>
                         </button>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -634,6 +533,185 @@
                 align-items: flex-start;
             }
         }
+
+
+
+        button.horario-option:hover {
+            border-color: #007bff;
+            background-color: #f4f9ff;
+            box-shadow: 0 4px 12px rgba(0, 123, 255, .12);
+        }
+
+        button.horario-option.selected,
+        button.horario-option.selected:hover,
+        button.horario-option.selected:focus,
+        button.horario-option.selected:active {
+            border: 2px solid #007bff !important;
+            background-color: #eaf4ff !important;
+            color: #212529 !important;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, .18) !important;
+        }
+
+        button.horario-option.selected .horario-icono {
+            background-color: #007bff !important;
+            color: #ffffff !important;
+        }
+
+        .horario-option.no-disponible {
+            cursor: not-allowed;
+            opacity: .55;
+            background: #f8f9fa;
+        }
+
+        .horario-option-icon {
+            margin-right: 6px;
+            color: #007bff;
+        }
+
+        .horario-option.selected::after {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            color: #007bff;
+            font-family: "Font Awesome 5 Free";
+            font-weight: 900;
+            content: "\f058";
+        }
+
+        button.horario-option.selected .horario-seleccionado {
+            display: block;
+            color: #007bff;
+        }
+
+        .horario-option.no-disponible:hover {
+            border-color: #d9dee3;
+            box-shadow: none;
+            transform: none;
+        }
+
+        button.horario-option:focus {
+            outline: none;
+        }
+
+        button.horario-option {
+            position: relative;
+            width: 100%;
+            min-height: 92px;
+            padding: 14px 16px;
+            border-width: 2px;
+            border-radius: 10px;
+            background-color: #ffffff;
+            text-align: left;
+            white-space: normal;
+            transition:
+                background-color .2s ease,
+                border-color .2s ease,
+                box-shadow .2s ease,
+                transform .2s ease;
+        }
+
+        button.horario-option:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, .16);
+        }
+
+        button.horario-option:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, .20);
+        }
+
+        button.horario-option.selected,
+        button.horario-option.btn-primary {
+            background-color: #007bff !important;
+            border-color: #007bff !important;
+            color: #ffffff !important;
+        }
+
+        .horario-icono {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 42px;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background-color: rgba(0, 123, 255, .12);
+            color: #007bff;
+            font-size: 18px;
+        }
+
+        button.horario-option.selected .horario-icono {
+            background-color: rgba(255, 255, 255, .20);
+            color: #ffffff;
+        }
+
+        .horario-franja {
+            display: block;
+            font-size: 17px;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+
+        button.horario-option.selected .horario-franja {
+            color: #ffffff;
+        }
+
+        .horario-check {
+            display: none;
+            color: #ffffff;
+            font-size: 21px;
+        }
+
+        button.horario-option.selected .horario-check {
+            display: block;
+        }
+
+        button.horario-option.no-disponible {
+            cursor: not-allowed;
+            opacity: .55;
+            background-color: #f8f9fa;
+            border-color: #ced4da;
+            color: #6c757d;
+        }
+
+        .horario-check {
+            display: none;
+            margin-left: 20px;
+            padding-left: 16px;
+            border-left: 1px solid rgba(0, 123, 255, .20);
+            color: #007bff;
+            font-size: 22px;
+        }
+
+        button.horario-option.selected .horario-check {
+            display: block;
+            border-left-color: rgba(255, 255, 255, .35);
+            color: #ffffff;
+        }
+
+        .horario-servicio-card {
+            padding: 18px;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+
+        .horario-servicio-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 16px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        @media (max-width: 575.98px) {
+            .horario-servicio-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
     </style>
 @stop
 
@@ -642,9 +720,11 @@
         document.addEventListener('DOMContentLoaded', function() {
             const maximoServicios = 2;
 
-            const checkboxes = Array.from(
-                document.querySelectorAll('.service-checkbox')
-            );
+            const urlServiciosDisponibles =
+                @json(route('reservas.servicios-disponibles'));
+
+            const urlConsultarHorarios =
+                @json(route('reservas.consultar-horarios'));
 
             const cantidadInput =
                 document.getElementById('cantidad_asistentes');
@@ -670,11 +750,51 @@
             const errorElement =
                 document.getElementById('serviciosError');
 
+            const contenedorServicios =
+                document.getElementById('contenedor-servicios');
+
+            const mensajeServicios =
+                document.getElementById('mensaje-servicios');
+
+            const horariosPorServicio =
+                document.getElementById('horariosPorServicio');
+
+            function obtenerCheckboxes() {
+                return Array.from(
+                    document.querySelectorAll('.service-checkbox')
+                );
+            }
+
             function obtenerSeleccionados() {
-                return checkboxes.filter(function(checkbox) {
+                return obtenerCheckboxes().filter(function(checkbox) {
                     return checkbox.checked;
                 });
             }
+
+            contenedorServicios.addEventListener(
+                'change',
+                function(event) {
+                    const checkbox =
+                        event.target.closest('.service-checkbox');
+
+                    if (!checkbox) {
+                        return;
+                    }
+
+                    const seleccionados =
+                        obtenerSeleccionados();
+
+                    if (seleccionados.length > maximoServicios) {
+                        checkbox.checked = false;
+
+                        errorElement.classList.remove('d-none');
+                    } else {
+                        errorElement.classList.add('d-none');
+                    }
+
+                    actualizarInterfaz();
+                }
+            );
 
             function formatearPrecio(valor) {
                 return new Intl.NumberFormat('es-CL', {
@@ -740,7 +860,7 @@
                 const seAlcanzoMaximo =
                     seleccionados.length >= maximoServicios;
 
-                checkboxes.forEach(function(checkbox) {
+                obtenerCheckboxes().forEach(function(checkbox) {
                     const contenedor =
                         checkbox.closest('.service-option');
 
@@ -759,8 +879,16 @@
                 });
             }
 
-            function calcularSubtotal(precio, cantidadPersonas) {
-                return precio * cantidadPersonas;
+            function calcularSubtotal(
+                precio,
+                tipoCobro,
+                cantidadPersonas
+            ) {
+                if (tipoCobro === 'POR_PERSONA') {
+                    return precio * cantidadPersonas;
+                }
+
+                return precio;
             }
 
             function obtenerDescripcionCobro(
@@ -820,14 +948,17 @@
 
                     const subtotal = calcularSubtotal(
                         precio,
+                        tipoCobro,
                         cantidadPersonas
                     );
 
                     total += subtotal;
 
-                    const descripcion = formatearPrecio(precio) +
-                        ' por persona × ' +
-                        cantidadPersonas;
+                    const descripcion = obtenerDescripcionCobro(
+                        precio,
+                        tipoCobro,
+                        cantidadPersonas
+                    );
 
                     detalleHtml += `
                         <div class="price-detail-row">
@@ -858,22 +989,8 @@
                 actualizarContadores();
                 actualizarEstadoVisual();
                 calcularPrecio();
+                actualizarHorariosPorServicio();
             }
-
-            checkboxes.forEach(function(checkbox) {
-                checkbox.addEventListener('change', function() {
-                    const seleccionados = obtenerSeleccionados();
-
-                    if (seleccionados.length > maximoServicios) {
-                        checkbox.checked = false;
-                        errorElement.classList.remove('d-none');
-                    } else {
-                        errorElement.classList.add('d-none');
-                    }
-
-                    actualizarInterfaz();
-                });
-            });
 
             if (
                 cantidadInput &&
@@ -907,7 +1024,761 @@
             }
 
             actualizarCantidadEducacional();
-            actualizarInterfaz();
+            calcularPrecio();
+            cargarServiciosDisponibles();
+
+            function escaparHtml(valor) {
+                const elemento = document.createElement('div');
+
+                elemento.textContent = String(valor ?? '');
+
+                return elemento.innerHTML;
+            }
+
+            if (!mensajeServicios) {
+                console.error(
+                    'No se encontró el elemento #mensaje-servicios'
+                );
+
+                return;
+            }
+
+            function mostrarMensajeSeleccionarFecha() {
+                mensajeServicios.className =
+                    'alert alert-info mb-3';
+
+                mensajeServicios.innerHTML = `
+        <i class="fas fa-calendar-alt mr-1"></i>
+        Selecciona una fecha para consultar
+        los servicios disponibles.
+    `;
+
+                mensajeServicios.hidden = false;
+            }
+
+            function mostrarCargandoServicios() {
+                mensajeServicios.className =
+                    'alert alert-info mb-3';
+
+                mensajeServicios.innerHTML = `
+        <i class="fas fa-spinner fa-spin mr-1"></i>
+        Consultando servicios disponibles...
+    `;
+
+                mensajeServicios.hidden = false;
+                contenedorServicios.hidden = true;
+            }
+
+            function mostrarErrorServicios(mensaje) {
+                mensajeServicios.className =
+                    'alert alert-danger mb-3';
+
+                mensajeServicios.innerHTML = `
+        <i class="fas fa-exclamation-triangle mr-1"></i>
+        ${escaparHtml(mensaje)}
+    `;
+
+                mensajeServicios.hidden = false;
+                contenedorServicios.hidden = true;
+            }
+
+            function crearTarjetaServicio(servicio) {
+                const precio = Number(servicio.precio) || 0;
+
+                const categoria =
+                    servicio.categoria?.nombre ||
+                    'Sin categoría';
+
+                return `
+        <div class="col-lg-6 mb-3">
+            <label
+                class="service-option h-100"
+                for="servicio_${servicio.id}"
+            >
+                <input
+                    type="checkbox"
+                    name="servicios[]"
+                    id="servicio_${servicio.id}"
+                    value="${servicio.id}"
+                    class="service-checkbox"
+                    data-nombre="${escaparHtml(servicio.nombre)}"
+                    data-precio="${precio}"
+                    data-tipo-cobro="${escaparHtml(
+                        servicio.tipo_cobro
+                    )}"
+                >
+
+                <span class="service-option-content">
+                    <span class="service-name">
+                        ${escaparHtml(servicio.nombre)}
+                    </span>
+
+                    <span class="mt-2">
+                        <span class="badge badge-info">
+                            ${escaparHtml(categoria)}
+                        </span>
+                    </span>
+
+                    <strong class="text-primary mt-2">
+                        ${formatearPrecio(precio)}
+                    </strong>
+                </span>
+
+                <span class="service-check-icon">
+                    <i class="fas fa-check"></i>
+                </span>
+            </label>
+        </div>
+    `;
+            }
+
+            function renderizarServiciosDisponibles(servicios) {
+                contenedorServicios.innerHTML = '';
+
+                if (!servicios.length) {
+                    mensajeServicios.className =
+                        'alert alert-warning mb-3';
+
+                    mensajeServicios.innerHTML = `
+            <i class="fas fa-calendar-times mr-1"></i>
+            No existen servicios disponibles para
+            la fecha seleccionada.
+        `;
+
+                    mensajeServicios.hidden = false;
+                    contenedorServicios.hidden = true;
+
+                    return;
+                }
+
+                servicios.forEach(function(servicio) {
+                    contenedorServicios.insertAdjacentHTML(
+                        'beforeend',
+                        crearTarjetaServicio(servicio)
+                    );
+                });
+
+                mensajeServicios.hidden = true;
+                contenedorServicios.hidden = false;
+
+                actualizarInterfaz();
+            }
+
+            function limpiarSeleccionReserva() {
+                contenedorServicios.innerHTML = '';
+                contenedorServicios.hidden = true;
+
+                horariosPorServicio.innerHTML = '';
+
+                if (totalElement) {
+                    totalElement.textContent = '0';
+                }
+
+                if (errorElement) {
+                    errorElement.classList.add('d-none');
+                }
+
+                calcularPrecio();
+            }
+
+            async function cargarServiciosDisponibles() {
+                mostrarCargandoServicios();
+
+                try {
+                    const url = new URL(
+                        urlServiciosDisponibles,
+                        window.location.origin
+                    );
+
+                    const respuesta = await fetch(url, {
+                        method: 'GET',
+
+                        headers: {
+                            Accept: 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    });
+
+                    const contenido = await respuesta.text();
+
+                    let datos;
+
+                    try {
+                        datos = JSON.parse(contenido);
+                    } catch (error) {
+                        console.error(
+                            'Respuesta recibida desde Laravel:',
+                            contenido
+                        );
+
+                        throw new Error(
+                            'Laravel no devolvió JSON. ' +
+                            'Revisa la consola del navegador.'
+                        );
+                    }
+
+                    if (!respuesta.ok) {
+                        throw new Error(
+                            datos.message ||
+                            'No fue posible consultar los servicios.'
+                        );
+                    }
+
+                    renderizarServiciosDisponibles(
+                        datos.servicios || []
+                    );
+                } catch (error) {
+                    console.error(error);
+
+                    mostrarErrorServicios(
+                        error.message
+                    );
+                }
+            }
+
+            function obtenerHorarioAnterior(servicioId) {
+                const horariosGuardados = @json(old('horarios', $datosReserva['horarios'] ?? []));
+
+                return String(
+                    horariosGuardados[servicioId] || ''
+                );
+            }
+
+            function crearBloqueServicio(checkbox) {
+                const servicioId = checkbox.value;
+
+                const nombre =
+                    checkbox.dataset.nombre || 'Servicio';
+
+                const bloque =
+                    document.createElement('div');
+
+                bloque.className =
+                    'horario-servicio-card mb-3';
+
+                bloque.dataset.servicioId =
+                    servicioId;
+
+                bloque.innerHTML = `
+        <div class="horario-servicio-header">
+            <div>
+                <span class="text-muted small">
+                    Servicio seleccionado
+                </span>
+
+                <h5 class="mb-0">
+                    ${escaparHtml(nombre)}
+                </h5>
+            </div>
+
+            <span class="badge badge-primary">
+                Seleccione una fecha
+            </span>
+        </div>
+
+        <input
+            type="hidden"
+            name="servicios[${servicioId}][servicio_id]"
+            value="${servicioId}"
+        >
+
+        <div class="form-group">
+            <label for="fecha_servicio_${servicioId}">
+                Fecha del servicio
+                <span class="text-danger">*</span>
+            </label>
+
+            <input
+                type="date"
+                id="fecha_servicio_${servicioId}"
+                name="servicios[${servicioId}][fecha]"
+                class="form-control fecha-servicio"
+                min="{{ now()->format('Y-m-d') }}"
+                required
+            >
+        </div>
+
+        <div
+            class="mensaje-horario alert alert-info mb-3"
+        >
+            <i class="fas fa-calendar-alt mr-1"></i>
+            Selecciona una fecha para consultar
+            los horarios de este servicio.
+        </div>
+
+        <div
+            class="row horarios-servicio-opciones"
+        ></div>
+
+        <input
+            type="hidden"
+            name="servicios[${servicioId}][horario_id]"
+            class="horario-servicio-input"
+            value=""
+        >
+    `;
+
+                horariosPorServicio.appendChild(bloque);
+
+                const fechaServicio =
+                    bloque.querySelector('.fecha-servicio');
+
+                fechaServicio.addEventListener(
+                    'change',
+                    async function() {
+                        const fechaSeleccionada =
+                            this.value;
+
+                        await cargarHorariosServicio(
+                            checkbox,
+                            bloque,
+                            fechaSeleccionada
+                        );
+                    }
+                );
+
+                return bloque;
+            }
+
+            async function cargarHorariosServicio(
+                checkbox,
+                bloque,
+                fecha
+            ) {
+                const servicioId = checkbox.value;
+
+                const mensaje =
+                    bloque.querySelector('.mensaje-horario');
+
+                const contenedor =
+                    bloque.querySelector(
+                        '.horarios-servicio-opciones'
+                    );
+
+                const input =
+                    bloque.querySelector(
+                        '.horario-servicio-input'
+                    );
+
+                contenedor.innerHTML = '';
+                input.value = '';
+
+                if (!fecha) {
+                    mensaje.className =
+                        'mensaje-horario alert alert-info mb-3';
+
+                    mensaje.innerHTML = `
+            <i class="fas fa-calendar-alt mr-1"></i>
+            Selecciona una fecha para consultar horarios.
+        `;
+
+                    mensaje.classList.remove('d-none');
+
+                    return;
+                }
+
+                mensaje.className =
+                    'mensaje-horario alert alert-info mb-3';
+
+                mensaje.innerHTML = `
+        <i class="fas fa-spinner fa-spin mr-1"></i>
+        Consultando horarios disponibles...
+    `;
+
+                mensaje.classList.remove('d-none');
+
+                try {
+                    const url = new URL(
+                        urlConsultarHorarios,
+                        window.location.origin
+                    );
+
+                    url.searchParams.set('fecha', fecha);
+
+                    url.searchParams.set(
+                        'servicio_id',
+                        servicioId
+                    );
+
+                    const respuesta = await fetch(url, {
+                        method: 'GET',
+
+                        headers: {
+                            Accept: 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
+                        },
+                    });
+
+                    const datos = await respuesta.json();
+
+                    if (!respuesta.ok) {
+                        throw new Error(
+                            datos.message ||
+                            'No fue posible consultar los horarios.'
+                        );
+                    }
+
+                    const horarios = datos.horarios || [];
+
+                    if (horarios.length === 0) {
+                        mensaje.className =
+                            'mensaje-horario alert alert-warning mb-3';
+
+                        mensaje.innerHTML = `
+                <i class="fas fa-calendar-times mr-1"></i>
+                No existen horarios disponibles
+                para este servicio en la fecha seleccionada.
+            `;
+
+                        return;
+                    }
+
+                    mensaje.classList.add('d-none');
+
+                    horarios.forEach(function(horario) {
+                        const columna =
+                            document.createElement('div');
+
+                        columna.className =
+                            'col-xl-3 col-lg-4 col-md-6 col-12 mb-3';
+
+                        const boton =
+                            document.createElement('button');
+
+                        boton.type = 'button';
+
+                        boton.className =
+                            'btn btn-outline-primary horario-option';
+
+                        boton.dataset.horarioId = horario.id;
+                        boton.dataset.horaInicio =
+                            horario.hora_inicio;
+                        boton.dataset.horaTermino =
+                            horario.hora_termino;
+                        boton.dataset.fecha = fecha;
+
+                        boton.innerHTML = `
+                <div class="d-flex align-items-center">
+                    <div class="horario-icono">
+                        <i class="fas fa-business-time"></i>
+                    </div>
+
+                    <div class="ml-3">
+                        <span class="horario-franja">
+                            ${horario.hora_inicio}
+                            a
+                            ${horario.hora_termino}
+                        </span>
+                    </div>
+
+                    <div class="horario-check ml-auto">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                </div>
+            `;
+
+                        boton.dataset.disponibleOriginal =
+                            horario.disponible ? '1' : '0';
+
+                        if (!horario.disponible) {
+                            boton.disabled = true;
+
+                            boton.classList.add(
+                                'no-disponible'
+                            );
+
+                            boton.title =
+                                'Este horario no se encuentra disponible.';
+                        } else {
+                            boton.addEventListener(
+                                'click',
+                                function() {
+                                    seleccionarHorarioServicio(
+                                        bloque,
+                                        horario.id,
+                                        boton
+                                    );
+                                }
+                            );
+                        }
+
+                        columna.appendChild(boton);
+                        contenedor.appendChild(columna);
+                    });
+
+                    actualizarDisponibilidadCruzada();
+                } catch (error) {
+                    console.error(error);
+
+                    mensaje.className =
+                        'mensaje-horario alert alert-danger mb-3';
+
+                    mensaje.innerHTML = `
+            <i class="fas fa-exclamation-triangle mr-1"></i>
+            ${escaparHtml(error.message)}
+        `;
+                }
+            }
+
+            function convertirHoraAMinutos(hora) {
+                if (!hora) {
+                    return 0;
+                }
+
+                const partes = hora.substring(0, 5).split(':');
+
+                const horas = Number(partes[0]) || 0;
+                const minutos = Number(partes[1]) || 0;
+
+                return (horas * 60) + minutos;
+            }
+
+            function horariosSeSuperponen(
+                inicioA,
+                terminoA,
+                inicioB,
+                terminoB
+            ) {
+                const inicioAMinutos =
+                    convertirHoraAMinutos(inicioA);
+
+                const terminoAMinutos =
+                    convertirHoraAMinutos(terminoA);
+
+                const inicioBMinutos =
+                    convertirHoraAMinutos(inicioB);
+
+                const terminoBMinutos =
+                    convertirHoraAMinutos(terminoB);
+
+                /*
+                 * Existe superposición cuando un horario comienza
+                 * antes de que termine el otro y termina después
+                 * de que comience el otro.
+                 */
+                return (
+                    inicioAMinutos < terminoBMinutos &&
+                    terminoAMinutos > inicioBMinutos
+                );
+            }
+
+            function obtenerHorariosSeleccionados(
+                bloqueExcluido = null
+            ) {
+                return Array.from(
+                        horariosPorServicio.querySelectorAll(
+                            '.horario-servicio-card'
+                        )
+                    )
+                    .filter(function(bloque) {
+                        return bloque !== bloqueExcluido;
+                    })
+                    .map(function(bloque) {
+                        const boton = bloque.querySelector(
+                            '.horario-option.selected'
+                        );
+
+                        if (!boton) {
+                            return null;
+                        }
+
+                        return {
+                            bloque: bloque,
+                            servicioId: bloque.dataset.servicioId,
+                            horarioId: boton.dataset.horarioId,
+                            fecha: boton.dataset.fecha,
+                            horaInicio: boton.dataset.horaInicio,
+                            horaTermino: boton.dataset.horaTermino,
+                        };
+                    })
+                    .filter(function(horario) {
+                        return horario !== null;
+                    });
+            }
+
+            function existeConflictoHorario(
+                bloqueActual,
+                botonSeleccionado
+            ) {
+                const seleccionados =
+                    obtenerHorariosSeleccionados(bloqueActual);
+
+                return seleccionados.some(function(horario) {
+                    if (
+                        horario.fecha !==
+                        botonSeleccionado.dataset.fecha
+                    ) {
+                        return false;
+                    }
+
+                    return horariosSeSuperponen(
+                        botonSeleccionado.dataset.horaInicio,
+                        botonSeleccionado.dataset.horaTermino,
+                        horario.horaInicio,
+                        horario.horaTermino
+                    );
+                });
+            }
+
+            function actualizarDisponibilidadCruzada() {
+                const bloques = horariosPorServicio.querySelectorAll(
+                    '.horario-servicio-card'
+                );
+
+                bloques.forEach(function(bloqueActual) {
+                    const otrosHorarios =
+                        obtenerHorariosSeleccionados(bloqueActual);
+
+                    bloqueActual
+                        .querySelectorAll('.horario-option')
+                        .forEach(function(boton) {
+                            /*
+                             * No modificamos botones que originalmente
+                             * vienen como no disponibles desde el servidor.
+                             */
+                            if (boton.dataset.disponibleOriginal === '0') {
+                                return;
+                            }
+
+                            const esSeleccionado =
+                                boton.classList.contains('selected');
+
+                            const tieneConflicto =
+                                otrosHorarios.some(function(horario) {
+                                    if (
+                                        horario.fecha !==
+                                        boton.dataset.fecha
+                                    ) {
+                                        return false;
+                                    }
+
+                                    return horariosSeSuperponen(
+                                        boton.dataset.horaInicio,
+                                        boton.dataset.horaTermino,
+                                        horario.horaInicio,
+                                        horario.horaTermino
+                                    );
+                                });
+
+                            boton.disabled =
+                                tieneConflicto && !esSeleccionado;
+
+                            boton.classList.toggle(
+                                'no-disponible',
+                                tieneConflicto && !esSeleccionado
+                            );
+
+                            boton.title =
+                                tieneConflicto && !esSeleccionado ?
+                                'Este horario se superpone con otro servicio seleccionado.' :
+                                '';
+                        });
+                });
+            }
+
+            function seleccionarHorarioServicio(
+                bloque,
+                horarioId,
+                botonSeleccionado
+            ) {
+                if (
+                    existeConflictoHorario(
+                        bloque,
+                        botonSeleccionado
+                    )
+                ) {
+                    alert(
+                        'Este horario se superpone con el horario seleccionado para otro servicio.'
+                    );
+
+                    return;
+                }
+
+                const botones = bloque.querySelectorAll(
+                    '.horario-option'
+                );
+
+                botones.forEach(function(boton) {
+                    boton.classList.remove(
+                        'selected',
+                        'btn-primary'
+                    );
+
+                    boton.classList.add(
+                        'btn-outline-primary'
+                    );
+                });
+
+                botonSeleccionado.classList.remove(
+                    'btn-outline-primary'
+                );
+
+                botonSeleccionado.classList.add(
+                    'selected',
+                    'btn-primary'
+                );
+
+                const input = bloque.querySelector(
+                    '.horario-servicio-input'
+                );
+
+                input.value = horarioId;
+
+                const badge = bloque.querySelector(
+                    '.horario-servicio-header .badge'
+                );
+
+                if (badge) {
+                    badge.className = 'badge badge-success';
+
+                    badge.textContent =
+                        botonSeleccionado.dataset.horaInicio +
+                        ' a ' +
+                        botonSeleccionado.dataset.horaTermino;
+                }
+
+                actualizarDisponibilidadCruzada();
+            }
+
+            function actualizarHorariosPorServicio() {
+                const seleccionados = obtenerSeleccionados();
+
+                /*
+                 * Elimina bloques de servicios que ya no estén marcados.
+                 */
+                horariosPorServicio
+                    .querySelectorAll('.horario-servicio-card')
+                    .forEach(function(bloque) {
+                        const servicioId =
+                            bloque.dataset.servicioId;
+
+                        const sigueSeleccionado =
+                            seleccionados.some(function(checkbox) {
+                                return checkbox.value === servicioId;
+                            });
+
+                        if (!sigueSeleccionado) {
+                            bloque.remove();
+                        }
+                    });
+
+                /*
+                 * Agrega bloques para servicios nuevos.
+                 */
+                seleccionados.forEach(function(checkbox) {
+                    const servicioId = checkbox.value;
+
+                    const bloque = horariosPorServicio.querySelector(
+                        `[data-servicio-id="${servicioId}"]`
+                    );
+
+                    if (!bloque) {
+                        crearBloqueServicio(
+                            checkbox
+                        );
+                    }
+                });
+            }
         });
     </script>
 @stop

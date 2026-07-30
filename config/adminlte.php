@@ -354,6 +354,11 @@ return [
                     'route' => 'servicios-experiencias.index',
                     'icon' => 'fas fa-hiking',
                 ],
+                [
+                    'text' => 'Horarios de atención',
+                    'route' => 'horarios-disponibles.index',
+                    'icon' => 'fas fa-clock',
+                ],
             ],
         ],
     ],
