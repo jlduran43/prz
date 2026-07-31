@@ -12,19 +12,17 @@ class TipoCliente extends Model
     protected $fillable = [
         'codigo',
         'nombre',
-        'tipo_rut',
+        'tipo_estructura',
         'activo',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'activo' => 'boolean',
-        ];
-    }
+    protected $casts = [
+        'activo' => 'boolean',
+    ];
 
-    //public function clientes(): HasMany
-    //{
-        //return $this->hasMany(Cliente::class);
-    //}
+
+    public function reservas(): HasMany
+    {
+        return $this->hasMany(Reserva::class);
+    }
 }

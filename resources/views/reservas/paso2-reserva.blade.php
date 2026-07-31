@@ -656,11 +656,7 @@
             color: #ffffff;
         }
 
-        .horario-check {
-            display: none;
-            color: #ffffff;
-            font-size: 21px;
-        }
+
 
         button.horario-option.selected .horario-check {
             display: block;
@@ -681,12 +677,6 @@
             border-left: 1px solid rgba(0, 123, 255, .20);
             color: #007bff;
             font-size: 22px;
-        }
-
-        button.horario-option.selected .horario-check {
-            display: block;
-            border-left-color: rgba(255, 255, 255, .35);
-            color: #ffffff;
         }
 
         .horario-servicio-card {
@@ -1097,7 +1087,6 @@
             >
                 <input
                     type="checkbox"
-                    name="servicios[]"
                     id="servicio_${servicio.id}"
                     value="${servicio.id}"
                     class="service-checkbox"
@@ -1470,10 +1459,6 @@
                             ${horario.hora_termino}
                         </span>
                     </div>
-
-                    <div class="horario-check ml-auto">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
                 </div>
             `;
 
@@ -1681,6 +1666,46 @@
                 horarioId,
                 botonSeleccionado
             ) {
+                const yaEstaSeleccionado =
+                    botonSeleccionado.classList.contains('selected');
+
+                const input = bloque.querySelector(
+                    '.horario-servicio-input'
+                );
+
+                const badge = bloque.querySelector(
+                    '.horario-servicio-header .badge'
+                );
+
+                /*
+                 * Si el usuario vuelve a presionar el mismo horario,
+                 * se desmarca.
+                 */
+                if (yaEstaSeleccionado) {
+                    botonSeleccionado.classList.remove(
+                        'selected',
+                        'btn-primary'
+                    );
+
+                    botonSeleccionado.classList.add(
+                        'btn-outline-primary'
+                    );
+
+                    input.value = '';
+
+                    if (badge) {
+                        badge.className = 'badge badge-primary';
+                        badge.textContent = 'Seleccione un horario';
+                    }
+
+                    actualizarDisponibilidadCruzada();
+
+                    return;
+                }
+
+                /*
+                 * Verificar que no se superponga con otro servicio.
+                 */
                 if (
                     existeConflictoHorario(
                         bloque,
@@ -1694,6 +1719,9 @@
                     return;
                 }
 
+                /*
+                 * Quitar la selección anterior del mismo servicio.
+                 */
                 const botones = bloque.querySelectorAll(
                     '.horario-option'
                 );
@@ -1709,6 +1737,9 @@
                     );
                 });
 
+                /*
+                 * Seleccionar el nuevo horario.
+                 */
                 botonSeleccionado.classList.remove(
                     'btn-outline-primary'
                 );
@@ -1718,15 +1749,7 @@
                     'btn-primary'
                 );
 
-                const input = bloque.querySelector(
-                    '.horario-servicio-input'
-                );
-
                 input.value = horarioId;
-
-                const badge = bloque.querySelector(
-                    '.horario-servicio-header .badge'
-                );
 
                 if (badge) {
                     badge.className = 'badge badge-success';

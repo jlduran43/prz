@@ -26,12 +26,7 @@
 
                 {{ session('error') }}
 
-                <button
-                    type="button"
-                    class="close"
-                    data-dismiss="alert"
-                    aria-label="Cerrar"
-                >
+                <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
@@ -122,10 +117,7 @@
                                 {{ $tipoCliente->nombre ?? 'No disponible' }}
                             </dd>
 
-                            @if (
-                                ($cliente['codigo_tipo_cliente'] ?? null)
-                                === 'PERSONA'
-                            )
+                            @if (($cliente['codigo_tipo_cliente'] ?? null) === 'PERSONA')
                                 <dt class="col-sm-5">
                                     Nombres
                                 </dt>
@@ -237,11 +229,37 @@
                                 Fecha
                             </dt>
 
-                            <dd class="col-sm-6">
-                                {{ \Carbon\Carbon::parse(
-                                    $reserva['fecha']
-                                )->format('d/m/Y') }}
-                            </dd>
+                            @foreach ($detallesServicios as $detalle)
+                                <dt class="col-sm-4">
+                                    Servicio
+                                </dt>
+
+                                <dd class="col-sm-8">
+                                    {{ $detalle['nombre'] }}
+                                </dd>
+
+                                <dt class="col-sm-4">
+                                    Fecha
+                                </dt>
+
+                                <dd class="col-sm-8">
+                                    {{ \Carbon\Carbon::parse($detalle['fecha'])->format('d/m/Y') }}
+                                </dd>
+
+                                <dt class="col-sm-4">
+                                    Horario
+                                </dt>
+
+                                <dd class="col-sm-8">
+                                    {{ $detalle['hora_inicio'] }}
+                                    a
+                                    {{ $detalle['hora_termino'] }}
+                                </dd>
+
+                                <div class="col-12">
+                                    <hr>
+                                </div>
+                            @endforeach
 
                             <dt class="col-sm-6">
                                 Cantidad de asistentes
@@ -251,10 +269,7 @@
                                 {{ $reserva['cantidad_asistentes'] }}
                             </dd>
 
-                            @if (
-                                ($cliente['codigo_tipo_cliente'] ?? null)
-                                === 'ESTABLECIMIENTO_EDUCACIONAL'
-                            )
+                            @if (($cliente['codigo_tipo_cliente'] ?? null) === 'ESTABLECIMIENTO_EDUCACIONAL')
                                 <dt class="col-sm-6">
                                     Cantidad de alumnos
                                 </dt>
@@ -276,36 +291,23 @@
                                 </dt>
 
                                 <dd class="col-sm-6">
-                                    {{
-                                        match (
-                                            $reserva['nivel_educacional']
-                                            ?? null
-                                        ) {
-                                            'PARVULARIA' =>
-                                                'Educación parvularia',
+                                    {{ match ($reserva['nivel_educacional'] ?? null) {
+                                        'PARVULARIA' => 'Educación parvularia',
 
-                                            'BASICA' =>
-                                                'Educación básica',
+                                        'BASICA' => 'Educación básica',
 
-                                            'MEDIA' =>
-                                                'Educación media',
+                                        'MEDIA' => 'Educación media',
 
-                                            'ESPECIAL' =>
-                                                'Educación especial',
+                                        'ESPECIAL' => 'Educación especial',
 
-                                            'SUPERIOR' =>
-                                                'Educación superior',
+                                        'SUPERIOR' => 'Educación superior',
 
-                                            'ADULTOS' =>
-                                                'Educación de adultos',
+                                        'ADULTOS' => 'Educación de adultos',
 
-                                            'OTRO' =>
-                                                'Otro',
+                                        'OTRO' => 'Otro',
 
-                                            default =>
-                                                '-',
-                                        }
-                                    }}
+                                        default => '-',
+                                    } }}
                                 </dd>
 
                                 <dt class="col-sm-6">
@@ -361,10 +363,7 @@
                         </thead>
 
                         <tbody>
-                            @foreach (
-                                $detallesServicios
-                                as $detalle
-                            )
+                            @foreach ($detallesServicios as $detalle)
                                 <tr>
                                     <td>
                                         <div class="font-weight-bold">
@@ -373,22 +372,15 @@
                                     </td>
 
                                     <td>
-                                        @if (
-                                            $detalle['hora_inicio']
-                                            && $detalle['hora_termino']
-                                        )
+                                        @if ($detalle['hora_inicio'] && $detalle['hora_termino'])
                                             <span class="badge badge-info p-2">
                                                 <i class="far fa-clock mr-1"></i>
 
-                                                {{
-                                                    $detalle['hora_inicio']
-                                                }}
+                                                {{ $detalle['hora_inicio'] }}
 
                                                 -
 
-                                                {{
-                                                    $detalle['hora_termino']
-                                                }}
+                                                {{ $detalle['hora_termino'] }}
                                             </span>
                                         @else
                                             <span class="text-danger">
@@ -401,15 +393,15 @@
                                         @switch($detalle['tipo_cobro'])
                                             @case('POR_PERSONA')
                                                 Por persona
-                                                @break
+                                            @break
 
                                             @case('POR_GRUPO')
                                                 Por grupo
-                                                @break
+                                            @break
 
                                             @case('FIJO')
                                                 Precio fijo
-                                                @break
+                                            @break
 
                                             @default
                                                 {{ $detalle['tipo_cobro'] }}
@@ -418,26 +410,12 @@
 
                                     <td class="text-right">
                                         $
-                                        {{
-                                            number_format(
-                                                $detalle['precio_unitario'],
-                                                0,
-                                                ',',
-                                                '.'
-                                            )
-                                        }}
+                                        {{ number_format($detalle['precio_unitario'], 0, ',', '.') }}
                                     </td>
 
                                     <td class="text-right font-weight-bold">
                                         $
-                                        {{
-                                            number_format(
-                                                $detalle['subtotal'],
-                                                0,
-                                                ',',
-                                                '.'
-                                            )
-                                        }}
+                                        {{ number_format($detalle['subtotal'], 0, ',', '.') }}
                                     </td>
                                 </tr>
                             @endforeach
@@ -461,43 +439,27 @@
                     <div class="card-body">
                         <div
                             class="d-flex justify-content-between
-                                   align-items-center mb-2"
-                        >
+                                   align-items-center mb-2">
                             <span>
                                 Subtotal
                             </span>
 
                             <strong>
                                 $
-                                {{
-                                    number_format(
-                                        $subtotal,
-                                        0,
-                                        ',',
-                                        '.'
-                                    )
-                                }}
+                                {{ number_format($subtotal, 0, ',', '.') }}
                             </strong>
                         </div>
 
                         <div
                             class="d-flex justify-content-between
-                                   align-items-center mb-3"
-                        >
+                                   align-items-center mb-3">
                             <span>
                                 Descuento
                             </span>
 
                             <strong>
                                 $
-                                {{
-                                    number_format(
-                                        $descuento,
-                                        0,
-                                        ',',
-                                        '.'
-                                    )
-                                }}
+                                {{ number_format($descuento, 0, ',', '.') }}
                             </strong>
                         </div>
 
@@ -505,22 +467,14 @@
 
                         <div
                             class="d-flex justify-content-between
-                                   align-items-center total-reserva"
-                        >
+                                   align-items-center total-reserva">
                             <span>
                                 Total
                             </span>
 
                             <strong>
                                 $
-                                {{
-                                    number_format(
-                                        $total,
-                                        0,
-                                        ',',
-                                        '.'
-                                    )
-                                }}
+                                {{ number_format($total, 0, ',', '.') }}
                             </strong>
                         </div>
                     </div>
@@ -529,30 +483,17 @@
         </div>
 
         {{-- Botones --}}
-        <div
-            class="d-flex flex-column flex-sm-row
-                   justify-content-between mb-4"
-        >
-            <a
-                href="{{ route('reservas.datos') }}"
-                class="btn btn-default mb-2 mb-sm-0"
-            >
+        <div class="d-flex flex-column flex-sm-row
+                   justify-content-between mb-4">
+            <a href="{{ route('reservas.datos') }}" class="btn btn-default mb-2 mb-sm-0">
                 <i class="fas fa-arrow-left mr-1"></i>
                 Volver a la reserva
             </a>
 
-            <form
-                action="{{ route('reservas.finalizar') }}"
-                method="POST"
-                id="form-confirmar-reserva"
-            >
+            <form action="{{ route('reservas.finalizar') }}" method="POST" id="form-confirmar-reserva">
                 @csrf
 
-                <button
-                    type="submit"
-                    class="btn btn-success btn-lg"
-                    id="btn-confirmar-reserva"
-                >
+                <button type="submit" class="btn btn-success btn-lg" id="btn-confirmar-reserva">
                     <i class="fas fa-check-circle mr-1"></i>
                     Confirmar reserva
                 </button>
@@ -637,7 +578,7 @@
     <script>
         document.addEventListener(
             'DOMContentLoaded',
-            function () {
+            function() {
                 const formulario = document.getElementById(
                     'form-confirmar-reserva'
                 );
@@ -652,7 +593,7 @@
 
                 formulario.addEventListener(
                     'submit',
-                    function () {
+                    function() {
                         boton.disabled = true;
 
                         boton.innerHTML = `

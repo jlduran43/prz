@@ -335,6 +335,11 @@ return [
             'icon' => 'fas fa-cogs',
             'submenu' => [
                 [
+                    'text' => 'Tipos de cliente',
+                    'route' => 'tipos-cliente.index',
+                    'icon' => 'fas fa-fw fa-users',
+                ],
+                [
                     'text' => 'Regiones',
                     'route' => 'regiones.index',
                     'icon' => 'fas fa-map',

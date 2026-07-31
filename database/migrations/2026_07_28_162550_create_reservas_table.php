@@ -37,8 +37,6 @@ return new class extends Migration
                 ->nullable()
                 ->constrained('comunas');
 
-            $table->date('fecha');
-
             $table->unsignedInteger('cantidad_asistentes');
 
             $table->unsignedInteger('cantidad_alumnos')
@@ -70,7 +68,6 @@ return new class extends Migration
 
             $table->timestamps();
 
-            $table->index('fecha');
             $table->index('estado');
         });
     }

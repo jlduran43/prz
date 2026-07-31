@@ -14,16 +14,28 @@ return new class extends Migration
         Schema::create('horarios_disponibles', function (Blueprint $table) {
             $table->id();
 
+            $table->foreignId('servicio_experiencia_id')
+                ->constrained('servicios_experiencias')
+                ->cascadeOnUpdate()
+                ->cascadeOnDelete();
+
+            $table->unsignedInteger('capacidad_maxima')
+                ->nullable();
+
             $table->time('hora_inicio');
             $table->time('hora_termino');
             $table->boolean('activo')->default(true);
 
             $table->timestamps();
 
-            $table->unique([
-                'hora_inicio',
-                'hora_termino',
-            ]);
+            $table->unique(
+                [
+                    'servicio_experiencia_id',
+                    'hora_inicio',
+                    'hora_termino',
+                ],
+                'horarios_servicio_horas_unique'
+            );
         });
     }
 

@@ -7,10 +7,21 @@ use App\Http\Controllers\RegionController;
 use App\Http\Controllers\ReservaWizardController;
 use App\Http\Controllers\ServicioExperienciaController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\TipoClienteController;
 
 Route::get('/dashboard', function () {
     return view('dashboard');
 })->name('dashboard');
+
+Route::patch(
+    'tipos-cliente/{tipoCliente}/cambiar-estado',
+    [TipoClienteController::class, 'cambiarEstado']
+)->name('tipos-cliente.cambiar-estado');
+
+Route::resource(
+    'tipos-cliente',
+    TipoClienteController::class
+);
 
 Route::resource('regiones', RegionController::class)
     ->parameters([

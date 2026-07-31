@@ -90,7 +90,6 @@
             <table class="table table-hover table-striped">
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Código</th>
                         <th>Nombre</th>
                         <th>Comunas</th>
@@ -102,8 +101,6 @@
                 <tbody>
                     @forelse ($regiones as $region)
                         <tr>
-                            <td>{{ $region->id }}</td>
-
                             <td>
                                 <strong>{{ $region->codigo }}</strong>
                             </td>

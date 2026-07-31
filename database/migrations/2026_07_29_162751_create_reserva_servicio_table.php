@@ -23,17 +23,23 @@ return new class extends Migration
 
                 $table
                     ->foreignId('servicio_experiencia_id')
-                    ->constrained('servicios_experiencias');
+                    ->constrained('servicios_experiencias')
+                    ->restrictOnDelete();
 
                 $table
                     ->foreignId('horario_disponible_id')
-                    ->constrained('horarios_disponibles');
+                    ->constrained('horarios_disponibles')
+                    ->restrictOnDelete();
+
+                $table->date('fecha');
 
                 $table
                     ->decimal('precio', 12, 2)
                     ->default(0);
 
                 $table->timestamps();
+
+                $table->index('fecha');
 
                 $table->unique([
                     'reserva_id',

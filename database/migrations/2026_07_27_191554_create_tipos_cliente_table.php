@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('nombre', 100);
 
             // Define qué formulario mostrar
-            $table->enum('estructura_datos', [
+            $table->enum('tipo_estructura', [
                 'PERSONA',
                 'ORGANIZACION'
             ]);
