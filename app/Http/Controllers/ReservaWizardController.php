@@ -10,6 +10,7 @@ use App\Models\Region;
 use App\Models\Reserva;
 use App\Models\ServicioExperiencia;
 use App\Models\TipoCliente;
+use App\Rules\RutChileno;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -96,6 +97,7 @@ class ReservaWizardController extends Controller
                     'required',
                     'string',
                     'max:20',
+                    new RutChileno(),
                 ],
             ]);
         }
@@ -112,12 +114,14 @@ class ReservaWizardController extends Controller
                     'required',
                     'string',
                     'max:20',
+                    new RutChileno(),
                 ],
 
                 'nombre_encargado' => [
                     'required',
                     'string',
                     'max:150',
+                    new RutChileno(),
                 ],
 
                 'rut_encargado' => [

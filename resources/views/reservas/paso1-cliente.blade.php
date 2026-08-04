@@ -6,24 +6,15 @@
     <div class="d-flex justify-content-between align-items-center">
         <div>
             <h1 class="mb-1">Nueva reserva</h1>
+
             <p class="text-muted mb-0">
                 Completa los datos del cliente que solicita la reserva.
             </p>
         </div>
-
-        {{-- <a
-            href="{{ route('reservas.index') }}"
-            class="btn btn-secondary"
-        >
-            <i class="fas fa-arrow-left"></i>
-            Volver
-        </a> --}}
-
     </div>
 @stop
 
 @section('content')
-
     @include('reservas.partials._wizard', ['paso' => 1])
 
     <form method="POST" action="{{ route('reservas.cliente.guardar') }}">
@@ -31,14 +22,13 @@
 
         @if ($errors->any())
             <div class="alert alert-danger">
-                <i class="fas fa-exclamation-triangle"></i>
+                <i class="fas fa-exclamation-triangle mr-1"></i>
                 Revisa los campos marcados antes de continuar.
             </div>
         @endif
 
         {{-- Tipo de cliente --}}
         <div class="card card-primary">
-
             <div class="card-header">
                 <h3 class="card-title">
                     Tipo de cliente
@@ -46,7 +36,6 @@
             </div>
 
             <div class="card-body">
-
                 @php
                     $tipos = $tiposCliente->sortBy(function ($tipo) {
                         return $tipo->codigo === 'PERSONA' ? 0 : 1;
@@ -54,28 +43,43 @@
                 @endphp
 
                 <div class="form-group">
-
                     <label for="tipo_cliente_id">
                         Tipo de cliente
                         <span class="text-danger">*</span>
                     </label>
 
-                    <select id="tipo_cliente_id" name="tipo_cliente_id"
-                        class="form-control @error('tipo_cliente_id') is-invalid @enderror" required>
-                        <option value="">Seleccione un tipo de cliente</option>
+                    <select
+                        id="tipo_cliente_id"
+                        name="tipo_cliente_id"
+                        class="form-control @error('tipo_cliente_id') is-invalid @enderror"
+                        required
+                    >
+                        <option value="">
+                            Seleccione un tipo de cliente
+                        </option>
 
                         @foreach ($tipos as $tipo)
-                            <option value="{{ $tipo->id }}" data-codigo="{{ $tipo->codigo }}"
+                            <option
+                                value="{{ $tipo->id }}"
+                                data-codigo="{{ $tipo->codigo }}"
                                 data-estructura="{{ $tipo->tipo_estructura }}"
-                                {{ old('tipo_cliente_id', $datosCliente['tipo_cliente_id'] ?? '') == $tipo->id ? 'selected' : '' }}>
+                                @selected(
+                                    old(
+                                        'tipo_cliente_id',
+                                        $datosCliente['tipo_cliente_id'] ?? ''
+                                    ) == $tipo->id
+                                )
+                            >
                                 {{ $tipo->nombre }}
                             </option>
                         @endforeach
-
                     </select>
 
-                    <small id="descripcion-tipo" class="form-text text-muted mt-2">
-                        Seleccione el tipo de cliente que realizará la reserva.
+                    <small
+                        id="descripcion-tipo"
+                        class="form-text text-muted mt-2"
+                    >
+                        Selecciona el tipo de cliente que realizará la reserva.
                     </small>
 
                     @error('tipo_cliente_id')
@@ -83,22 +87,20 @@
                             {{ $message }}
                         </div>
                     @enderror
-
                 </div>
-
             </div>
-
         </div>
 
         {{-- Datos de persona --}}
         <div id="campos-persona" class="card card-info" hidden>
             <div class="card-header">
-                <h3 class="card-title">Datos de la persona</h3>
+                <h3 class="card-title">
+                    Datos de la persona
+                </h3>
             </div>
 
             <div class="card-body">
                 <div class="row">
-
                     <div class="col-md-4">
                         <div class="form-group">
                             <label for="nombres">
@@ -106,9 +108,17 @@
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <input id="nombres" name="nombres" type="text"
+                            <input
+                                id="nombres"
+                                name="nombres"
+                                type="text"
                                 class="form-control @error('nombres') is-invalid @enderror"
-                                value="{{ old('nombres', $datosCliente['nombres'] ?? '') }}" placeholder="Ej.: María José">
+                                value="{{ old(
+                                    'nombres',
+                                    $datosCliente['nombres'] ?? ''
+                                ) }}"
+                                placeholder="Ej.: María José"
+                            >
 
                             @error('nombres')
                                 <span class="invalid-feedback">
@@ -125,10 +135,17 @@
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <input id="apellidos" name="apellidos" type="text"
+                            <input
+                                id="apellidos"
+                                name="apellidos"
+                                type="text"
                                 class="form-control @error('apellidos') is-invalid @enderror"
-                                value="{{ old('apellidos', $datosCliente['apellidos'] ?? '') }}"
-                                placeholder="Ej.: González Pérez">
+                                value="{{ old(
+                                    'apellidos',
+                                    $datosCliente['apellidos'] ?? ''
+                                ) }}"
+                                placeholder="Ej.: González Pérez"
+                            >
 
                             @error('apellidos')
                                 <span class="invalid-feedback">
@@ -145,19 +162,45 @@
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <input id="rut_persona" name="rut_persona" type="text"
-                                class="form-control @error('rut_persona') is-invalid @enderror"
-                                value="{{ old('rut_persona', $datosCliente['rut_persona'] ?? '') }}"
-                                placeholder="12.345.678-9">
+                            <div class="input-group rut-input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-id-card"></i>
+                                    </span>
+                                </div>
 
-                            @error('rut_persona')
-                                <span class="invalid-feedback">
-                                    {{ $message }}
-                                </span>
-                            @enderror
+                                <input
+                                    id="rut_persona"
+                                    name="rut_persona"
+                                    type="text"
+                                    class="form-control rut-chileno @error('rut_persona') is-invalid @enderror"
+                                    value="{{ old(
+                                        'rut_persona',
+                                        $datosCliente['rut_persona'] ?? ''
+                                    ) }}"
+                                    placeholder="12.345.678-5"
+                                    maxlength="12"
+                                    autocomplete="off"
+                                >
+
+                                <div class="input-group-append">
+                                    <span class="input-group-text rut-estado">
+                                        <i class="fas fa-minus text-muted"></i>
+                                    </span>
+                                </div>
+
+                                @error('rut_persona')
+                                    <span class="invalid-feedback">
+                                        {{ $message }}
+                                    </span>
+                                @enderror
+                            </div>
+
+                            <small class="form-text text-muted rut-mensaje">
+                                Ingresa el RUT con o sin puntos.
+                            </small>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -172,19 +215,27 @@
 
             <div class="card-body">
                 <div class="row">
-
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label id="label-nombre-entidad" for="nombre_entidad">
+                            <label
+                                id="label-nombre-entidad"
+                                for="nombre_entidad"
+                            >
                                 Nombre de la organización
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <input id="nombre_entidad" name="nombre_entidad" type="text"
-                                class="form-control
-                            @error('nombre_entidad') is-invalid @enderror"
-                                value="{{ old('nombre_entidad', $datosCliente['nombre_entidad'] ?? '') }}"
-                                placeholder="Ingrese el nombre">
+                            <input
+                                id="nombre_entidad"
+                                name="nombre_entidad"
+                                type="text"
+                                class="form-control @error('nombre_entidad') is-invalid @enderror"
+                                value="{{ old(
+                                    'nombre_entidad',
+                                    $datosCliente['nombre_entidad'] ?? ''
+                                ) }}"
+                                placeholder="Ingrese el nombre"
+                            >
 
                             @error('nombre_entidad')
                                 <span class="invalid-feedback">
@@ -196,22 +247,51 @@
 
                     <div id="contenedor-rut-entidad" class="col-md-6">
                         <div class="form-group">
-                            <label id="label-rut-entidad" for="rut_entidad">
+                            <label
+                                id="label-rut-entidad"
+                                for="rut_entidad"
+                            >
                                 RUT de la organización
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <input id="rut_entidad" name="rut_entidad" type="text"
-                                class="form-control
-                            @error('rut_entidad') is-invalid @enderror"
-                                value="{{ old('rut_entidad', $datosCliente['rut_entidad'] ?? '') }}"
-                                placeholder="76.543.210-K">
+                            <div class="input-group rut-input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-building"></i>
+                                    </span>
+                                </div>
 
-                            @error('rut_entidad')
-                                <span class="invalid-feedback">
-                                    {{ $message }}
-                                </span>
-                            @enderror
+                                <input
+                                    id="rut_entidad"
+                                    name="rut_entidad"
+                                    type="text"
+                                    class="form-control rut-chileno @error('rut_entidad') is-invalid @enderror"
+                                    value="{{ old(
+                                        'rut_entidad',
+                                        $datosCliente['rut_entidad'] ?? ''
+                                    ) }}"
+                                    placeholder="76.543.210-K"
+                                    maxlength="12"
+                                    autocomplete="off"
+                                >
+
+                                <div class="input-group-append">
+                                    <span class="input-group-text rut-estado">
+                                        <i class="fas fa-minus text-muted"></i>
+                                    </span>
+                                </div>
+
+                                @error('rut_entidad')
+                                    <span class="invalid-feedback">
+                                        {{ $message }}
+                                    </span>
+                                @enderror
+                            </div>
+
+                            <small class="form-text text-muted rut-mensaje">
+                                Ingresa el RUT con o sin puntos.
+                            </small>
                         </div>
                     </div>
 
@@ -222,11 +302,17 @@
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <input id="nombre_encargado" name="nombre_encargado" type="text"
-                                class="form-control
-                            @error('nombre_encargado') is-invalid @enderror"
-                                value="{{ old('nombre_encargado', $datosCliente['nombre_encargado'] ?? '') }}"
-                                placeholder="Nombre completo">
+                            <input
+                                id="nombre_encargado"
+                                name="nombre_encargado"
+                                type="text"
+                                class="form-control @error('nombre_encargado') is-invalid @enderror"
+                                value="{{ old(
+                                    'nombre_encargado',
+                                    $datosCliente['nombre_encargado'] ?? ''
+                                ) }}"
+                                placeholder="Nombre completo"
+                            >
 
                             @error('nombre_encargado')
                                 <span class="invalid-feedback">
@@ -240,23 +326,48 @@
                         <div class="form-group">
                             <label for="rut_encargado">
                                 RUT del encargado
-                                <span class="text-danger">*</span>
+                                <small class="text-muted">(opcional)</small>
                             </label>
 
-                            <input id="rut_encargado" name="rut_encargado" type="text"
-                                class="form-control
-                            @error('rut_encargado') is-invalid @enderror"
-                                value="{{ old('rut_encargado', $datosCliente['rut_encargado'] ?? '') }}"
-                                placeholder="12.345.678-9">
+                            <div class="input-group rut-input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-user-shield"></i>
+                                    </span>
+                                </div>
 
-                            @error('rut_encargado')
-                                <span class="invalid-feedback">
-                                    {{ $message }}
-                                </span>
-                            @enderror
+                                <input
+                                    id="rut_encargado"
+                                    name="rut_encargado"
+                                    type="text"
+                                    class="form-control rut-chileno @error('rut_encargado') is-invalid @enderror"
+                                    value="{{ old(
+                                        'rut_encargado',
+                                        $datosCliente['rut_encargado'] ?? ''
+                                    ) }}"
+                                    placeholder="12.345.678-5"
+                                    maxlength="12"
+                                    autocomplete="off"
+                                >
+
+                                <div class="input-group-append">
+                                    <span class="input-group-text rut-estado">
+                                        <i class="fas fa-minus text-muted"></i>
+                                    </span>
+                                </div>
+
+                                @error('rut_encargado')
+                                    <span class="invalid-feedback">
+                                        {{ $message }}
+                                    </span>
+                                @enderror
+                            </div>
+
+                            <small class="form-text text-muted rut-mensaje">
+                                Ingresa el RUT con o sin puntos.
+                            </small>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -264,12 +375,13 @@
         {{-- Contacto y ubicación --}}
         <div class="card card-secondary">
             <div class="card-header">
-                <h3 class="card-title">Contacto y ubicación</h3>
+                <h3 class="card-title">
+                    Contacto y ubicación
+                </h3>
             </div>
 
             <div class="card-body">
                 <div class="row">
-
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="telefono">
@@ -277,10 +389,18 @@
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <input id="telefono" name="telefono" type="tel"
+                            <input
+                                id="telefono"
+                                name="telefono"
+                                type="tel"
                                 class="form-control @error('telefono') is-invalid @enderror"
-                                value="{{ old('telefono', $datosCliente['telefono'] ?? '') }}"
-                                placeholder="+56 9 1234 5678">
+                                value="{{ old(
+                                    'telefono',
+                                    $datosCliente['telefono'] ?? ''
+                                ) }}"
+                                placeholder="+56 9 1234 5678"
+                                required
+                            >
 
                             @error('telefono')
                                 <span class="invalid-feedback">
@@ -297,9 +417,18 @@
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <input id="email" name="email" type="email"
+                            <input
+                                id="email"
+                                name="email"
+                                type="email"
                                 class="form-control @error('email') is-invalid @enderror"
-                                value="{{ old('email', $datosCliente['email'] ?? '') }}" placeholder="correo@ejemplo.cl">
+                                value="{{ old(
+                                    'email',
+                                    $datosCliente['email'] ?? ''
+                                ) }}"
+                                placeholder="correo@ejemplo.cl"
+                                required
+                            >
 
                             @error('email')
                                 <span class="invalid-feedback">
@@ -316,14 +445,26 @@
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <select id="region_id" name="region_id"
-                                class="form-control @error('region_id') is-invalid @enderror">
+                            <select
+                                id="region_id"
+                                name="region_id"
+                                class="form-control @error('region_id') is-invalid @enderror"
+                                required
+                            >
                                 <option value="">
                                     Seleccione una región
                                 </option>
 
                                 @foreach ($regiones as $region)
-                                    <option value="{{ $region->id }}" @selected(old('region_id', $datosCliente['region_id'] ?? '') == $region->id)>
+                                    <option
+                                        value="{{ $region->id }}"
+                                        @selected(
+                                            old(
+                                                'region_id',
+                                                $datosCliente['region_id'] ?? ''
+                                            ) == $region->id
+                                        )
+                                    >
                                         {{ $region->nombre }}
                                     </option>
                                 @endforeach
@@ -344,9 +485,16 @@
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <select id="comuna_id" name="comuna_id"
+                            <select
+                                id="comuna_id"
+                                name="comuna_id"
                                 class="form-control @error('comuna_id') is-invalid @enderror"
-                                data-selected="{{ old('comuna_id', $datosCliente['comuna_id'] ?? '') }}">
+                                data-selected="{{ old(
+                                    'comuna_id',
+                                    $datosCliente['comuna_id'] ?? ''
+                                ) }}"
+                                required
+                            >
                                 <option value="">
                                     Seleccione una región primero
                                 </option>
@@ -359,7 +507,6 @@
                             @enderror
                         </div>
                     </div>
-
                 </div>
             </div>
 
@@ -370,90 +517,54 @@
                 </button>
             </div>
         </div>
-
     </form>
-
 @stop
 
 @section('css')
     <style>
-        .client-type-option {
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            padding: 16px 16px 16px 42px;
+        .rut-input-group .input-group-text {
+            min-width: 44px;
+            justify-content: center;
             background: #f8f9fa;
-            min-height: 84px;
         }
 
-        .client-type-option:hover {
-            border-color: #007bff;
-            background: #f1f7ff;
+        .rut-input-group.rut-valido .form-control {
+            border-color: #28a745;
+            box-shadow: 0 0 0 .1rem rgba(40, 167, 69, .12);
         }
 
-        .client-type-option .custom-control-label {
-            cursor: pointer;
-            width: 100%;
+        .rut-input-group.rut-valido .rut-estado {
+            border-color: #28a745;
+            background: #eaf7ed;
         }
 
-        .client-type-option .custom-control-label::before,
-        .client-type-option .custom-control-label::after {
-            top: 4px;
+        .rut-input-group.rut-invalido .form-control {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 .1rem rgba(220, 53, 69, .10);
         }
 
-        .client-card {
-
-            cursor: pointer;
-
-            margin: 0;
-
+        .rut-input-group.rut-invalido .rut-estado {
+            border-color: #dc3545;
+            background: #fcebec;
         }
 
-        .client-card-body {
-
-            border: 2px solid #dee2e6;
-
-            border-radius: 8px;
-
-            padding: 20px;
-
-            display: flex;
-
-            align-items: center;
-
-            gap: 20px;
-
-            transition: .25s;
-
-            background: white;
-
-            min-height: 120px;
-
+        .rut-input-group .form-control:focus {
+            position: relative;
+            z-index: 3;
         }
 
-        .client-card:hover .client-card-body {
-
-            border-color: #007bff;
-
-            box-shadow: 0 0 12px rgba(0, 123, 255, .15);
-
+        .rut-mensaje {
+            transition: color .2s ease;
         }
 
-        .client-icon {
-
-            width: 60px;
-
-            text-align: center;
-
-            color: #007bff;
-
+        .rut-mensaje.valido {
+            color: #218838 !important;
+            font-weight: 600;
         }
 
-        .client-card.selected .client-card-body {
-
-            border-color: #007bff;
-
-            background: #eef6ff;
-
+        .rut-mensaje.invalido {
+            color: #dc3545 !important;
+            font-weight: 600;
         }
     </style>
 @stop
@@ -488,6 +599,9 @@
             const comunaSelect =
                 document.getElementById('comuna_id');
 
+            const rutEncargado =
+                document.getElementById('rut_encargado');
+
             const camposPersonaRequeridos = [
                 document.getElementById('nombres'),
                 document.getElementById('apellidos'),
@@ -500,12 +614,212 @@
                 document.getElementById('nombre_encargado'),
             ];
 
+            const camposRut =
+                document.querySelectorAll('.rut-chileno');
+
+            function limpiarRut(valor) {
+                return String(valor ?? '')
+                    .replace(/[^0-9kK]/g, '')
+                    .toUpperCase();
+            }
+
+            function formatearRut(valor) {
+                const rutLimpio = limpiarRut(valor);
+
+                if (rutLimpio.length <= 1) {
+                    return rutLimpio;
+                }
+
+                const cuerpo = rutLimpio.slice(0, -1);
+                const dv = rutLimpio.slice(-1);
+
+                const cuerpoFormateado = cuerpo.replace(
+                    /\B(?=(\d{3})+(?!\d))/g,
+                    '.'
+                );
+
+                return `${cuerpoFormateado}-${dv}`;
+            }
+
+            function validarRut(valor) {
+                const rutLimpio = limpiarRut(valor);
+
+                if (rutLimpio.length < 2) {
+                    return false;
+                }
+
+                const cuerpo = rutLimpio.slice(0, -1);
+                const dvIngresado = rutLimpio.slice(-1);
+
+                if (!/^\d+$/.test(cuerpo)) {
+                    return false;
+                }
+
+                if (/^(\d)\1+$/.test(cuerpo)) {
+                    return false;
+                }
+
+                let suma = 0;
+                let multiplicador = 2;
+
+                for (let i = cuerpo.length - 1; i >= 0; i--) {
+                    suma += Number(cuerpo[i]) * multiplicador;
+
+                    multiplicador++;
+
+                    if (multiplicador > 7) {
+                        multiplicador = 2;
+                    }
+                }
+
+                const resto = 11 - (suma % 11);
+
+                let dvCalculado;
+
+                if (resto === 11) {
+                    dvCalculado = '0';
+                } else if (resto === 10) {
+                    dvCalculado = 'K';
+                } else {
+                    dvCalculado = String(resto);
+                }
+
+                return dvIngresado === dvCalculado;
+            }
+
+            function actualizarEstadoRut(input) {
+                const grupo =
+                    input.closest('.rut-input-group');
+
+                const estado =
+                    grupo?.querySelector('.rut-estado');
+
+                const mensaje =
+                    grupo
+                        ?.closest('.form-group')
+                        ?.querySelector('.rut-mensaje');
+
+                if (!grupo || !estado) {
+                    return;
+                }
+
+                grupo.classList.remove(
+                    'rut-valido',
+                    'rut-invalido'
+                );
+
+                if (mensaje) {
+                    mensaje.classList.remove(
+                        'valido',
+                        'invalido'
+                    );
+                }
+
+                const valorLimpio =
+                    limpiarRut(input.value);
+
+                if (!valorLimpio) {
+                    estado.innerHTML =
+                        '<i class="fas fa-minus text-muted"></i>';
+
+                    if (mensaje) {
+                        mensaje.textContent =
+                            'Ingresa el RUT con o sin puntos.';
+                    }
+
+                    return;
+                }
+
+                if (validarRut(input.value)) {
+                    grupo.classList.add('rut-valido');
+
+                    estado.innerHTML =
+                        '<i class="fas fa-check text-success"></i>';
+
+                    if (mensaje) {
+                        mensaje.textContent = 'RUT válido.';
+                        mensaje.classList.add('valido');
+                    }
+
+                    return;
+                }
+
+                grupo.classList.add('rut-invalido');
+
+                estado.innerHTML =
+                    '<i class="fas fa-times text-danger"></i>';
+
+                if (mensaje) {
+                    mensaje.textContent =
+                        'El RUT ingresado no es válido.';
+
+                    mensaje.classList.add('invalido');
+                }
+            }
+
+            function limpiarEstadoRut(input) {
+                if (!input) {
+                    return;
+                }
+
+                input.value = '';
+
+                const grupo =
+                    input.closest('.rut-input-group');
+
+                const estado =
+                    grupo?.querySelector('.rut-estado');
+
+                const mensaje =
+                    grupo
+                        ?.closest('.form-group')
+                        ?.querySelector('.rut-mensaje');
+
+                grupo?.classList.remove(
+                    'rut-valido',
+                    'rut-invalido'
+                );
+
+                if (estado) {
+                    estado.innerHTML =
+                        '<i class="fas fa-minus text-muted"></i>';
+                }
+
+                if (mensaje) {
+                    mensaje.textContent =
+                        'Ingresa el RUT con o sin puntos.';
+
+                    mensaje.classList.remove(
+                        'valido',
+                        'invalido'
+                    );
+                }
+            }
+
+            camposRut.forEach(function(input) {
+                input.addEventListener('input', function() {
+                    input.value =
+                        formatearRut(input.value);
+
+                    actualizarEstadoRut(input);
+                });
+
+                input.addEventListener('blur', function() {
+                    input.value =
+                        formatearRut(input.value);
+
+                    actualizarEstadoRut(input);
+                });
+
+                if (input.value) {
+                    input.value =
+                        formatearRut(input.value);
+
+                    actualizarEstadoRut(input);
+                }
+            });
+
             function actualizarCamposCliente() {
-                const rutEncargado =
-                    document.getElementById('rut_encargado');
-
-                rutEncargado.required = false;
-
                 const opcionSeleccionada =
                     tipoCliente.options[
                         tipoCliente.selectedIndex
@@ -518,13 +832,16 @@
                     codigo === 'PERSONA';
 
                 const esEstablecimiento =
-                    codigo === 'ESTABLECIMIENTO_EDUCACIONAL';
+                    codigo ===
+                    'ESTABLECIMIENTO_EDUCACIONAL';
 
                 const esTourOperador =
-                    codigo === 'TOUR_OPERADOR_AGENCIA_VIAJES';
+                    codigo ===
+                    'TOUR_OPERADOR_AGENCIA_VIAJES';
 
                 const esGrupoAdultosMayores =
-                    codigo === 'GRUPO_ADULTOS_MAYORES';
+                    codigo ===
+                    'GRUPO_ADULTOS_MAYORES';
 
                 const esOrganizacion =
                     esEstablecimiento ||
@@ -534,17 +851,40 @@
                 camposPersona.hidden = !esPersona;
                 camposEntidad.hidden = !esOrganizacion;
 
-                camposPersonaRequeridos.forEach(function(campo) {
-                    campo.required = esPersona;
-                    campo.disabled = !esPersona;
-                });
+                camposPersonaRequeridos.forEach(
+                    function(campo) {
+                        campo.required = esPersona;
+                        campo.disabled = !esPersona;
+                    }
+                );
 
-                camposEntidadRequeridos.forEach(function(campo) {
-                    campo.required = esOrganizacion;
-                    campo.disabled = !esOrganizacion;
-                });
+                camposEntidadRequeridos.forEach(
+                    function(campo) {
+                        campo.required = esOrganizacion;
+                        campo.disabled = !esOrganizacion;
+                    }
+                );
 
+                rutEncargado.required = false;
                 rutEncargado.disabled = !esOrganizacion;
+
+                if (!esPersona) {
+                    limpiarEstadoRut(
+                        document.getElementById(
+                            'rut_persona'
+                        )
+                    );
+                }
+
+                if (!esOrganizacion) {
+                    limpiarEstadoRut(
+                        document.getElementById(
+                            'rut_entidad'
+                        )
+                    );
+
+                    limpiarEstadoRut(rutEncargado);
+                }
 
                 if (esEstablecimiento) {
                     tituloDatosEntidad.textContent =
@@ -644,7 +984,8 @@
 
                     const respuesta = await fetch(url, {
                         headers: {
-                            'Accept': 'application/json',
+                            Accept: 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest',
                         },
                     });
 
@@ -654,7 +995,8 @@
                         );
                     }
 
-                    const comunas = await respuesta.json();
+                    const comunas =
+                        await respuesta.json();
 
                     comunaSelect.innerHTML =
                         '<option value="">' +
@@ -677,6 +1019,8 @@
 
                     comunaSelect.disabled = false;
                 } catch (error) {
+                    console.error(error);
+
                     comunaSelect.innerHTML =
                         '<option value="">' +
                         'Error al cargar comunas' +
