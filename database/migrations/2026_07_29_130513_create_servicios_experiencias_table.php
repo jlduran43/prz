@@ -28,6 +28,12 @@ return new class extends Migration
 
             $table->decimal('precio', 12, 2)->default(0);
 
+            $table->enum('tipo_cobro', [
+                'POR_PERSONA',
+                'POR_GRUPO',
+            ])->default('POR_PERSONA');
+
+
             $table->boolean('requiere_reserva')->default(true);
             $table->boolean('activo')->default(true);
 

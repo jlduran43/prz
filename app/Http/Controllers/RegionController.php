@@ -92,7 +92,7 @@ class RegionController extends Controller
     public function show(Region $region)
     {
         $region->load([
-            'comunas' => fn ($query) => $query->orderBy('nombre'),
+            'comunas' => fn($query) => $query->orderBy('nombre'),
         ]);
 
         return view('regiones.show', compact('region'));
@@ -171,5 +171,21 @@ class RegionController extends Controller
         return redirect()
             ->route('regiones.index')
             ->with('success', 'La región fue eliminada correctamente.');
+    }
+
+    public function cambiarEstado(
+        Region $region
+    ): RedirectResponse {
+        $region->update([
+            'activo' => ! $region->activo,
+        ]);
+
+        $mensaje = $region->activo
+            ? 'La región fue activada correctamente.'
+            : 'La región fue desactivada correctamente.';
+
+        return redirect()
+            ->route('regiones.index')
+            ->with('success', $mensaje);
     }
 }

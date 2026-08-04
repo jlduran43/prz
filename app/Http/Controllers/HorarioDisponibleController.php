@@ -3,160 +3,126 @@
 namespace App\Http\Controllers;
 
 use App\Models\HorarioDisponible;
-use App\Models\ServicioExperiencia;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
+use App\Models\ServicioExperiencia;
 
 class HorarioDisponibleController extends Controller
 {
     public function index(Request $request)
     {
-        $buscar = trim(
-            (string) $request->query('buscar', '')
-        );
-
+        $fecha = $request->string('fecha')->toString();
         $estado = $request->query('estado');
 
-        $servicioId = $request->query(
-            'servicio_id'
-        );
+        $query = HorarioDisponible::query();
 
-        $horarios = HorarioDisponible::query()
-            ->with([
-                'servicio.categoria',
-            ])
-            ->when(
-                $buscar !== '',
-                function ($query) use ($buscar) {
-                    $query->whereHas(
-                        'servicio',
-                        function ($servicioQuery) use ($buscar) {
-                            $servicioQuery->where(
-                                'nombre',
-                                'like',
-                                "%{$buscar}%"
-                            );
-                        }
-                    );
-                }
-            )
-            ->when(
-                $servicioId,
-                function ($query) use ($servicioId) {
-                    $query->where(
-                        'servicio_experiencia_id',
-                        $servicioId
-                    );
-                }
-            )
-            ->when(
-                $estado !== null && $estado !== '',
-                function ($query) use ($estado) {
-                    $query->where('activo', $estado);
-                }
-            )
-            ->orderByDesc('fecha')
+        if ($fecha !== '') {
+            $query->whereDate('fecha', $fecha);
+        }
+
+        if ($estado !== null && $estado !== '') {
+            $query->where('activo', $estado);
+        }
+
+        $horarios = $query
+            ->orderBy('fecha')
             ->orderBy('hora_inicio')
-            ->paginate(15)
+            ->paginate(10)
             ->withQueryString();
-
-        $servicios = ServicioExperiencia::query()
-            ->orderBy('nombre')
-            ->get([
-                'id',
-                'nombre',
-            ]);
 
         return view(
             'horarios-disponibles.index',
             [
                 'horarios' => $horarios,
-                'servicios' => $servicios,
-                'buscar' => $buscar,
-                'servicioId' => $servicioId,
-                'estado' => $estado
+                'fecha' => $fecha,
+                'estado' => $estado,
             ]
         );
     }
 
     public function create()
     {
+
         $servicios = ServicioExperiencia::query()
             ->where('activo', true)
             ->orderBy('nombre')
             ->get();
 
-        return view('horarios-disponibles.create', [
-            'servicios' => $servicios,
-        ]);
+        return view(
+            'horarios-disponibles.create',
+            compact('servicios')
+        );
     }
 
     public function store(Request $request)
     {
-        $datos = $request->validate([
-            'servicio_experiencia_id' => [
-                'required',
-                Rule::exists(
-                    'servicios_experiencias',
-                    'id'
-                )->where('activo', true),
-            ],
+        $datos = $request->validate(
+            [
+                'fecha' => [
+                    'required',
+                    'date',
+                ],
 
-            'fecha' => [
-                'required',
-                'date',
-                'after_or_equal:today',
-            ],
+                'hora_inicio' => [
+                    'required',
+                    'date_format:H:i',
+                ],
 
-            'hora_inicio' => [
-                'required',
-                'date_format:H:i',
-                Rule::unique(
-                    'horarios_disponibles',
-                    'hora_inicio'
-                )->where(function ($query) use ($request) {
-                    return $query
-                        ->where(
-                            'servicio_experiencia_id',
-                            $request->servicio_experiencia_id
-                        )
-                        ->whereDate(
-                            'fecha',
-                            $request->fecha
-                        )
-                        ->where(
-                            'hora_termino',
-                            $request->hora_termino
-                        );
-                }),
-            ],
+                'hora_termino' => [
+                    'required',
+                    'date_format:H:i',
+                    'after:hora_inicio',
+                ],
 
-            'hora_termino' => [
-                'required',
-                'date_format:H:i',
-                'after:hora_inicio',
-            ],
+                'servicios' => [
+                    'required',
+                    'array',
+                    'min:1',
+                ],
 
-            'activo' => [
-                'nullable',
-                'boolean',
-            ],
-        ], [
-            'hora_inicio.unique' =>
-            'Ya existe este horario para el servicio y la fecha seleccionados.',
+                'servicios.*' => [
+                    'integer',
+                    'distinct',
+                    'exists:servicios_experiencias,id',
+                ],
+
+                'activo' => [
+                    'nullable',
+                    'boolean',
+                ],
+            ]
+        );
+
+        $existeDuplicado = HorarioDisponible::query()
+            ->whereDate('fecha', $datos['fecha'])
+            ->where('hora_inicio', $datos['hora_inicio'])
+            ->where('hora_termino', $datos['hora_termino'])
+            ->exists();
+
+        if ($existeDuplicado) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'hora_inicio' =>
+                    'Ya existe esta franja horaria para la fecha seleccionada.',
+                ]);
+        }
+
+        $horario = HorarioDisponible::create([
+            'fecha' => $datos['fecha'],
+            'hora_inicio' => $datos['hora_inicio'],
+            'hora_termino' => $datos['hora_termino'],
+            'activo' => $request->boolean('activo'),
         ]);
 
-        $datos['activo'] =
-            $request->boolean('activo');
-
-        HorarioDisponible::query()->create($datos);
+        $horario->servicios()->sync(
+            $datos['servicios']
+        );
 
         return redirect()
             ->route('horarios-disponibles.index')
             ->with(
                 'success',
-                'El horario fue creado correctamente.'
+                'El horario de atención fue creado correctamente.'
             );
     }
 
@@ -170,86 +136,112 @@ class HorarioDisponibleController extends Controller
 
     public function edit(HorarioDisponible $horario)
     {
+
+        $horario->load('servicios');
+
         $servicios = ServicioExperiencia::query()
             ->where('activo', true)
             ->orderBy('nombre')
             ->get();
 
-        return view('horarios-disponibles.edit', [
-            'horario' => $horario,
-            'servicios' => $servicios,
-        ]);
+        return view(
+            'horarios-disponibles.edit',
+            compact(
+                'horario',
+                'servicios'
+            )
+        );
     }
 
     public function update(
         Request $request,
         HorarioDisponible $horario
     ) {
-        $datos = $request->validate([
-            'servicio_experiencia_id' => [
-                'required',
-                Rule::exists(
-                    'servicios_experiencias',
-                    'id'
-                ),
-            ],
+        $datos = $request->validate(
+            [
+                'fecha' => [
+                    'required',
+                    'date',
+                ],
 
-            'fecha' => [
-                'required',
-                'date',
-            ],
+                'hora_inicio' => [
+                    'required',
+                    'date_format:H:i',
+                ],
 
-            'hora_inicio' => [
-                'required',
-                'date_format:H:i',
-            ],
+                'hora_termino' => [
+                    'required',
+                    'date_format:H:i',
+                    'after:hora_inicio',
+                ],
 
-            Rule::unique(
-                'horarios_disponibles',
-                'hora_inicio'
-            )
-                ->ignore($horario->id)
-                ->where(function ($query) use ($request) {
-                    return $query
-                        ->where(
-                            'servicio_experiencia_id',
-                            $request->servicio_experiencia_id
-                        )
-                        ->whereDate(
-                            'fecha',
-                            $request->fecha
-                        )
-                        ->where(
-                            'hora_termino',
-                            $request->hora_termino
-                        );
-                }),
+                'servicios' => [
+                    'required',
+                    'array',
+                    'min:1',
+                ],
 
-            'hora_termino' => [
-                'required',
-                'date_format:H:i',
-                'after:hora_inicio',
-            ],
+                'servicios.*' => [
+                    'integer',
+                    'distinct',
+                    'exists:servicios_experiencias,id',
+                ],
 
-            'activo' => [
-                'nullable',
-                'boolean',
+                'activo' => [
+                    'nullable',
+                    'boolean',
+                ],
             ],
-        ], [
-            'hora_inicio.unique' =>
-            'Ya existe este horario para el servicio y la fecha seleccionados.',
+            [
+
+                'fecha.required' =>
+                'Debes seleccionar una fecha.',
+
+                'hora_inicio.required' =>
+                'Debes ingresar la hora de inicio.',
+
+                'hora_termino.required' =>
+                'Debes ingresar la hora de término.',
+
+                'hora_termino.after' =>
+                'La hora de término debe ser posterior a la hora de inicio.',
+            ]
+        );
+
+        $existeDuplicado = HorarioDisponible::query()
+            ->whereDate('fecha', $datos['fecha'])
+            ->where('hora_inicio', $datos['hora_inicio'])
+            ->where('hora_termino', $datos['hora_termino'])
+            ->where('id', '!=', $horario->id)
+            ->exists();
+
+        if ($existeDuplicado) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'hora_inicio' =>
+                    'Ya existe esta franja horaria para la fecha seleccionada.'
+                ]);
+        }
+
+        $datos['activo'] = $request->boolean('activo');
+
+        $horario->update([
+            'fecha' => $datos['fecha'],
+            'hora_inicio' => $datos['hora_inicio'],
+            'hora_termino' => $datos['hora_termino'],
+            'activo' => $request->boolean('activo'),
         ]);
 
-        $datos['activo'] =
-            $request->boolean('activo');
-
-        $horario->update($datos);
+        $horario->servicios()->sync(
+            $datos['servicios']
+        );
 
         return redirect()
             ->route('horarios-disponibles.index')
             ->with(
                 'success',
-                'El horario fue actualizado correctamente.'
+                'El horario de atención fue actualizado correctamente.'
             );
     }
 
@@ -297,75 +289,5 @@ class HorarioDisponibleController extends Controller
                 'success',
                 'El horario fue reactivado correctamente.'
             );
-    }
-
-    private function validar(
-        Request $request,
-        ?HorarioDisponible $horario = null
-    ): array {
-        $datos = $request->validate([
-            'hora_inicio' => [
-                'required',
-                'date_format:H:i',
-            ],
-
-            'hora_termino' => [
-                'required',
-                'date_format:H:i',
-                'after:hora_inicio',
-            ],
-        ], [
-            'hora_inicio.required' =>
-            'La hora de inicio es obligatoria.',
-
-            'hora_inicio.date_format' =>
-            'La hora de inicio no tiene un formato válido.',
-
-            'hora_termino.required' =>
-            'La hora de término es obligatoria.',
-
-            'hora_termino.after' =>
-            'La hora de término debe ser posterior a la hora de inicio.',
-        ]);
-
-        if ($horario === null) {
-            $datos['activo'] = true;
-        }
-
-        return $datos;
-    }
-
-    private function validarSolapamiento(
-        array $datos,
-        ?HorarioDisponible $horarioActual = null
-    ): void {
-        $existeSolapamiento = HorarioDisponible::query()
-            ->when(
-                $horarioActual,
-                fn($query) => $query->whereKeyNot(
-                    $horarioActual->id
-                )
-            )
-            ->where(function ($query) use ($datos) {
-                $query
-                    ->where(
-                        'hora_inicio',
-                        '<',
-                        $datos['hora_termino']
-                    )
-                    ->where(
-                        'hora_termino',
-                        '>',
-                        $datos['hora_inicio']
-                    );
-            })
-            ->exists();
-
-        if ($existeSolapamiento) {
-            throw ValidationException::withMessages([
-                'hora_inicio' =>
-                'El horario se superpone con otra franja existente.',
-            ]);
-        }
     }
 }

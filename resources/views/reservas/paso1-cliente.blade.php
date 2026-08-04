@@ -66,7 +66,7 @@
 
                         @foreach ($tipos as $tipo)
                             <option value="{{ $tipo->id }}" data-codigo="{{ $tipo->codigo }}"
-                                data-estructura="{{ $tipo->estructura_datos }}"
+                                data-estructura="{{ $tipo->tipo_estructura }}"
                                 {{ old('tipo_cliente_id', $datosCliente['tipo_cliente_id'] ?? '') == $tipo->id ? 'selected' : '' }}>
                                 {{ $tipo->nombre }}
                             </option>
@@ -240,6 +240,7 @@
                         <div class="form-group">
                             <label for="rut_encargado">
                                 RUT del encargado
+                                <span class="text-danger">*</span>
                             </label>
 
                             <input id="rut_encargado" name="rut_encargado" type="text"
@@ -459,7 +460,7 @@
 
 @section('js')
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             const tipoCliente =
                 document.getElementById('tipo_cliente_id');
 
@@ -500,10 +501,15 @@
             ];
 
             function actualizarCamposCliente() {
-                document.getElementById('rut_encargado').required = false;
+                const rutEncargado =
+                    document.getElementById('rut_encargado');
+
+                rutEncargado.required = false;
 
                 const opcionSeleccionada =
-                    tipoCliente.options[tipoCliente.selectedIndex];
+                    tipoCliente.options[
+                        tipoCliente.selectedIndex
+                    ];
 
                 const codigo =
                     opcionSeleccionada?.dataset.codigo ?? '';
@@ -514,26 +520,31 @@
                 const esEstablecimiento =
                     codigo === 'ESTABLECIMIENTO_EDUCACIONAL';
 
-                const esEmpresaTuristica =
-                    codigo ===
-                    'TOUR_OPERADOR_AGENCIA_VIAJES';
+                const esTourOperador =
+                    codigo === 'TOUR_OPERADOR_AGENCIA_VIAJES';
+
+                const esGrupoAdultosMayores =
+                    codigo === 'GRUPO_ADULTOS_MAYORES';
 
                 const esOrganizacion =
                     esEstablecimiento ||
-                    esEmpresaTuristica;
+                    esTourOperador ||
+                    esGrupoAdultosMayores;
 
                 camposPersona.hidden = !esPersona;
                 camposEntidad.hidden = !esOrganizacion;
 
-                camposPersonaRequeridos.forEach(function (campo) {
+                camposPersonaRequeridos.forEach(function(campo) {
                     campo.required = esPersona;
                     campo.disabled = !esPersona;
                 });
 
-                camposEntidadRequeridos.forEach(function (campo) {
+                camposEntidadRequeridos.forEach(function(campo) {
                     campo.required = esOrganizacion;
                     campo.disabled = !esOrganizacion;
                 });
+
+                rutEncargado.disabled = !esOrganizacion;
 
                 if (esEstablecimiento) {
                     tituloDatosEntidad.textContent =
@@ -549,9 +560,11 @@
 
                     nombreEntidad.placeholder =
                         'Ej.: Escuela República de Chile';
+
+                    return;
                 }
 
-                if (esEmpresaTuristica) {
+                if (esTourOperador) {
                     tituloDatosEntidad.textContent =
                         'Datos del tour operador o agencia de viajes';
 
@@ -565,20 +578,41 @@
 
                     nombreEntidad.placeholder =
                         'Ej.: Turismo Patagonia SpA';
+
+                    return;
                 }
 
-                if (!esOrganizacion) {
+                if (esGrupoAdultosMayores) {
                     tituloDatosEntidad.textContent =
-                        'Datos de la organización';
+                        'Datos del grupo de adultos mayores';
 
                     labelNombreEntidad.innerHTML =
-                        'Nombre de la organización ' +
+                        'Nombre de la organización o agrupación ' +
                         '<span class="text-danger">*</span>';
 
                     labelRutEntidad.innerHTML =
-                        'RUT de la organización ' +
+                        'RUT de la organización o agrupación ' +
                         '<span class="text-danger">*</span>';
+
+                    nombreEntidad.placeholder =
+                        'Ej.: Club Adulto Mayor Los Alerces';
+
+                    return;
                 }
+
+                tituloDatosEntidad.textContent =
+                    'Datos de la organización';
+
+                labelNombreEntidad.innerHTML =
+                    'Nombre de la organización ' +
+                    '<span class="text-danger">*</span>';
+
+                labelRutEntidad.innerHTML =
+                    'RUT de la organización ' +
+                    '<span class="text-danger">*</span>';
+
+                nombreEntidad.placeholder =
+                    'Ingrese el nombre';
             }
 
             async function cargarComunas() {
@@ -627,7 +661,7 @@
                         'Seleccione una comuna' +
                         '</option>';
 
-                    comunas.forEach(function (comuna) {
+                    comunas.forEach(function(comuna) {
                         const option =
                             document.createElement('option');
 
@@ -659,7 +693,7 @@
 
             regionSelect.addEventListener(
                 'change',
-                function () {
+                function() {
                     comunaSelect.dataset.selected = '';
                     cargarComunas();
                 }

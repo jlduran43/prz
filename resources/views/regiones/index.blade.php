@@ -6,10 +6,7 @@
     <div class="d-flex justify-content-between align-items-center">
         <h1>Regiones</h1>
 
-        <a
-            href="{{ route('regiones.create') }}"
-            class="btn btn-primary"
-        >
+        <a href="{{ route('regiones.create') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i>
             Nueva región
         </a>
@@ -22,12 +19,7 @@
             <i class="fas fa-check-circle"></i>
             {{ session('success') }}
 
-            <button
-                type="button"
-                class="close"
-                data-dismiss="alert"
-                aria-label="Cerrar"
-            >
+            <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
@@ -38,12 +30,7 @@
             <i class="fas fa-exclamation-circle"></i>
             {{ session('error') }}
 
-            <button
-                type="button"
-                class="close"
-                data-dismiss="alert"
-                aria-label="Cerrar"
-            >
+            <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
@@ -51,34 +38,20 @@
 
     <div class="card">
         <div class="card-header">
-            <form
-                action="{{ route('regiones.index') }}"
-                method="GET"
-            >
+            <form action="{{ route('regiones.index') }}" method="GET">
                 <div class="row">
                     <div class="col-md-8">
-                        <input
-                            type="text"
-                            name="buscar"
-                            class="form-control"
-                            value="{{ $busqueda }}"
-                            placeholder="Buscar por código o nombre..."
-                        >
+                        <input type="text" name="buscar" class="form-control" value="{{ $busqueda }}"
+                            placeholder="Buscar por código o nombre...">
                     </div>
 
                     <div class="col-md-4">
-                        <button
-                            type="submit"
-                            class="btn btn-primary"
-                        >
+                        <button type="submit" class="btn btn-primary">
                             <i class="fas fa-search"></i>
                             Buscar
                         </button>
 
-                        <a
-                            href="{{ route('regiones.index') }}"
-                            class="btn btn-secondary"
-                        >
+                        <a href="{{ route('regiones.index') }}" class="btn btn-secondary">
                             Limpiar
                         </a>
                     </div>
@@ -126,38 +99,26 @@
                             </td>
 
                             <td class="text-center text-nowrap">
-                                <a
-                                    href="{{ route('regiones.show', $region) }}"
-                                    class="btn btn-info btn-sm"
-                                    title="Ver"
-                                >
+                                <a href="{{ route('regiones.show', $region) }}" class="btn btn-info btn-sm" title="Ver">
                                     <i class="fas fa-eye"></i>
                                 </a>
 
-                                <a
-                                    href="{{ route('regiones.edit', $region) }}"
-                                    class="btn btn-warning btn-sm"
-                                    title="Editar"
-                                >
+                                <a href="{{ route('regiones.edit', $region) }}" class="btn btn-warning btn-sm"
+                                    title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </a>
 
-                                <form
-                                    action="{{ route('regiones.destroy', $region) }}"
-                                    method="POST"
-                                    class="d-inline formulario-eliminar"
-                                >
-                                    @csrf
-                                    @method('DELETE')
-
-                                    <button
-                                        type="submit"
-                                        class="btn btn-danger btn-sm"
-                                        title="Eliminar"
-                                    >
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
+                                <button type="button"
+                                    class="btn btn-sm
+                                        {{ $region->activo ? 'btn-secondary' : 'btn-success' }}"
+                                    title="{{ $region->activo ? 'Desactivar' : 'Activar' }}" data-toggle="modal"
+                                    data-target="#modalCambiarEstadoRegion" data-id="{{ $region->id }}"
+                                    data-nombre="{{ $region->nombre }}" data-activo="{{ $region->activo ? 1 : 0 }}">
+                                    <i
+                                        class="fas
+                                        {{ $region->activo ? 'fa-ban' : 'fa-check' }}">
+                                    </i>
+                                </button>
                             </td>
                         </tr>
                     @empty
@@ -169,6 +130,43 @@
                     @endforelse
                 </tbody>
             </table>
+            <div class="modal fade" id="modalCambiarEstadoRegion" tabindex="-1" role="dialog"
+                aria-labelledby="modalCambiarEstadoRegionLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalCambiarEstadoRegionLabel">
+                                Confirmar cambio de estado
+                            </h5>
+
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                                <span aria-hidden="true">
+                                    &times;
+                                </span>
+                            </button>
+                        </div>
+
+                        <div class="modal-body">
+                            <p id="mensajeCambiarEstadoRegion" class="mb-0"></p>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                Cancelar
+                            </button>
+
+                            <form id="formCambiarEstadoRegion" method="POST">
+                                @csrf
+                                @method('PATCH')
+
+                                <button type="submit" id="botonConfirmarEstadoRegion" class="btn">
+                                    Confirmar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         @if ($regiones->hasPages())
@@ -181,16 +179,72 @@
 
 @section('js')
     <script>
-        document.querySelectorAll('.formulario-eliminar').forEach((formulario) => {
-            formulario.addEventListener('submit', function (event) {
-                const confirmado = confirm(
-                    '¿Está seguro de eliminar esta región?'
+        $('#modalCambiarEstadoRegion').on(
+            'show.bs.modal',
+            function (event) {
+                const boton = $(event.relatedTarget);
+
+                const id = boton.data('id');
+                const nombre = boton.data('nombre');
+                const activo = Number(
+                    boton.data('activo')
                 );
 
-                if (!confirmado) {
-                    event.preventDefault();
+                const modal = $(this);
+
+                const formulario = modal.find(
+                    '#formCambiarEstadoRegion'
+                );
+
+                const mensaje = modal.find(
+                    '#mensajeCambiarEstadoRegion'
+                );
+
+                const botonConfirmar = modal.find(
+                    '#botonConfirmarEstadoRegion'
+                );
+
+                formulario.attr(
+                    'action',
+                    '{{ url('regiones') }}/'
+                        + id
+                        + '/cambiar-estado'
+                );
+
+                if (activo === 1) {
+                    modal.find('.modal-title').text(
+                        'Desactivar región'
+                    );
+
+                    mensaje.html(
+                        '¿Deseas desactivar la región '
+                        + '<strong>'
+                        + nombre
+                        + '</strong>?'
+                    );
+
+                    botonConfirmar
+                        .removeClass('btn-success')
+                        .addClass('btn-danger')
+                        .text('Sí, desactivar');
+                } else {
+                    modal.find('.modal-title').text(
+                        'Activar región'
+                    );
+
+                    mensaje.html(
+                        '¿Deseas activar la región '
+                        + '<strong>'
+                        + nombre
+                        + '</strong>?'
+                    );
+
+                    botonConfirmar
+                        .removeClass('btn-danger')
+                        .addClass('btn-success')
+                        .text('Sí, activar');
                 }
-            });
-        });
+            }
+        );
     </script>
 @stop

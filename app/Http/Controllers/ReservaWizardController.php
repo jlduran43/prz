@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\CategoriaServicio;
+use App\Models\ConfiguracionReserva;
 use App\Models\HorarioDisponible;
 use Illuminate\Http\Request;
 use App\Models\Region;
 use App\Models\Reserva;
 use App\Models\ServicioExperiencia;
 use App\Models\TipoCliente;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -169,7 +169,10 @@ class ReservaWizardController extends Controller
                     'required',
                     'integer',
                     'distinct',
-                    'exists:servicios_experiencias,id',
+                    Rule::exists(
+                        'servicios_experiencias',
+                        'id'
+                    )->where('activo', true),
                 ],
 
                 'servicios.*.fecha' => [
@@ -224,6 +227,12 @@ class ReservaWizardController extends Controller
                     'string',
                     'max:100',
                 ],
+
+                'objetivo_visita' => [
+                    'nullable',
+                    'string',
+                    'max:500',
+                ],
             ],
             [
                 'servicios.required' =>
@@ -241,11 +250,14 @@ class ReservaWizardController extends Controller
                 'servicios.*.servicio_id.required' =>
                 'Debes seleccionar un servicio.',
 
+                'servicios.*.servicio_id.integer' =>
+                'El servicio seleccionado no es válido.',
+
                 'servicios.*.servicio_id.distinct' =>
                 'No puedes seleccionar dos veces el mismo servicio.',
 
                 'servicios.*.servicio_id.exists' =>
-                'Uno de los servicios seleccionados no existe.',
+                'Uno de los servicios seleccionados no existe o está inactivo.',
 
                 'servicios.*.fecha.required' =>
                 'Debes seleccionar una fecha para cada servicio.',
@@ -259,11 +271,17 @@ class ReservaWizardController extends Controller
                 'servicios.*.horario_id.required' =>
                 'Debes seleccionar un horario para cada servicio.',
 
+                'servicios.*.horario_id.integer' =>
+                'El horario seleccionado no es válido.',
+
                 'servicios.*.horario_id.exists' =>
                 'Uno de los horarios seleccionados no existe.',
 
                 'cantidad_asistentes.required' =>
                 'Debes indicar la cantidad de asistentes.',
+
+                'cantidad_asistentes.integer' =>
+                'La cantidad de asistentes debe ser un número entero.',
 
                 'cantidad_asistentes.min' =>
                 'La reserva debe tener al menos un asistente.',
@@ -271,95 +289,275 @@ class ReservaWizardController extends Controller
                 'cantidad_alumnos.required' =>
                 'Debes indicar la cantidad de alumnos.',
 
+                'cantidad_alumnos.integer' =>
+                'La cantidad de alumnos debe ser un número entero.',
+
+                'cantidad_alumnos.min' =>
+                'Debe existir al menos un alumno.',
+
                 'cantidad_profesores.required' =>
                 'Debes indicar la cantidad de profesores.',
+
+                'cantidad_profesores.integer' =>
+                'La cantidad de profesores debe ser un número entero.',
+
+                'cantidad_profesores.min' =>
+                'La cantidad de profesores no puede ser negativa.',
 
                 'nivel_educacional.required' =>
                 'Debes seleccionar el nivel educacional.',
 
+                'nivel_educacional.in' =>
+                'El nivel educacional seleccionado no es válido.',
+
                 'curso.required' =>
                 'Debes indicar el curso.',
+
+                'curso.string' =>
+                'El curso debe ser un texto.',
+
+                'curso.max' =>
+                'El curso no puede superar los 100 caracteres.',
+
+                'objetivo_visita.string' =>
+                'El objetivo de la visita debe ser un texto.',
+
+                'objetivo_visita.max' =>
+                'El objetivo de la visita no puede superar los 500 caracteres.',
             ]
         );
 
         /*
     |--------------------------------------------------------------------------
-    | Obtener los identificadores de horarios seleccionados
+    | Validar la composición del grupo educacional
     |--------------------------------------------------------------------------
     */
+        if ($esEstablecimiento) {
+            $totalEducacional =
+                (int) $datos['cantidad_alumnos']
+                + (int) $datos['cantidad_profesores'];
+
+            if (
+                $totalEducacional
+                !== (int) $datos['cantidad_asistentes']
+            ) {
+                throw ValidationException::withMessages([
+                    'cantidad_asistentes' =>
+                    'El total de asistentes debe coincidir con la suma de alumnos y profesores.',
+                ]);
+            }
+        }
+
+        $cantidadAsistentes =
+            (int) $datos['cantidad_asistentes'];
+
+        /*
+    |--------------------------------------------------------------------------
+    | Obtener capacidad simultánea general
+    |--------------------------------------------------------------------------
+    */
+        $capacidadSimultanea = ConfiguracionReserva::query()
+            ->value('capacidad_maxima_simultanea');
+
+        if ($capacidadSimultanea === null) {
+            throw ValidationException::withMessages([
+                'servicios' =>
+                'No se ha configurado la capacidad máxima simultánea del parque.',
+            ]);
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Obtener servicios y horarios seleccionados
+    |--------------------------------------------------------------------------
+    */
+        $servicioIds = collect($datos['servicios'])
+            ->pluck('servicio_id')
+            ->unique()
+            ->values()
+            ->all();
+
         $horarioIds = collect($datos['servicios'])
             ->pluck('horario_id')
             ->unique()
             ->values()
             ->all();
 
-        /*
-    |--------------------------------------------------------------------------
-    | Consultar los horarios
-    |--------------------------------------------------------------------------
-    */
-        $horariosSeleccionados = HorarioDisponible::query()
-            ->whereIn('id', $horarioIds)
+        $serviciosDisponibles =
+            ServicioExperiencia::query()
+            ->whereIn('id', $servicioIds)
+            ->where('activo', true)
             ->get([
                 'id',
-                'hora_inicio',
-                'hora_termino',
+                'nombre',
             ])
             ->keyBy('id');
 
-        /*
-    |--------------------------------------------------------------------------
-    | Comprobar que todos los horarios existan
-    |--------------------------------------------------------------------------
-    */
-        if ($horariosSeleccionados->count() !== count($horarioIds)) {
+        $horariosSeleccionados =
+            HorarioDisponible::query()
+            ->with([
+                'servicios:id',
+            ])
+            ->whereIn('id', $horarioIds)
+            ->where('activo', true)
+            ->get([
+                'id',
+                'fecha',
+                'hora_inicio',
+                'hora_termino',
+                'activo',
+            ])
+            ->keyBy('id');
+
+        if (
+            $serviciosDisponibles->count()
+            !== count($servicioIds)
+        ) {
             throw ValidationException::withMessages([
                 'servicios' =>
-                'Uno o más horarios seleccionados no están disponibles.',
+                'Uno o más servicios ya no están disponibles.',
+            ]);
+        }
+
+        if (
+            $horariosSeleccionados->count()
+            !== count($horarioIds)
+        ) {
+            throw ValidationException::withMessages([
+                'servicios' =>
+                'Uno o más horarios ya no están disponibles.',
             ]);
         }
 
         /*
     |--------------------------------------------------------------------------
-    | Comprobar superposición de horarios
+    | Validar cada servicio y horario
     |--------------------------------------------------------------------------
-    | Solamente se comparan horarios que estén en la misma fecha.
     */
-        $serviciosSeleccionados = array_values($datos['servicios']);
+        foreach ($datos['servicios'] as $indice => $seleccion) {
+            $servicioId =
+                (int) $seleccion['servicio_id'];
 
-        for ($i = 0; $i < count($serviciosSeleccionados); $i++) {
+            $horarioId =
+                (int) $seleccion['horario_id'];
+
+            $fechaSeleccionada =
+                $seleccion['fecha'];
+
+            $servicio =
+                $serviciosDisponibles->get($servicioId);
+
+            $horario =
+                $horariosSeleccionados->get($horarioId);
+
+            /*
+         * Comprobar que la fecha del horario sea la seleccionada.
+         */
+            if (
+                $horario->fecha->format('Y-m-d')
+                !== $fechaSeleccionada
+            ) {
+                throw ValidationException::withMessages([
+                    "servicios.{$indice}.horario_id" =>
+                    "El horario seleccionado no corresponde a la fecha {$fechaSeleccionada}.",
+                ]);
+            }
+
+            /*
+         * Comprobar que el servicio esté habilitado
+         * para la franja mediante horario_servicio.
+         */
+            $servicioAsociado = $horario
+                ->servicios
+                ->contains('id', $servicioId);
+
+            if (! $servicioAsociado) {
+                throw ValidationException::withMessages([
+                    "servicios.{$indice}.horario_id" =>
+                    "El servicio {$servicio->nombre} no está disponible en el horario seleccionado.",
+                ]);
+            }
+
+            /*
+         * Personas presentes en cualquier horario
+         * que se superponga con esta franja.
+         */
+            $personasSuperpuestas =
+                $this->obtenerPersonasSuperpuestas(
+                    $horario
+                );
+
+            $cuposGeneralesDisponibles = max(
+                (int) $capacidadSimultanea
+                    - $personasSuperpuestas,
+                0
+            );
+
+            if (
+                $cantidadAsistentes
+                > $cuposGeneralesDisponibles
+            ) {
+                throw ValidationException::withMessages([
+                    'cantidad_asistentes' =>
+                    "Durante la franja {$horario->hora_inicio} a {$horario->hora_termino} solamente quedan {$cuposGeneralesDisponibles} cupos disponibles considerando la capacidad simultánea del parque.",
+                ]);
+            }
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Comprobar superposición entre los servicios de esta reserva
+    |--------------------------------------------------------------------------
+    | Aunque el parque permita actividades simultáneas, el mismo grupo
+    | no puede asistir a dos servicios al mismo tiempo.
+    */
+        $serviciosSeleccionados =
+            array_values($datos['servicios']);
+
+        for (
+            $i = 0;
+            $i < count($serviciosSeleccionados);
+            $i++
+        ) {
             for (
                 $j = $i + 1;
                 $j < count($serviciosSeleccionados);
                 $j++
             ) {
-                $servicioA = $serviciosSeleccionados[$i];
-                $servicioB = $serviciosSeleccionados[$j];
+                $seleccionA =
+                    $serviciosSeleccionados[$i];
 
-                /*
-             * Si tienen fechas diferentes, no existe superposición.
-             */
-                if ($servicioA['fecha'] !== $servicioB['fecha']) {
+                $seleccionB =
+                    $serviciosSeleccionados[$j];
+
+                if (
+                    $seleccionA['fecha']
+                    !== $seleccionB['fecha']
+                ) {
                     continue;
                 }
 
-                $horarioA = $horariosSeleccionados->get(
-                    $servicioA['horario_id']
-                );
+                $horarioA =
+                    $horariosSeleccionados->get(
+                        $seleccionA['horario_id']
+                    );
 
-                $horarioB = $horariosSeleccionados->get(
-                    $servicioB['horario_id']
-                );
+                $horarioB =
+                    $horariosSeleccionados->get(
+                        $seleccionB['horario_id']
+                    );
 
                 $seSuperponen =
-                    $horarioA->hora_inicio < $horarioB->hora_termino
+                    $horarioA->hora_inicio
+                    < $horarioB->hora_termino
                     &&
-                    $horarioA->hora_termino > $horarioB->hora_inicio;
+                    $horarioA->hora_termino
+                    > $horarioB->hora_inicio;
 
                 if ($seSuperponen) {
                     throw ValidationException::withMessages([
                         'servicios' =>
-                        'Los servicios de una misma fecha no pueden tener horarios superpuestos.',
+                        'Los servicios seleccionados para el mismo grupo no pueden tener horarios superpuestos.',
                     ]);
                 }
             }
@@ -367,17 +565,18 @@ class ReservaWizardController extends Controller
 
         /*
     |--------------------------------------------------------------------------
-    | Reordenar los servicios
+    | Reordenar y guardar temporalmente en sesión
     |--------------------------------------------------------------------------
-    | Convierte claves como 3 y 8 en posiciones normales 0 y 1.
     */
-        $datos['servicios'] = array_values($datos['servicios']);
+        $datos['servicios'] =
+            array_values($datos['servicios']);
 
         session([
             'reserva.datos' => $datos,
         ]);
 
-        return redirect()->route('reservas.confirmacion');
+        return redirect()
+            ->route('reservas.confirmacion');
     }
 
     public function confirmacion()
@@ -516,183 +715,446 @@ class ReservaWizardController extends Controller
         if (! $datosCliente || ! $datosReserva) {
             return redirect()
                 ->route('reservas.cliente')
-                ->with('error', 'La información de la reserva está incompleta.');
+                ->with(
+                    'error',
+                    'La información de la reserva está incompleta.'
+                );
         }
 
-        $reserva = DB::transaction(function () use (
-            $datosCliente,
-            $datosReserva
-        ) {
-            $servicios = ServicioExperiencia::query()
-                ->whereIn('id', $datosReserva['servicios'])
-                ->where('activo', true)
-                ->get();
-
-            if (
-                $servicios->isEmpty()
-                || $servicios->count() > 2
-                || $servicios->count()
-                !== count($datosReserva['servicios'])
+        try {
+            $reserva = DB::transaction(function () use (
+                $datosCliente,
+                $datosReserva
             ) {
-                throw ValidationException::withMessages([
-                    'servicios' =>
-                    'Uno o más servicios ya no están disponibles.',
-                ]);
-            }
-
-            /*
+                /*
             |--------------------------------------------------------------------------
-            | Comprobar que los horarios sigan disponibles
+            | Normalizar servicios guardados en sesión
             |--------------------------------------------------------------------------
             */
+                $selecciones = array_values(
+                    $datosReserva['servicios'] ?? []
+                );
 
-            foreach ($servicios as $servicio) {
-                $horarioId =
-                    $datosReserva['horarios'][$servicio->id];
-
-                $horarioOcupado = DB::table('reserva_servicio')
-                    ->join(
-                        'reservas',
-                        'reservas.id',
-                        '=',
-                        'reserva_servicio.reserva_id'
-                    )
-                    ->where(
-                        'reservas.fecha',
-                        $datosReserva['fecha']
-                    )
-                    ->where(
-                        'reserva_servicio.servicio_experiencia_id',
-                        $servicio->id
-                    )
-                    ->where(
-                        'reserva_servicio.horario_disponible_id',
-                        $horarioId
-                    )
-                    ->whereNotIn('reservas.estado', [
-                        'CANCELADA',
-                        'RECHAZADA',
-                    ])
-                    ->exists();
-
-                if ($horarioOcupado) {
+                if (
+                    count($selecciones) < 1
+                    || count($selecciones) > 2
+                ) {
                     throw ValidationException::withMessages([
-                        'horarios' =>
-                        "El horario de {$servicio->nombre} ya no está disponible.",
+                        'servicios' =>
+                        'Debes seleccionar entre uno y dos servicios.',
                     ]);
                 }
-            }
 
-            $cantidadPersonas =
-                (int) $datosReserva['cantidad_asistentes'];
+                $cantidadPersonas = (int) (
+                    $datosReserva['cantidad_asistentes'] ?? 0
+                );
 
-            $subtotalGeneral = $servicios->sum(
-                fn(ServicioExperiencia $servicio) =>
-                $this->calcularSubtotalServicio(
-                    $servicio,
-                    $cantidadPersonas
-                )
-            );
+                if ($cantidadPersonas < 1) {
+                    throw ValidationException::withMessages([
+                        'cantidad_asistentes' =>
+                        'La cantidad de asistentes no es válida.',
+                    ]);
+                }
 
-            $reserva = Reserva::query()->create([
-                'tipo_cliente_id' =>
-                $datosCliente['tipo_cliente_id'],
-
-                'nombres' =>
-                $datosCliente['nombres'] ?? null,
-
-                'apellidos' =>
-                $datosCliente['apellidos'] ?? null,
-
-                'rut_persona' =>
-                $datosCliente['rut_persona'] ?? null,
-
-                'nombre_entidad' =>
-                $datosCliente['nombre_entidad'] ?? null,
-
-                'rut_entidad' =>
-                $datosCliente['rut_entidad'] ?? null,
-
-                'nombre_encargado' =>
-                $datosCliente['nombre_encargado'] ?? null,
-
-                'rut_encargado' =>
-                $datosCliente['rut_encargado'] ?? null,
-
-                'email' =>
-                $datosCliente['email'],
-
-                'telefono' =>
-                $datosCliente['telefono'],
-
-                'region_id' =>
-                $datosCliente['region_id'] ?? null,
-
-                'comuna_id' =>
-                $datosCliente['comuna_id'] ?? null,
-
-                'fecha' =>
-                $datosReserva['fecha'],
-
-                'cantidad_asistentes' =>
-                $cantidadPersonas,
-
-                'cantidad_alumnos' =>
-                $datosReserva['cantidad_alumnos'] ?? null,
-
-                'cantidad_profesores' =>
-                $datosReserva['cantidad_profesores'] ?? null,
-
-                'nivel_educacional' =>
-                $datosReserva['nivel_educacional'] ?? null,
-
-                'curso' =>
-                $datosReserva['curso'] ?? null,
-
-                'subtotal' =>
-                $subtotalGeneral,
-
-                'descuento' => 0,
-
-                'total' =>
-                $subtotalGeneral,
-
-                'estado' =>
-                'PENDIENTE',
-            ]);
-
-            foreach ($servicios as $servicio) {
-                $precioUnitario = (float) $servicio->precio;
-
-                $subtotalServicio =
-                    $this->calcularSubtotalServicio(
-                        $servicio,
-                        $cantidadPersonas
+                /*
+            |--------------------------------------------------------------------------
+            | Obtener capacidad simultánea general
+            |--------------------------------------------------------------------------
+            */
+                $capacidadSimultanea =
+                    ConfiguracionReserva::query()
+                    ->value(
+                        'capacidad_maxima_simultanea'
                     );
 
-                $horarioId =
-                    $datosReserva['horarios'][$servicio->id];
+                if ($capacidadSimultanea === null) {
+                    throw ValidationException::withMessages([
+                        'servicios' =>
+                        'No se ha configurado la capacidad máxima simultánea del parque.',
+                    ]);
+                }
 
-                $reserva->servicios()->attach(
-                    $servicio->id,
-                    [
-                        'horario_disponible_id' =>
-                        $horarioId,
+                $capacidadSimultanea =
+                    (int) $capacidadSimultanea;
 
-                        'precio_unitario' =>
-                        $precioUnitario,
+                /*
+            |--------------------------------------------------------------------------
+            | Obtener identificadores
+            |--------------------------------------------------------------------------
+            */
+                $servicioIds = collect($selecciones)
+                    ->pluck('servicio_id')
+                    ->map(fn($id) => (int) $id)
+                    ->unique()
+                    ->values()
+                    ->all();
 
-                        'cantidad_personas' =>
-                        $cantidadPersonas,
+                $horarioIds = collect($selecciones)
+                    ->pluck('horario_id')
+                    ->map(fn($id) => (int) $id)
+                    ->unique()
+                    ->values()
+                    ->all();
 
-                        'subtotal' =>
-                        $subtotalServicio,
-                    ]
-                );
-            }
+                $fechas = collect($selecciones)
+                    ->pluck('fecha')
+                    ->unique()
+                    ->values()
+                    ->all();
 
-            return $reserva;
-        });
+                /*
+            |--------------------------------------------------------------------------
+            | Bloquear horarios de las fechas involucradas
+            |--------------------------------------------------------------------------
+            | Todas las finalizaciones deben usar este mismo bloqueo.
+            | Así evitamos que dos reservas simultáneas lean los mismos cupos.
+            */
+                HorarioDisponible::query()
+                    ->whereIn('fecha', $fechas)
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->get(['id']);
+
+                /*
+            |--------------------------------------------------------------------------
+            | Obtener servicios activos
+            |--------------------------------------------------------------------------
+            */
+                $servicios = ServicioExperiencia::query()
+                    ->whereIn('id', $servicioIds)
+                    ->where('activo', true)
+                    ->get([
+                        'id',
+                        'nombre',
+                        'precio',
+                        'tipo_cobro',
+                        'activo',
+                    ])
+                    ->keyBy('id');
+
+                if (
+                    $servicios->count()
+                    !== count($servicioIds)
+                ) {
+                    throw ValidationException::withMessages([
+                        'servicios' =>
+                        'Uno o más servicios ya no están disponibles.',
+                    ]);
+                }
+
+                /*
+            |--------------------------------------------------------------------------
+            | Obtener horarios activos y servicios asociados
+            |--------------------------------------------------------------------------
+            */
+                $horarios = HorarioDisponible::query()
+                    ->with([
+                        'servicios:id,nombre',
+                    ])
+                    ->whereIn('id', $horarioIds)
+                    ->where('activo', true)
+                    ->get([
+                        'id',
+                        'fecha',
+                        'hora_inicio',
+                        'hora_termino',
+                        'activo',
+                    ])
+                    ->keyBy('id');
+
+                if (
+                    $horarios->count()
+                    !== count($horarioIds)
+                ) {
+                    throw ValidationException::withMessages([
+                        'servicios' =>
+                        'Uno o más horarios ya no están disponibles.',
+                    ]);
+                }
+
+                /*
+            |--------------------------------------------------------------------------
+            | Validar superposición dentro de la misma reserva
+            |--------------------------------------------------------------------------
+            | El mismo grupo no puede asistir a dos servicios al mismo tiempo.
+            */
+                for ($i = 0; $i < count($selecciones); $i++) {
+                    for (
+                        $j = $i + 1;
+                        $j < count($selecciones);
+                        $j++
+                    ) {
+                        $seleccionA = $selecciones[$i];
+                        $seleccionB = $selecciones[$j];
+
+                        if (
+                            $seleccionA['fecha']
+                            !== $seleccionB['fecha']
+                        ) {
+                            continue;
+                        }
+
+                        $horarioA = $horarios->get(
+                            (int) $seleccionA['horario_id']
+                        );
+
+                        $horarioB = $horarios->get(
+                            (int) $seleccionB['horario_id']
+                        );
+
+                        $seSuperponen =
+                            $horarioA->hora_inicio
+                            < $horarioB->hora_termino
+                            &&
+                            $horarioA->hora_termino
+                            > $horarioB->hora_inicio;
+
+                        if ($seSuperponen) {
+                            throw ValidationException::withMessages([
+                                'servicios' =>
+                                'Los servicios seleccionados para el mismo grupo no pueden tener horarios superpuestos.',
+                            ]);
+                        }
+                    }
+                }
+
+                /*
+            |--------------------------------------------------------------------------
+            | Validación definitiva de cada selección
+            |--------------------------------------------------------------------------
+            */
+                foreach ($selecciones as $indice => $seleccion) {
+                    $servicioId =
+                        (int) $seleccion['servicio_id'];
+
+                    $horarioId =
+                        (int) $seleccion['horario_id'];
+
+                    $fechaSeleccionada =
+                        $seleccion['fecha'];
+
+                    /** @var ServicioExperiencia|null $servicio */
+                    $servicio = $servicios->get(
+                        $servicioId
+                    );
+
+                    /** @var HorarioDisponible|null $horario */
+                    $horario = $horarios->get(
+                        $horarioId
+                    );
+
+                    if (! $servicio || ! $horario) {
+                        throw ValidationException::withMessages([
+                            "servicios.{$indice}" =>
+                            'El servicio o el horario seleccionado ya no está disponible.',
+                        ]);
+                    }
+
+                    /*
+                 * La fecha enviada debe ser la fecha real del horario.
+                 */
+                    if (
+                        $horario->fecha->format('Y-m-d')
+                        !== $fechaSeleccionada
+                    ) {
+                        throw ValidationException::withMessages([
+                            "servicios.{$indice}.horario_id" =>
+                            'El horario seleccionado no corresponde a la fecha indicada.',
+                        ]);
+                    }
+
+                    /*
+                 * El servicio debe estar asociado a la franja.
+                 */
+                    $servicioAsociado = $horario
+                        ->servicios
+                        ->contains(
+                            'id',
+                            $servicioId
+                        );
+
+                    if (! $servicioAsociado) {
+                        throw ValidationException::withMessages([
+                            "servicios.{$indice}.horario_id" =>
+                            "El servicio {$servicio->nombre} no está habilitado en el horario seleccionado.",
+                        ]);
+                    }
+
+                    /*
+                 * Personas existentes en todos los horarios
+                 * que se superponen con esta franja.
+                 */
+                    $personasSuperpuestas = $this->obtenerPersonasSuperpuestas($horario);
+
+                    $cuposGeneralesDisponibles = max($capacidadSimultanea - $personasSuperpuestas, 0);
+
+                    if ($cantidadPersonas > $cuposGeneralesDisponibles) {
+                        $horaInicio = substr($horario->hora_inicio, 0, 5);
+
+                        $horaTermino = substr($horario->hora_termino, 0, 5);
+
+                        throw ValidationException::withMessages([
+                            'cantidad_asistentes' =>
+                            "Entre las {$horaInicio} y las {$horaTermino} solamente quedan {$cuposGeneralesDisponibles} cupos, considerando la capacidad simultánea del parque.",
+                        ]);
+                    }
+                }
+
+                /*
+            |--------------------------------------------------------------------------
+            | Calcular subtotales
+            |--------------------------------------------------------------------------
+            */
+                $subtotalGeneral = collect($selecciones)
+                    ->sum(function ($seleccion) use (
+                        $servicios,
+                        $cantidadPersonas
+                    ) {
+                        $servicio = $servicios->get(
+                            (int) $seleccion['servicio_id']
+                        );
+
+                        return $this->calcularSubtotalServicio(
+                            $servicio,
+                            $cantidadPersonas
+                        );
+                    });
+
+                /*
+            |--------------------------------------------------------------------------
+            | Fecha principal de la reserva
+            |--------------------------------------------------------------------------
+            | Si reservas.fecha sigue siendo obligatoria, guardamos la fecha
+            | del primer servicio. La fecha específica queda también en el pivot.
+            */
+                $fechaPrincipal =
+                    $selecciones[0]['fecha'];
+
+                /*
+            |--------------------------------------------------------------------------
+            | Crear reserva
+            |--------------------------------------------------------------------------
+            */
+                $reserva = Reserva::query()->create([
+                    'tipo_cliente_id' =>
+                    $datosCliente['tipo_cliente_id'],
+
+                    'nombres' =>
+                    $datosCliente['nombres'] ?? null,
+
+                    'apellidos' =>
+                    $datosCliente['apellidos'] ?? null,
+
+                    'rut_persona' =>
+                    $datosCliente['rut_persona'] ?? null,
+
+                    'nombre_entidad' =>
+                    $datosCliente['nombre_entidad'] ?? null,
+
+                    'rut_entidad' =>
+                    $datosCliente['rut_entidad'] ?? null,
+
+                    'nombre_encargado' =>
+                    $datosCliente['nombre_encargado'] ?? null,
+
+                    'rut_encargado' =>
+                    $datosCliente['rut_encargado'] ?? null,
+
+                    'email' =>
+                    $datosCliente['email'],
+
+                    'telefono' =>
+                    $datosCliente['telefono'],
+
+                    'region_id' =>
+                    $datosCliente['region_id'] ?? null,
+
+                    'comuna_id' =>
+                    $datosCliente['comuna_id'] ?? null,
+
+                    'fecha' =>
+                    $fechaPrincipal,
+
+                    'cantidad_asistentes' =>
+                    $cantidadPersonas,
+
+                    'cantidad_alumnos' =>
+                    $datosReserva['cantidad_alumnos'] ?? null,
+
+                    'cantidad_profesores' =>
+                    $datosReserva['cantidad_profesores'] ?? null,
+
+                    'nivel_educacional' =>
+                    $datosReserva['nivel_educacional'] ?? null,
+
+                    'curso' =>
+                    $datosReserva['curso'] ?? null,
+
+                    'objetivo_visita' =>
+                    $datosReserva['objetivo_visita'] ?? null,
+
+                    'subtotal' =>
+                    $subtotalGeneral,
+
+                    'descuento' => 0,
+
+                    'total' =>
+                    $subtotalGeneral,
+
+                    'estado' =>
+                    'PENDIENTE',
+                ]);
+
+                /*
+            |--------------------------------------------------------------------------
+            | Guardar servicios de la reserva
+            |--------------------------------------------------------------------------
+            */
+                foreach ($selecciones as $seleccion) {
+                    $servicio = $servicios->get(
+                        (int) $seleccion['servicio_id']
+                    );
+
+                    $precioUnitario =
+                        (float) $servicio->precio;
+
+                    $subtotalServicio =
+                        $this->calcularSubtotalServicio(
+                            $servicio,
+                            $cantidadPersonas
+                        );
+
+                    $reserva->servicios()->attach(
+                        $servicio->id,
+                        [
+                            'horario_disponible_id' =>
+                            (int) $seleccion['horario_id'],
+
+                            'fecha' =>
+                            $seleccion['fecha'],
+
+                            'precio_unitario' =>
+                            $precioUnitario,
+
+                            'cantidad_personas' =>
+                            $cantidadPersonas,
+
+                            'subtotal' =>
+                            $subtotalServicio,
+                        ]
+                    );
+                }
+
+                return $reserva;
+            }, 3);
+        } catch (ValidationException $exception) {
+            return redirect()
+                ->route('reservas.datos')
+                ->withErrors(
+                    $exception->errors()
+                )
+                ->withInput();
+        }
 
         session()->forget('reserva');
 
@@ -748,74 +1210,91 @@ class ReservaWizardController extends Controller
 
     public function consultarHorarios(
         Request $request
-    ): JsonResponse {
-        $datos = $request->validate([
-            'fecha' => [
-                'required',
-                'date',
-                'after_or_equal:today',
-            ],
+    ) {
+        $datos = $request->validate(
+            [
+                'fecha' => [
+                    'required',
+                    'date',
+                    'after_or_equal:today',
+                ],
 
-            'servicio_id' => [
-                'required',
-                Rule::exists(
-                    'servicios_experiencias',
-                    'id'
-                )->where('activo', true),
+                'servicio_id' => [
+                    'required',
+                    'integer',
+                    Rule::exists(
+                        'servicios_experiencias',
+                        'id'
+                    )->where('activo', true),
+                ],
             ],
-        ]);
+            [
+                'fecha.required' =>
+                'Debes seleccionar una fecha.',
+
+                'fecha.date' =>
+                'La fecha seleccionada no es válida.',
+
+                'fecha.after_or_equal' =>
+                'La fecha no puede ser anterior a hoy.',
+
+                'servicio_id.required' =>
+                'Debes seleccionar un servicio.',
+
+                'servicio_id.integer' =>
+                'El servicio seleccionado no es válido.',
+
+                'servicio_id.exists' =>
+                'El servicio seleccionado no existe o está inactivo.',
+            ]
+        );
 
         $servicio = ServicioExperiencia::query()
+            ->where('activo', true)
             ->findOrFail($datos['servicio_id']);
 
-        $horariosOcupados = DB::table('reserva_servicio')
-            ->join(
-                'reservas',
-                'reservas.id',
-                '=',
-                'reserva_servicio.reserva_id'
-            )
-            ->where(
-                'reservas.fecha',
-                $datos['fecha']
-            )
-            ->where(
-                'reserva_servicio.servicio_experiencia_id',
-                $servicio->id
-            )
-            ->whereNotIn('reservas.estado', [
-                'CANCELADA',
-                'RECHAZADA',
-            ])
-            ->pluck(
-                'reserva_servicio.horario_disponible_id'
-            );
+        $capacidadGeneral = ConfiguracionReserva::query()
+            ->value('capacidad_maxima_simultanea');
+
+        if ($capacidadGeneral === null) {
+            throw ValidationException::withMessages([
+                'servicio_id' =>
+                'No se ha configurado la capacidad máxima simultánea del parque.',
+            ]);
+        }
+
+        $capacidadGeneral = (int) $capacidadGeneral;
 
         $horarios = HorarioDisponible::query()
-            ->where(
-                'servicio_experiencia_id',
-                $servicio->id
-            )
             ->whereDate(
                 'fecha',
                 $datos['fecha']
             )
             ->where('activo', true)
+            ->whereHas(
+                'servicios',
+                function ($query) use ($servicio) {
+                    $query->where(
+                        'servicios_experiencias.id',
+                        $servicio->id
+                    );
+                }
+            )
             ->orderBy('hora_inicio')
             ->get()
-            ->map(function (
-                HorarioDisponible $horario
-            ) use ($horariosOcupados) {
-                /*
-             *
-             * Más adelante aquí se calculará la disponibilidad
-             * considerando:
-             * - servicio;
-             * - fecha;
-             * - horario;
-             * - capacidad máxima del servicio;
-             * - personas ya reservadas.
-             */
+            ->map(function ($horario) use (
+                $capacidadGeneral
+            ) {
+                $personasSuperpuestas =
+                    $this->obtenerPersonasSuperpuestas(
+                        $horario
+                    );
+
+                $cuposGenerales = max(
+                    $capacidadGeneral
+                        - $personasSuperpuestas,
+                    0
+                );
 
                 return [
                     'id' => $horario->id,
@@ -832,16 +1311,16 @@ class ReservaWizardController extends Controller
                         5
                     ),
 
-                    'disponible' => ! $horariosOcupados->contains($horario->id),
+                    'cupos_disponibles' =>
+                    $cuposGenerales,
+
+                    'disponible' =>
+                    $cuposGenerales > 0,
                 ];
-            });
+            })
+            ->values();
 
         return response()->json([
-            'servicio' => [
-                'id' => $servicio->id,
-                'nombre' => $servicio->nombre,
-            ],
-
             'horarios' => $horarios,
         ]);
     }
@@ -865,46 +1344,80 @@ class ReservaWizardController extends Controller
         };
     }
 
-    public function consultarServiciosDisponibles(): JsonResponse
+    public function consultarServiciosDisponibles(Request $request)
     {
+        $datos = $request->validate([
+            'fecha' => [
+                'required',
+                'date',
+                'after_or_equal:today',
+            ],
+        ]);
+
+        $fecha = $datos['fecha'];
+
         $servicios = ServicioExperiencia::query()
-            ->with('categoria')
-            ->where('activo', true)
-            ->whereIn(
-                'id',
-                HorarioDisponible::query()
-                    ->where('activo', true)
-                    ->whereDate('fecha', '>=', today())
-                    ->whereNotNull('servicio_experiencia_id')
-                    ->select('servicio_experiencia_id')
-            )
-            ->orderBy('nombre')
-            ->get([
+            ->select([
                 'id',
                 'categoria_servicio_id',
                 'nombre',
+                'duracion_minutos',
+                'capacidad_maxima',
                 'precio',
                 'tipo_cobro',
             ])
-            ->map(function (
-                ServicioExperiencia $servicio
-            ) {
-                return [
-                    'id' => $servicio->id,
-                    'nombre' => $servicio->nombre,
-                    'precio' => $servicio->precio,
-                    'tipo_cobro' => $servicio->tipo_cobro,
-                    'categoria' => $servicio->categoria
-                        ? [
-                            'id' => $servicio->categoria->id,
-                            'nombre' => $servicio->categoria->nombre,
-                        ]
-                        : null,
-                ];
-            });
+            ->with([
+                'categoria:id,nombre',
+            ])
+            ->where('activo', true)
+            ->whereHas('horariosDisponibles', function ($query) use ($fecha) {
+                $query
+                    ->whereDate('horarios_disponibles.fecha', $fecha)
+                    ->where('horarios_disponibles.activo', true);
+            })
+            ->orderBy('nombre')
+            ->get();
 
         return response()->json([
+            'ok' => true,
             'servicios' => $servicios,
         ]);
+    }
+
+    private function obtenerPersonasSuperpuestas(
+        HorarioDisponible $horario
+    ): int {
+        return (int) DB::table('reserva_servicios')
+            ->join(
+                'reservas',
+                'reservas.id',
+                '=',
+                'reserva_servicios.reserva_id'
+            )
+            ->join(
+                'horarios_disponibles',
+                'horarios_disponibles.id',
+                '=',
+                'reserva_servicios.horario_disponible_id'
+            )
+            ->whereDate(
+                'horarios_disponibles.fecha',
+                $horario->fecha->format('Y-m-d')
+            )
+            ->where(
+                'horarios_disponibles.hora_inicio',
+                '<',
+                $horario->hora_termino
+            )
+            ->where(
+                'horarios_disponibles.hora_termino',
+                '>',
+                $horario->hora_inicio
+            )
+            ->whereNotIn('reservas.estado', [
+                'CANCELADA',
+                'RECHAZADA',
+            ])
+            ->sum('reserva_servicios.cantidad_personas');
     }
 }

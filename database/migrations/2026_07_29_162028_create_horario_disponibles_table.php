@@ -14,14 +14,7 @@ return new class extends Migration
         Schema::create('horarios_disponibles', function (Blueprint $table) {
             $table->id();
 
-            $table->foreignId('servicio_experiencia_id')
-                ->constrained('servicios_experiencias')
-                ->cascadeOnUpdate()
-                ->cascadeOnDelete();
-
-            $table->unsignedInteger('capacidad_maxima')
-                ->nullable();
-
+            $table->date('fecha');
             $table->time('hora_inicio');
             $table->time('hora_termino');
             $table->boolean('activo')->default(true);
@@ -30,7 +23,7 @@ return new class extends Migration
 
             $table->unique(
                 [
-                    'servicio_experiencia_id',
+                    'fecha',
                     'hora_inicio',
                     'hora_termino',
                 ],

@@ -96,29 +96,8 @@ class TipoClienteController extends Controller
             );
     }
 
-    public function destroy(
-        TipoCliente $tipoCliente
-    ): RedirectResponse {
-        /*
-         * No eliminamos tipos que tengan reservas asociadas.
-         */
-        if ($tipoCliente->reservas()->exists()) {
-            return redirect()
-                ->route('tipos-cliente.index')
-                ->with(
-                    'error',
-                    'No puedes eliminar este tipo porque tiene reservas asociadas. Puedes desactivarlo.'
-                );
-        }
-
-        $tipoCliente->delete();
-
-        return redirect()
-            ->route('tipos-cliente.index')
-            ->with(
-                'success',
-                'El tipo de cliente fue eliminado correctamente.'
-            );
+    public function destroy() {
+        //
     }
 
     public function cambiarEstado(

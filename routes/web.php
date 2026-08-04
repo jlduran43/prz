@@ -21,16 +21,36 @@ Route::patch(
 Route::resource(
     'tipos-cliente',
     TipoClienteController::class
-);
+)->parameters([
+    'tipos-cliente' => 'tipoCliente',
+])->except([
+    'destroy',
+]);
+
+Route::patch(
+    'regiones/{region}/cambiar-estado',
+    [RegionController::class, 'cambiarEstado']
+)->name('regiones.cambiar-estado');
 
 Route::resource('regiones', RegionController::class)
     ->parameters([
         'regiones' => 'region',
+    ])
+    ->except([
+        'destroy',
     ]);
+
+Route::patch(
+    'comunas/{comuna}/cambiar-estado',
+    [ComunaController::class, 'cambiarEstado']
+)->name('comunas.cambiar-estado');
 
 Route::resource('comunas', ComunaController::class)
     ->parameters([
         'comunas' => 'comuna',
+    ])
+    ->except([
+        'destroy',
     ]);
 
 Route::patch(
@@ -136,8 +156,3 @@ Route::prefix('reservas')
             ]
         )->name('comunas-por-region');
     });
-
-Route::get(
-    '/reservas/comunas-por-region/{region}',
-    [ReservaWizardController::class, 'comunasPorRegion']
-)->name('reservas.comunas-por-region');

@@ -20,7 +20,7 @@
     <div class="card card-primary">
         <div class="card-header">
             <h3 class="card-title">
-                Datos del horario de atención
+                Datos de la franja horaria
             </h3>
         </div>
 

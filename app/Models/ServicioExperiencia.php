@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use App\Models\CategoriaServicio;
 
 class ServicioExperiencia extends Model
 {
@@ -20,6 +22,9 @@ class ServicioExperiencia extends Model
         'capacidad_maxima',
         'precio',
         'requiere_reserva',
+        'tipo_cobro',
+        'max_cursos_simultaneos',
+        'max_alumnos_por_curso',
         'activo',
     ];
 
@@ -29,6 +34,8 @@ class ServicioExperiencia extends Model
         'capacidad_maxima' => 'integer',
         'precio' => 'decimal:2',
         'requiere_reserva' => 'boolean',
+        'max_cursos_simultaneos' => 'integer',
+        'max_alumnos_por_curso' => 'integer',
         'activo' => 'boolean',
     ];
 
@@ -44,7 +51,7 @@ class ServicioExperiencia extends Model
     {
         return $this->belongsToMany(
             Reserva::class,
-            'reserva_servicio',
+            'reserva_servicios',
             'servicio_experiencia_id',
             'reserva_id'
         )
@@ -57,19 +64,21 @@ class ServicioExperiencia extends Model
             ->withTimestamps();
     }
 
-    public function horariosDisponibles(): HasMany
-    {
-        return $this->hasMany(
-            HorarioDisponible::class,
-            'servicio_experiencia_id'
-        );
-    }
-
     public function reservasServicios(): HasMany
     {
         return $this->hasMany(
             ReservaServicio::class,
             'servicio_experiencia_id'
         );
+    }
+
+    public function horariosDisponibles(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            HorarioDisponible::class,
+            'horario_servicio',
+            'servicio_experiencia_id',
+            'horario_disponible_id'
+        )->withTimestamps();
     }
 }

@@ -39,8 +39,7 @@
             <form action="{{ route('horarios-disponibles.index') }}" method="GET">
                 <div class="row">
                     <div class="col-md-5 mb-2">
-                        <input type="text" name="buscar" class="form-control" value="{{ $buscar }}"
-                            placeholder="Buscar por nombre">
+                        <input type="date" name="fecha" class="form-control" value="{{ request('fecha') }}">
                     </div>
 
                     <div class="col-md-3 mb-2">
@@ -74,76 +73,38 @@
         </div>
 
         <div class="card-body table-responsive p-0">
-            <table class="table table-hover table-striped">
+            <table class="table table-hover table-striped text-center">
                 <thead>
                     <tr>
-                        <th class="text-center">
-                            ID
-                        </th>
-                        <th class="text-center">
-                            Servicio
-                        </th>
-                        <th class="text-center">
-                            Categoría
-                        </th>
-                        <th class="text-center">
-                            Fecha
-                        </th>
-                        <th class="text-center">
-                            Hora de inicio
-                        </th>
-                        <th class="text-center">
-                            Hora de término
-                        </th>
-                        <th class="text-center">
-                            Estado
-                        </th>
-                        <th class="text-center" style="width: 180px;">
-                            Acciones
-                        </th>
+                        <th>ID</th>
+                        <th>Fecha</th>
+                        <th>Hora de inicio</th>
+                        <th>Hora de término</th>
+                        <th>Estado</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
 
                 <tbody>
                     @forelse ($horarios as $horario)
-                        @php
-                            $nombreCategoria = $horario->servicio?->categoria?->nombre;
-
-                            $colorCategoria = match ($nombreCategoria) {
-                                'Experiencia Educativa' => 'info',
-                                'Experiencia Turística' => 'success',
-                                default => 'secondary',
-                            };
-                        @endphp
-
                         <tr>
-                            <td>
+                            <td class="align-middle">
                                 {{ $horario->id }}
                             </td>
 
-                            <td>
-                                {{ $horario->servicio?->nombre ?? 'Sin servicio' }}
+                            <td class="align-middle">
+                                {{ $horario->fecha->format('d/m/Y') }}
                             </td>
 
-                            <td>
-                                <span class="badge badge-{{ $colorCategoria }}">
-                                    {{ $nombreCategoria ?? 'Sin categoría' }}
-                                </span>
-                            </td>
-
-                            <td>
-                                {{ $horario->fecha ? $horario->fecha->format('d-m-Y') : 'Sin fecha' }}
-                            </td>
-
-                            <td>
+                            <td class="align-middle">
                                 {{ substr($horario->hora_inicio, 0, 5) }}
                             </td>
 
-                            <td>
+                            <td class="align-middle">
                                 {{ substr($horario->hora_termino, 0, 5) }}
                             </td>
 
-                            <td>
+                            <td class="align-middle">
                                 @if ($horario->activo)
                                     <span class="badge badge-success">
                                         Activo
@@ -155,7 +116,7 @@
                                 @endif
                             </td>
 
-                            <td class="text-nowrap">
+                            <td class="align-middle text-nowrap">
                                 <a href="{{ route('horarios-disponibles.show', $horario) }}" class="btn btn-info btn-sm"
                                     title="Ver">
                                     <i class="fas fa-eye"></i>
@@ -167,12 +128,7 @@
                                 </a>
 
                                 <form action="{{ route('horarios-disponibles.destroy', $horario) }}" method="POST"
-                                    class="d-inline"
-                                    onsubmit="
-                        return confirm(
-                            '¿Deseas eliminar este horario?'
-                        );
-                    ">
+                                    class="d-inline">
                                     @csrf
                                     @method('DELETE')
 
@@ -184,7 +140,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="8" class="text-center">
+                            <td colspan="6" class="text-center">
                                 No hay horarios registrados.
                             </td>
                         </tr>

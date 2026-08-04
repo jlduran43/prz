@@ -6,6 +6,7 @@ use App\Models\Comuna;
 use App\Models\Region;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Http\RedirectResponse;
 
 class ComunaController extends Controller
 {
@@ -175,5 +176,21 @@ class ComunaController extends Controller
         return redirect()
             ->route('comunas.index')
             ->with('success', 'Comuna eliminada correctamente.');
+    }
+
+    public function cambiarEstado(
+        Comuna $comuna
+    ): RedirectResponse {
+        $comuna->update([
+            'activo' => ! $comuna->activo,
+        ]);
+
+        $mensaje = $comuna->activo
+            ? 'La comuna fue activada correctamente.'
+            : 'La comuna fue desactivada correctamente.';
+
+        return redirect()
+            ->route('comunas.index')
+            ->with('success', $mensaje);
     }
 }

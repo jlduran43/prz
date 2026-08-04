@@ -6,10 +6,7 @@
     <div class="d-flex justify-content-between align-items-center">
         <h1>Servicios y experiencias</h1>
 
-        <a
-            href="{{ route('servicios-experiencias.create') }}"
-            class="btn btn-primary"
-        >
+        <a href="{{ route('servicios-experiencias.create') }}" class="btn btn-primary">
             <i class="fas fa-plus mr-1"></i>
             Nuevo servicio
         </a>
@@ -19,11 +16,7 @@
 @section('content')
     @if (session('success'))
         <div class="alert alert-success alert-dismissible fade show">
-            <button
-                type="button"
-                class="close"
-                data-dismiss="alert"
-            >
+            <button type="button" class="close" data-dismiss="alert">
                 <span>&times;</span>
             </button>
 
@@ -33,11 +26,7 @@
 
     @if (session('error'))
         <div class="alert alert-danger alert-dismissible fade show">
-            <button
-                type="button"
-                class="close"
-                data-dismiss="alert"
-            >
+            <button type="button" class="close" data-dismiss="alert">
                 <span>&times;</span>
             </button>
 
@@ -47,37 +36,21 @@
 
     <div class="card">
         <div class="card-header">
-            <form
-                action="{{ route('servicios-experiencias.index') }}"
-                method="GET"
-            >
+            <form action="{{ route('servicios-experiencias.index') }}" method="GET">
                 <div class="row">
                     <div class="col-md-4 mb-2">
-                        <input
-                            type="text"
-                            name="buscar"
-                            class="form-control"
-                            value="{{ $buscar }}"
-                            placeholder="Buscar por código o nombre"
-                        >
+                        <input type="text" name="buscar" class="form-control" value="{{ $buscar }}"
+                            placeholder="Buscar por código o nombre">
                     </div>
 
                     <div class="col-md-3 mb-2">
-                        <select
-                            name="categoria_id"
-                            class="form-control"
-                        >
+                        <select name="categoria_id" class="form-control">
                             <option value="">
                                 Todas las categorías
                             </option>
 
                             @foreach ($categorias as $categoria)
-                                <option
-                                    value="{{ $categoria->id }}"
-                                    @selected(
-                                        $categoriaId == $categoria->id
-                                    )
-                                >
+                                <option value="{{ $categoria->id }}" @selected($categoriaId == $categoria->id)>
                                     {{ $categoria->nombre }}
                                 </option>
                             @endforeach
@@ -85,45 +58,29 @@
                     </div>
 
                     <div class="col-md-2 mb-2">
-                        <select
-                            name="estado"
-                            class="form-control"
-                        >
+                        <select name="estado" class="form-control">
                             <option value="">
                                 Todos los estados
                             </option>
 
-                            <option
-                                value="1"
-                                @selected($estado === '1')
-                            >
+                            <option value="1" @selected($estado === '1')>
                                 Activos
                             </option>
 
-                            <option
-                                value="0"
-                                @selected($estado === '0')
-                            >
+                            <option value="0" @selected($estado === '0')>
                                 Inactivos
                             </option>
                         </select>
                     </div>
 
                     <div class="col-md-3 mb-2">
-                        <button
-                            type="submit"
-                            class="btn btn-primary"
-                        >
+                        <button type="submit" class="btn btn-primary">
                             <i class="fas fa-search mr-1"></i>
                             Buscar
                         </button>
 
-                        <a
-                            href="{{ route(
-                                'servicios-experiencias.index'
-                            ) }}"
-                            class="btn btn-secondary"
-                        >
+                        <a href="{{ route('servicios-experiencias.index') }}"
+                            class="btn btn-secondary">
                             Limpiar
                         </a>
                     </div>
@@ -138,14 +95,12 @@
                         <th>Código</th>
                         <th>Nombre</th>
                         <th>Categoría</th>
+                        <th>Tipo de cobro</th>
                         <th class="text-center">Duración</th>
                         <th class="text-center">Capacidad</th>
                         <th class="text-right">Precio</th>
                         <th class="text-center">Estado</th>
-                        <th
-                            class="text-center"
-                            style="width: 180px;"
-                        >
+                        <th class="text-center" style="width: 180px;">
                             Acciones
                         </th>
                     </tr>
@@ -163,15 +118,23 @@
                             <td>{{ $servicio->nombre }}</td>
 
                             <td>
-                                {{ $servicio->categoria?->nombre
-                                    ?? 'Sin categoría' }}
+                                {{ $servicio->categoria?->nombre ?? 'Sin categoría' }}
 
-                                @if (
-                                    $servicio->categoria
-                                    && ! $servicio->categoria->activo
-                                )
+                                @if ($servicio->categoria && !$servicio->categoria->activo)
                                     <span class="badge badge-warning">
                                         Categoría inactiva
+                                    </span>
+                                @endif
+                            </td>
+
+                            <td>
+                                @if ($servicio->tipo_cobro === 'POR_PERSONA')
+                                    <span class="badge badge-info">
+                                        Por persona
+                                    </span>
+                                @else
+                                    <span class="badge badge-primary">
+                                        Por grupo
                                     </span>
                                 @endif
                             </td>
@@ -185,10 +148,7 @@
                             </td>
 
                             <td class="text-center">
-                                @if (
-                                    $servicio->capacidad_minima
-                                    || $servicio->capacidad_maxima
-                                )
+                                @if ($servicio->capacidad_minima || $servicio->capacidad_maxima)
                                     {{ $servicio->capacidad_minima ?? '—' }}
                                     a
                                     {{ $servicio->capacidad_maxima ?? '—' }}
@@ -198,12 +158,7 @@
                             </td>
 
                             <td class="text-right">
-                                ${{ number_format(
-                                    (float) $servicio->precio,
-                                    0,
-                                    ',',
-                                    '.'
-                                ) }}
+                                ${{ number_format((float) $servicio->precio, 0, ',', '.') }}
                             </td>
 
                             <td class="text-center">
@@ -219,50 +174,26 @@
                             </td>
 
                             <td class="text-center">
-                                <a
-                                    href="{{ route(
-                                        'servicios-experiencias.show',
-                                        $servicio
-                                    ) }}"
-                                    class="btn btn-info btn-sm"
-                                    title="Ver"
-                                >
+                                <a href="{{ route('servicios-experiencias.show', $servicio) }}"
+                                    class="btn btn-info btn-sm" title="Ver">
                                     <i class="fas fa-eye"></i>
                                 </a>
 
-                                <a
-                                    href="{{ route(
-                                        'servicios-experiencias.edit',
-                                        $servicio
-                                    ) }}"
-                                    class="btn btn-warning btn-sm"
-                                    title="Editar"
-                                >
+                                <a href="{{ route('servicios-experiencias.edit', $servicio) }}"
+                                    class="btn btn-warning btn-sm" title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </a>
 
                                 @if ($servicio->activo)
-                                    <button
-                                        type="button"
-                                        class="btn btn-danger btn-sm"
-                                        title="Desactivar"
-                                        data-toggle="modal"
-                                        data-target="#modalDesactivar"
-                                        data-id="{{ $servicio->id }}"
-                                        data-nombre="{{ $servicio->nombre }}"
-                                    >
+                                    <button type="button" class="btn btn-danger btn-sm" title="Desactivar"
+                                        data-toggle="modal" data-target="#modalDesactivar" data-id="{{ $servicio->id }}"
+                                        data-nombre="{{ $servicio->nombre }}">
                                         <i class="fas fa-ban"></i>
                                     </button>
                                 @else
-                                    <button
-                                        type="button"
-                                        class="btn btn-success btn-sm"
-                                        title="Reactivar"
-                                        data-toggle="modal"
-                                        data-target="#modalActivar"
-                                        data-id="{{ $servicio->id }}"
-                                        data-nombre="{{ $servicio->nombre }}"
-                                    >
+                                    <button type="button" class="btn btn-success btn-sm" title="Reactivar"
+                                        data-toggle="modal" data-target="#modalActivar" data-id="{{ $servicio->id }}"
+                                        data-nombre="{{ $servicio->nombre }}">
                                         <i class="fas fa-check"></i>
                                     </button>
                                 @endif
@@ -270,10 +201,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td
-                                colspan="8"
-                                class="text-center py-4"
-                            >
+                            <td colspan="8" class="text-center py-4">
                                 No se encontraron servicios o experiencias.
                             </td>
                         </tr>
@@ -290,16 +218,8 @@
     </div>
 
     {{-- Modal para desactivar --}}
-    <div
-        class="modal fade"
-        id="modalDesactivar"
-        tabindex="-1"
-        aria-hidden="true"
-    >
-        <div
-            class="modal-dialog modal-dialog-centered"
-            role="document"
-        >
+    <div class="modal fade" id="modalDesactivar" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header bg-danger">
                     <h5 class="modal-title">
@@ -307,11 +227,7 @@
                         Desactivar servicio
                     </h5>
 
-                    <button
-                        type="button"
-                        class="close text-white"
-                        data-dismiss="modal"
-                    >
+                    <button type="button" class="close text-white" data-dismiss="modal">
                         <span>&times;</span>
                     </button>
                 </div>
@@ -331,25 +247,15 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button
-                        type="button"
-                        class="btn btn-secondary"
-                        data-dismiss="modal"
-                    >
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
                         Cancelar
                     </button>
 
-                    <form
-                        id="formDesactivar"
-                        method="POST"
-                    >
+                    <form id="formDesactivar" method="POST">
                         @csrf
                         @method('DELETE')
 
-                        <button
-                            type="submit"
-                            class="btn btn-danger"
-                        >
+                        <button type="submit" class="btn btn-danger">
                             <i class="fas fa-ban mr-1"></i>
                             Sí, desactivar
                         </button>
@@ -360,16 +266,8 @@
     </div>
 
     {{-- Modal para reactivar --}}
-    <div
-        class="modal fade"
-        id="modalActivar"
-        tabindex="-1"
-        aria-hidden="true"
-    >
-        <div
-            class="modal-dialog modal-dialog-centered"
-            role="document"
-        >
+    <div class="modal fade" id="modalActivar" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header bg-success">
                     <h5 class="modal-title">
@@ -377,11 +275,7 @@
                         Reactivar servicio
                     </h5>
 
-                    <button
-                        type="button"
-                        class="close text-white"
-                        data-dismiss="modal"
-                    >
+                    <button type="button" class="close text-white" data-dismiss="modal">
                         <span>&times;</span>
                     </button>
                 </div>
@@ -401,25 +295,15 @@
                 </div>
 
                 <div class="modal-footer">
-                    <button
-                        type="button"
-                        class="btn btn-secondary"
-                        data-dismiss="modal"
-                    >
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
                         Cancelar
                     </button>
 
-                    <form
-                        id="formActivar"
-                        method="POST"
-                    >
+                    <form id="formActivar" method="POST">
                         @csrf
                         @method('PATCH')
 
-                        <button
-                            type="submit"
-                            class="btn btn-success"
-                        >
+                        <button type="submit" class="btn btn-success">
                             <i class="fas fa-check mr-1"></i>
                             Sí, reactivar
                         </button>
@@ -432,7 +316,7 @@
 
 @section('js')
     <script>
-        $('#modalDesactivar').on('show.bs.modal', function (event) {
+        $('#modalDesactivar').on('show.bs.modal', function(event) {
             const boton = $(event.relatedTarget);
             const id = boton.data('id');
             const nombre = boton.data('nombre');
@@ -451,7 +335,7 @@
                 );
         });
 
-        $('#modalActivar').on('show.bs.modal', function (event) {
+        $('#modalActivar').on('show.bs.modal', function(event) {
             const boton = $(event.relatedTarget);
             const id = boton.data('id');
             const nombre = boton.data('nombre');
@@ -466,9 +350,9 @@
                 .find('#formActivar')
                 .attr(
                     'action',
-                    '{{ url('servicios-experiencias') }}/'
-                    + id
-                    + '/activar'
+                    '{{ url('servicios-experiencias') }}/' +
+                    id +
+                    '/activar'
                 );
         });
     </script>

@@ -16,8 +16,8 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            TipoClienteSeeder::class,
-            RegionComunaSeeder::class
+            RegionComunaSeeder::class,
+            ConfiguracionReservaSeeder::class,
         ]);
     }
 }

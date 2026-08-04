@@ -7,33 +7,57 @@
 @stop
 
 @section('content')
+    <div class="card card-outline card-primary">
+        <div class="card-header">
+            <h3 class="card-title">
+                Información de la Región
+            </h3>
+        </div>
 
-<div class="card">
-    <div class="card-header">
-        Información de la Región
+        <div class="card-body">
+            <dl class="row mb-0">
+                <dt class="col-sm-3">
+                    Código:
+                </dt>
+
+                <dd class="col-sm-9">
+                    {{ $region->codigo }}
+                </dd>
+
+                <dt class="col-sm-3">
+                    Nombre:
+                </dt>
+
+                <dd class="col-sm-9">
+                    {{ $region->nombre }}
+                </dd>
+
+                <dt class="col-sm-3">
+                    Estado:
+                </dt>
+
+                <dd class="col-sm-9">
+                    @if ($region->activo)
+                        <span class="badge badge-success">
+                            Activo
+                        </span>
+                    @else
+                        <span class="badge badge-danger">
+                            Inactivo
+                        </span>
+                    @endif
+                </dd>
+            </dl>
+        </div>
+
+        <div class="card-footer">
+            <a
+                href="{{ route('regiones.index') }}"
+                class="btn btn-secondary"
+            >
+                <i class="fas fa-arrow-left mr-1"></i>
+                Volver
+            </a>
+        </div>
     </div>
-
-    <div class="card-body">
-
-        <strong>Código:</strong> {{ $region->codigo }} <br>
-
-        <strong>Nombre:</strong> {{ $region->nombre }} <br>
-
-        <strong>Estado:</strong>
-
-        @if($region->activo)
-            <span class="badge bg-success">Activo</span>
-        @else
-            <span class="badge bg-danger">Inactivo</span>
-        @endif
-
-    </div>
-
-    <div class="card-footer">
-        <a href="{{ route('regiones.index') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> Volver
-        </a>
-    </div>
-</div>
-
 @stop

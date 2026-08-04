@@ -82,7 +82,82 @@ class ServicioExperienciaController extends Controller
      */
     public function store(Request $request)
     {
-        $datos = $this->validar($request);
+        $datos = $request->validate(
+            [
+                'categoria_servicio_id' => [
+                    'required',
+                    'exists:categorias_servicio,id',
+                ],
+
+                'codigo' => [
+                    'required',
+                    'string',
+                    'max:50',
+                    'unique:servicios_experiencias,codigo',
+                ],
+
+                'nombre' => [
+                    'required',
+                    'string',
+                    'max:150',
+                ],
+
+                'descripcion' => [
+                    'nullable',
+                    'string',
+                ],
+
+                'duracion_minutos' => [
+                    'nullable',
+                    'integer',
+                    'min:1',
+                ],
+
+                'capacidad_minima' => [
+                    'nullable',
+                    'integer',
+                    'min:1',
+                ],
+
+                'capacidad_maxima' => [
+                    'nullable',
+                    'integer',
+                    'min:1',
+                    'gte:capacidad_minima',
+                ],
+
+                'precio' => [
+                    'required',
+                    'numeric',
+                    'min:0',
+                ],
+
+                'tipo_cobro' => [
+                    'required',
+                    Rule::in([
+                        'POR_PERSONA',
+                        'POR_GRUPO',
+                    ]),
+                ],
+
+                'requiere_reserva' => [
+                    'nullable',
+                    'boolean',
+                ],
+            ],
+            [
+                'tipo_cobro.required' =>
+                'Debes seleccionar el tipo de cobro.',
+
+                'tipo_cobro.in' =>
+                'El tipo de cobro seleccionado no es válido.',
+            ]
+        );
+
+        $datos['requiere_reserva'] =
+            $request->boolean('requiere_reserva');
+
+        $datos['activo'] = true;
 
         ServicioExperiencia::query()->create($datos);
 
@@ -90,7 +165,7 @@ class ServicioExperienciaController extends Controller
             ->route('servicios-experiencias.index')
             ->with(
                 'success',
-                'El servicio o experiencia fue creado correctamente.'
+                'El servicio fue creado correctamente.'
             );
     }
 
@@ -137,17 +212,95 @@ class ServicioExperienciaController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, ServicioExperiencia $servicio)
-    {
-        $datos = $this->validar($request, $servicio);
+    public function update(
+        Request $request,
+        ServicioExperiencia $servicioExperiencia
+    ) {
+        $datos = $request->validate(
+            [
+                'categoria_servicio_id' => [
+                    'required',
+                    'exists:categorias_servicio,id',
+                ],
 
-        $servicio->update($datos);
+                'codigo' => [
+                    'required',
+                    'string',
+                    'max:50',
+                    Rule::unique(
+                        'servicios_experiencias',
+                        'codigo'
+                    )->ignore($servicioExperiencia->id),
+                ],
+
+                'nombre' => [
+                    'required',
+                    'string',
+                    'max:150',
+                ],
+
+                'descripcion' => [
+                    'nullable',
+                    'string',
+                ],
+
+                'duracion_minutos' => [
+                    'nullable',
+                    'integer',
+                    'min:1',
+                ],
+
+                'capacidad_minima' => [
+                    'nullable',
+                    'integer',
+                    'min:1',
+                ],
+
+                'capacidad_maxima' => [
+                    'nullable',
+                    'integer',
+                    'min:1',
+                    'gte:capacidad_minima',
+                ],
+
+                'precio' => [
+                    'required',
+                    'numeric',
+                    'min:0',
+                ],
+
+                'tipo_cobro' => [
+                    'required',
+                    Rule::in([
+                        'POR_PERSONA',
+                        'POR_GRUPO',
+                    ]),
+                ],
+
+                'requiere_reserva' => [
+                    'nullable',
+                    'boolean',
+                ],
+            ],
+            [
+                'tipo_cobro.required' =>
+                'Debes seleccionar el tipo de cobro.',
+
+                'tipo_cobro.in' =>
+                'El tipo de cobro seleccionado no es válido.',
+            ]
+        );
+
+        $datos['requiere_reserva'] =
+            $request->boolean('requiere_reserva');
+
+        $servicioExperiencia->update($datos);
 
         return redirect()
             ->route('servicios-experiencias.index')
             ->with(
                 'success',
-                'El servicio o experiencia fue actualizado correctamente.'
+                'El servicio fue actualizado correctamente.'
             );
     }
 
@@ -177,7 +330,7 @@ class ServicioExperienciaController extends Controller
             );
     }
 
-     public function activar(ServicioExperiencia $servicio)
+    public function activar(ServicioExperiencia $servicio)
     {
         if ($servicio->activo) {
             return redirect()
@@ -284,31 +437,31 @@ class ServicioExperienciaController extends Controller
             ],
         ], [
             'categoria_servicio_id.required' =>
-                'Debe seleccionar una categoría.',
+            'Debe seleccionar una categoría.',
 
             'categoria_servicio_id.exists' =>
-                'La categoría seleccionada no está disponible.',
+            'La categoría seleccionada no está disponible.',
 
             'codigo.required' =>
-                'El código es obligatorio.',
+            'El código es obligatorio.',
 
             'codigo.unique' =>
-                'El código ya se encuentra registrado.',
+            'El código ya se encuentra registrado.',
 
             'nombre.required' =>
-                'El nombre es obligatorio.',
+            'El nombre es obligatorio.',
 
             'duracion_minutos.integer' =>
-                'La duración debe ser un número entero.',
+            'La duración debe ser un número entero.',
 
             'capacidad_maxima.gte' =>
-                'La capacidad máxima debe ser mayor o igual que la capacidad mínima.',
+            'La capacidad máxima debe ser mayor o igual que la capacidad mínima.',
 
             'precio.required' =>
-                'El precio es obligatorio.',
+            'El precio es obligatorio.',
 
             'precio.numeric' =>
-                'El precio debe ser un número.',
+            'El precio debe ser un número.',
         ]);
 
         $datos['requiere_reserva'] = $request->boolean(

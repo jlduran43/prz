@@ -6,10 +6,7 @@
     <div class="d-flex justify-content-between align-items-center">
         <h1>Comunas</h1>
 
-        <a
-            href="{{ route('comunas.create') }}"
-            class="btn btn-primary"
-        >
+        <a href="{{ route('comunas.create') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i>
             Nueva comuna
         </a>
@@ -18,16 +15,12 @@
 
 @section('content')
 
-    @if(session('success'))
+    @if (session('success'))
         <div class="alert alert-success alert-dismissible fade show">
             <i class="fas fa-check-circle"></i>
             {{ session('success') }}
 
-            <button
-                type="button"
-                class="close"
-                data-dismiss="alert"
-            >
+            <button type="button" class="close" data-dismiss="alert">
                 <span>&times;</span>
             </button>
         </div>
@@ -37,35 +30,21 @@
 
         <div class="card-header">
 
-            <form
-                action="{{ route('comunas.index') }}"
-                method="GET"
-            >
+            <form action="{{ route('comunas.index') }}" method="GET">
                 <div class="row">
 
                     <div class="col-md-4">
-                        <input
-                            type="text"
-                            name="buscar"
-                            class="form-control"
-                            placeholder="Buscar por código, comuna o región..."
-                            value="{{ $busqueda }}"
-                        >
+                        <input type="text" name="buscar" class="form-control"
+                            placeholder="Buscar por código, comuna o región..." value="{{ $busqueda }}">
                     </div>
 
                     <div class="col-md-auto">
-                        <button
-                            type="submit"
-                            class="btn btn-primary"
-                        >
+                        <button type="submit" class="btn btn-primary">
                             <i class="fas fa-search"></i>
                             Buscar
                         </button>
 
-                        <a
-                            href="{{ route('comunas.index') }}"
-                            class="btn btn-secondary"
-                        >
+                        <a href="{{ route('comunas.index') }}" class="btn btn-secondary">
                             Limpiar
                         </a>
                     </div>
@@ -95,117 +74,201 @@
 
                     <tbody>
 
-                    @forelse($comunas as $comuna)
+                        @forelse($comunas as $comuna)
+                            <tr>
 
-                        <tr>
+                                <td>
+                                    {{ $comuna->codigo }}
+                                </td>
 
-                            <td>
-                                {{ $comuna->codigo }}
-                            </td>
+                                <td>
+                                    {{ $comuna->nombre }}
+                                </td>
 
-                            <td>
-                                {{ $comuna->nombre }}
-                            </td>
+                                <td>
+                                    {{ $comuna->region->nombre }}
+                                </td>
 
-                            <td>
-                                {{ $comuna->region->nombre }}
-                            </td>
+                                <td>
 
-                            <td>
+                                    @if ($comuna->activo)
+                                        <span class="badge badge-success">
+                                            Activo
+                                        </span>
+                                    @else
+                                        <span class="badge badge-danger">
+                                            Inactivo
+                                        </span>
+                                    @endif
 
-                                @if($comuna->activo)
+                                </td>
 
-                                    <span class="badge badge-success">
-                                        Activo
-                                    </span>
+                                <td class="text-center">
 
-                                @else
+                                    <a href="{{ route('comunas.show', $comuna) }}" class="btn btn-info btn-sm"
+                                        title="Ver">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
 
-                                    <span class="badge badge-danger">
-                                        Inactivo
-                                    </span>
+                                    <a href="{{ route('comunas.edit', $comuna) }}" class="btn btn-warning btn-sm"
+                                        title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
 
-                                @endif
-
-                            </td>
-
-                            <td class="text-center">
-
-                                <a
-                                    href="{{ route('comunas.show', $comuna) }}"
-                                    class="btn btn-info btn-sm"
-                                    title="Ver"
-                                >
-                                    <i class="fas fa-eye"></i>
-                                </a>
-
-                                <a
-                                    href="{{ route('comunas.edit', $comuna) }}"
-                                    class="btn btn-warning btn-sm"
-                                    title="Editar"
-                                >
-                                    <i class="fas fa-edit"></i>
-                                </a>
-
-                                <form
-                                    action="{{ route('comunas.destroy', $comuna) }}"
-                                    method="POST"
-                                    class="d-inline"
-                                    onsubmit="return confirm('¿Desea eliminar esta comuna?')"
-                                >
-                                    @csrf
-                                    @method('DELETE')
-
-                                    <button
-                                        type="submit"
-                                        class="btn btn-danger btn-sm"
-                                        title="Eliminar"
-                                    >
-                                        <i class="fas fa-trash"></i>
+                                    <button type="button"
+                                        class="btn btn-sm
+                                            {{ $comuna->activo ? 'btn-secondary' : 'btn-success' }}"
+                                        title="{{ $comuna->activo ? 'Desactivar' : 'Activar' }}" data-toggle="modal"
+                                        data-target="#modalCambiarEstadoComuna" data-id="{{ $comuna->id }}"
+                                        data-nombre="{{ $comuna->nombre }}" data-activo="{{ $comuna->activo ? 1 : 0 }}">
+                                        <i
+                                            class="fas
+                                            {{ $comuna->activo ? 'fa-ban' : 'fa-check' }}">
+                                        </i>
                                     </button>
 
-                                </form>
+                                </td>
 
-                            </td>
+                            </tr>
 
-                        </tr>
+                        @empty
 
-                    @empty
+                            <tr>
 
-                        <tr>
+                                <td colspan="5" class="text-center py-4">
+                                    <i class="fas fa-info-circle"></i>
 
-                            <td
-                                colspan="5"
-                                class="text-center py-4"
-                            >
-                                <i class="fas fa-info-circle"></i>
+                                    No existen comunas registradas.
 
-                                No existen comunas registradas.
+                                </td>
 
-                            </td>
-
-                        </tr>
-
-                    @endforelse
+                            </tr>
+                        @endforelse
 
                     </tbody>
 
                 </table>
+                <div class="modal fade" id="modalCambiarEstadoComuna" tabindex="-1" role="dialog"
+                    aria-labelledby="modalCambiarEstadoComunaLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="modalCambiarEstadoComunaLabel">
+                                    Confirmar cambio de estado
+                                </h5>
+
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                                    <span aria-hidden="true">
+                                        &times;
+                                    </span>
+                                </button>
+                            </div>
+
+                            <div class="modal-body">
+                                <p id="mensajeCambiarEstadoComuna" class="mb-0"></p>
+                            </div>
+
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                    Cancelar
+                                </button>
+
+                                <form id="formCambiarEstadoComuna" method="POST">
+                                    @csrf
+                                    @method('PATCH')
+
+                                    <button type="submit" id="botonConfirmarEstadoComuna" class="btn">
+                                        Confirmar
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
             </div>
 
         </div>
 
-        @if($comunas->hasPages())
-
+        @if ($comunas->hasPages())
             <div class="card-footer">
 
                 {{ $comunas->links('vendor.pagination.bootstrap-5') }}
 
             </div>
-
         @endif
 
     </div>
 
+@stop
+@section('js')
+    <script>
+        $('#modalCambiarEstadoComuna').on(
+            'show.bs.modal',
+            function (event) {
+                const boton = $(event.relatedTarget);
+
+                const id = boton.data('id');
+                const nombre = boton.data('nombre');
+                const activo = Number(
+                    boton.data('activo')
+                );
+
+                const modal = $(this);
+
+                const formulario = modal.find(
+                    '#formCambiarEstadoComuna'
+                );
+
+                const mensaje = modal.find(
+                    '#mensajeCambiarEstadoComuna'
+                );
+
+                const botonConfirmar = modal.find(
+                    '#botonConfirmarEstadoComuna'
+                );
+
+                formulario.attr(
+                    'action',
+                    '{{ url('comunas') }}/'
+                        + id
+                        + '/cambiar-estado'
+                );
+
+                if (activo === 1) {
+                    modal.find('.modal-title').text(
+                        'Desactivar comuna'
+                    );
+
+                    mensaje.html(
+                        '¿Deseas desactivar la comuna '
+                        + '<strong>'
+                        + nombre
+                        + '</strong>?'
+                    );
+
+                    botonConfirmar
+                        .removeClass('btn-success')
+                        .addClass('btn-danger')
+                        .text('Sí, desactivar');
+                } else {
+                    modal.find('.modal-title').text(
+                        'Activar comuna'
+                    );
+
+                    mensaje.html(
+                        '¿Deseas activar la comuna '
+                        + '<strong>'
+                        + nombre
+                        + '</strong>?'
+                    );
+
+                    botonConfirmar
+                        .removeClass('btn-danger')
+                        .addClass('btn-success')
+                        .text('Sí, activar');
+                }
+            }
+        );
+    </script>
 @stop

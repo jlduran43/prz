@@ -20,7 +20,7 @@
     <div class="card card-warning">
         <div class="card-header">
             <h3 class="card-title">
-                Datos del horario
+                Datos de la franja horaria
             </h3>
         </div>
 

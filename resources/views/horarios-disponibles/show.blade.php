@@ -33,11 +33,6 @@
         <div class="card-body">
 
             <dl class="row">
-                <dt class="col-sm-3">Servicio</dt>
-                <dd class="col-sm-9">
-                    {{ $horario->servicio?->nombre ?? 'Sin servicio' }}
-                </dd>
-
                 <dt class="col-sm-3">Fecha</dt>
                 <dd class="col-sm-9">
                     {{ $horario->fecha ? $horario->fecha->format('d-m-Y') : 'Sin fecha' }}

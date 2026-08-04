@@ -4,20 +4,27 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class ReservaServicio extends Model
 {
-     protected $table = 'reserva_servicios';
+    protected $table = 'reserva_servicios';
 
     protected $fillable = [
         'reserva_id',
         'servicio_experiencia_id',
         'horario_disponible_id',
-        'precio',
+        'fecha',
+        'cantidad_personas',
+        'precio_unitario',
+        'subtotal',
     ];
 
     protected $casts = [
-        'precio' => 'decimal:2',
+        'fecha' => 'date',
+        'cantidad_personas' => 'integer',
+        'precio_unitario' => 'decimal:2',
+        'subtotal' => 'decimal:2',
     ];
 
     public function reserva(): BelongsTo
@@ -25,12 +32,22 @@ class ReservaServicio extends Model
         return $this->belongsTo(Reserva::class);
     }
 
-    public function servicio(): BelongsTo
+    public function servicio(): BelongsToMany
     {
-        return $this->belongsTo(
+        return $this->belongsToMany(
             ServicioExperiencia::class,
+            'reserva_servicios',
+            'reserva_id',
             'servicio_experiencia_id'
-        );
+        )
+            ->withPivot([
+                'horario_disponible_id',
+                'fecha',
+                'cantidad_personas',
+                'precio_unitario',
+                'subtotal',
+            ])
+            ->withTimestamps();
     }
 
     public function horario(): BelongsTo

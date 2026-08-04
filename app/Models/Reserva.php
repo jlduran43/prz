@@ -35,6 +35,7 @@ class Reserva extends Model
         'total',
         'estado',
         'observaciones',
+        'objetivo_visita',
     ];
 
     protected $casts = [
@@ -66,12 +67,13 @@ class Reserva extends Model
     {
         return $this->belongsToMany(
             ServicioExperiencia::class,
-            'reserva_servicio',
+            'reserva_servicios',
             'reserva_id',
             'servicio_experiencia_id'
         )
             ->withPivot([
                 'horario_disponible_id',
+                'fecha',
                 'precio_unitario',
                 'cantidad_personas',
                 'subtotal',

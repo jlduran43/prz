@@ -317,6 +317,16 @@
                                 <dd class="col-sm-6">
                                     {{ $reserva['curso'] ?? '-' }}
                                 </dd>
+
+                                @if (!empty($reserva['objetivo_visita']))
+                                    <dt class="col-sm-6">
+                                        Objetivo de la visita
+                                    </dt>
+
+                                    <dd class="col-sm-6">
+                                        {{ $reserva['objetivo_visita'] }}
+                                    </dd>
+                                @endif
                             @endif
 
                         </dl>

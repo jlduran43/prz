@@ -31,7 +31,9 @@ return new class extends Migration
                     ->constrained('horarios_disponibles')
                     ->restrictOnDelete();
 
-                $table->date('fecha');
+                $table->date('fecha')->nullable();
+
+                $table->unsignedInteger('cantidad_personas');
 
                 $table
                     ->decimal('precio', 12, 2)
@@ -39,7 +41,7 @@ return new class extends Migration
 
                 $table->timestamps();
 
-                $table->index('fecha');
+                $table->decimal('subtotal', 12, 2)->default(0);
 
                 $table->unique([
                     'reserva_id',

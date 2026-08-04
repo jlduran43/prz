@@ -16,12 +16,9 @@ class Comuna extends Model
         'activo',
     ];
 
-    protected function casts(): array
-    {
-        return [
-            'activo' => 'boolean',
-        ];
-    }
+    protected $casts = [
+        'activo' => 'boolean',
+    ];
 
     public function region(): BelongsTo
     {

@@ -220,7 +220,7 @@
 </div>
 
 <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-4">
         <div class="form-group">
             <label for="precio">
                 Precio
@@ -262,13 +262,77 @@
         </div>
     </div>
 
-    <div class="col-md-6">
+    <div class="col-md-4">
         <div class="form-group">
-            <label>
+            <label for="tipo_cobro">
+                Tipo de cobro
+                <span class="text-danger">*</span>
+            </label>
+
+            <select
+                name="tipo_cobro"
+                id="tipo_cobro"
+                class="form-control
+                    @error('tipo_cobro') is-invalid @enderror"
+                required
+            >
+                <option value="">
+                    Seleccione una opción
+                </option>
+
+                <option
+                    value="POR_PERSONA"
+                    @selected(
+                        old(
+                            'tipo_cobro',
+                            $servicio->tipo_cobro
+                                ?? 'POR_PERSONA'
+                        ) === 'POR_PERSONA'
+                    )
+                >
+                    Por persona
+                </option>
+
+                <option
+                    value="POR_GRUPO"
+                    @selected(
+                        old(
+                            'tipo_cobro',
+                            $servicio->tipo_cobro
+                                ?? ''
+                        ) === 'POR_GRUPO'
+                    )
+                >
+                    Por grupo
+                </option>
+            </select>
+
+            <small class="form-text text-muted">
+                Por persona multiplica el precio por la cantidad de asistentes.
+                Por grupo cobra el valor una sola vez.
+            </small>
+
+            @error('tipo_cobro')
+                <span class="invalid-feedback">
+                    {{ $message }}
+                </span>
+            @enderror
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="form-group">
+            <label class="d-block">
                 Requiere reserva
             </label>
 
             <div class="custom-control custom-switch mt-2">
+                <input
+                    type="hidden"
+                    name="requiere_reserva"
+                    value="0"
+                >
+
                 <input
                     type="checkbox"
                     name="requiere_reserva"
@@ -278,7 +342,8 @@
                     @checked(
                         old(
                             'requiere_reserva',
-                            $servicio->requiere_reserva ?? true
+                            $servicio->requiere_reserva
+                                ?? true
                         )
                     )
                 >

@@ -63,7 +63,6 @@
             <table class="table table-hover text-nowrap">
                 <thead>
                     <tr>
-                        <th>ID</th>
                         <th>Código</th>
                         <th>Nombre</th>
                         <th>Tipo de estructura</th>
@@ -75,8 +74,6 @@
                 <tbody>
                     @forelse ($tiposCliente as $tipoCliente)
                         <tr>
-                            <td>{{ $tipoCliente->id }}</td>
-
                             <td>
                                 <code>{{ $tipoCliente->codigo }}</code>
                             </td>
@@ -108,41 +105,32 @@
                             </td>
 
                             <td class="text-right">
-                                <a href="{{ route('tipos-cliente.show', $tipoCliente) }}"
-                                    class="btn btn-info btn-sm" title="Ver">
+                                <a href="{{ route('tipos-cliente.show', $tipoCliente) }}" class="btn btn-info btn-sm"
+                                    title="Ver">
                                     <i class="fas fa-eye"></i>
                                 </a>
 
-                                <a href="{{ route('tipos-cliente.edit', $tipoCliente) }}"
-                                    class="btn btn-warning btn-sm" title="Editar">
+                                <a href="{{ route('tipos-cliente.edit', $tipoCliente) }}" class="btn btn-warning btn-sm"
+                                    title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </a>
 
-                                <form method="POST"
-                                    action="{{ route('tipos-cliente.cambiar-estado', $tipoCliente) }}"
+                                <form method="POST" action="{{ route('tipos-cliente.cambiar-estado', $tipoCliente) }}"
                                     class="d-inline">
                                     @csrf
                                     @method('PATCH')
 
-                                    <button type="submit"
+                                    <button type="button"
                                         class="btn btn-sm
-                                            {{ $tipoCliente->activo ? 'btn-secondary' : 'btn-success' }}"
-                                        title="{{ $tipoCliente->activo ? 'Desactivar' : 'Activar' }}">
+                                        {{ $tipoCliente->activo ? 'btn-secondary' : 'btn-success' }}"
+                                        title="{{ $tipoCliente->activo ? 'Desactivar' : 'Activar' }}" data-toggle="modal"
+                                        data-target="#modalCambiarEstado" data-id="{{ $tipoCliente->id }}"
+                                        data-nombre="{{ $tipoCliente->nombre }}"
+                                        data-activo="{{ $tipoCliente->activo ? 1 : 0 }}">
                                         <i
                                             class="fas
-                                            {{ $tipoCliente->activo ? 'fa-ban' : 'fa-check' }}">
+                                        {{ $tipoCliente->activo ? 'fa-ban' : 'fa-check' }}">
                                         </i>
-                                    </button>
-                                </form>
-
-                                <form method="POST"
-                                    action="{{ route('tipos-cliente.destroy', $tipoCliente) }}"
-                                    class="d-inline formulario-eliminar">
-                                    @csrf
-                                    @method('DELETE')
-
-                                    <button type="submit" class="btn btn-danger btn-sm" title="Eliminar">
-                                        <i class="fas fa-trash"></i>
                                     </button>
                                 </form>
                             </td>
@@ -156,6 +144,43 @@
                     @endforelse
                 </tbody>
             </table>
+            <div class="modal fade" id="modalCambiarEstado" tabindex="-1" role="dialog"
+                aria-labelledby="modalCambiarEstadoLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="modalCambiarEstadoLabel">
+                                Confirmar cambio de estado
+                            </h5>
+
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                                <span aria-hidden="true">
+                                    &times;
+                                </span>
+                            </button>
+                        </div>
+
+                        <div class="modal-body">
+                            <p id="mensajeCambiarEstado" class="mb-0"></p>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                Cancelar
+                            </button>
+
+                            <form id="formCambiarEstado" method="POST">
+                                @csrf
+                                @method('PATCH')
+
+                                <button type="submit" id="botonConfirmarEstado" class="btn">
+                                    Confirmar
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         @if ($tiposCliente->hasPages())
@@ -168,21 +193,72 @@
 
 @section('js')
     <script>
-        document
-            .querySelectorAll('.formulario-eliminar')
-            .forEach(function(formulario) {
-                formulario.addEventListener(
-                    'submit',
-                    function(evento) {
-                        const confirmar = window.confirm(
-                            '¿Deseas eliminar este tipo de cliente?'
-                        );
+        $('#modalCambiarEstado').on(
+            'show.bs.modal',
+            function (event) {
+                const boton = $(event.relatedTarget);
 
-                        if (!confirmar) {
-                            evento.preventDefault();
-                        }
-                    }
+                const id = boton.data('id');
+                const nombre = boton.data('nombre');
+                const activo = Number(
+                    boton.data('activo')
                 );
-            });
+
+                const modal = $(this);
+
+                const form = modal.find(
+                    '#formCambiarEstado'
+                );
+
+                const mensaje = modal.find(
+                    '#mensajeCambiarEstado'
+                );
+
+                const botonConfirmar = modal.find(
+                    '#botonConfirmarEstado'
+                );
+
+                form.attr(
+                    'action',
+                    '{{ url('tipos-cliente') }}/'
+                        + id
+                        + '/cambiar-estado'
+                );
+
+                if (activo === 1) {
+                    modal.find('.modal-title').text(
+                        'Desactivar tipo de cliente'
+                    );
+
+                    mensaje.html(
+                        '¿Deseas desactivar el tipo de cliente '
+                        + '<strong>'
+                        + nombre
+                        + '</strong>?'
+                    );
+
+                    botonConfirmar
+                        .removeClass('btn-success')
+                        .addClass('btn-danger')
+                        .text('Sí, desactivar');
+                } else {
+                    modal.find('.modal-title').text(
+                        'Activar tipo de cliente'
+                    );
+
+                    mensaje.html(
+                        '¿Deseas activar el tipo de cliente '
+                        + '<strong>'
+                        + nombre
+                        + '</strong>?'
+                    );
+
+                    botonConfirmar
+                        .removeClass('btn-danger')
+                        .addClass('btn-success')
+                        .text('Sí, activar');
+                }
+            }
+        );
     </script>
 @stop
