@@ -121,7 +121,6 @@ class ReservaWizardController extends Controller
                     'required',
                     'string',
                     'max:150',
-                    new RutChileno(),
                 ],
 
                 'rut_encargado' => [

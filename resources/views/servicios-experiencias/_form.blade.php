@@ -6,27 +6,15 @@
                 <span class="text-danger">*</span>
             </label>
 
-            <select
-                name="categoria_servicio_id"
-                id="categoria_servicio_id"
+            <select name="categoria_servicio_id" id="categoria_servicio_id"
                 class="form-control
-                    @error('categoria_servicio_id') is-invalid @enderror"
-                required
-            >
+                    @error('categoria_servicio_id') is-invalid @enderror" required>
                 <option value="">
                     Seleccione una categoría
                 </option>
 
                 @foreach ($categorias as $categoria)
-                    <option
-                        value="{{ $categoria->id }}"
-                        @selected(
-                            old(
-                                'categoria_servicio_id',
-                                $servicio->categoria_servicio_id ?? ''
-                            ) == $categoria->id
-                        )
-                    >
+                    <option value="{{ $categoria->id }}" @selected(old('categoria_servicio_id', $servicio->categoria_servicio_id ?? '') == $categoria->id)>
                         {{ $categoria->nombre }}
 
                         @unless ($categoria->activo)
@@ -51,20 +39,11 @@
                 <span class="text-danger">*</span>
             </label>
 
-            <input
-                type="text"
-                name="codigo"
-                id="codigo"
+            <input type="text" name="codigo" id="codigo"
                 class="form-control
                     @error('codigo') is-invalid @enderror"
-                value="{{ old(
-                    'codigo',
-                    $servicio->codigo ?? ''
-                ) }}"
-                maxlength="50"
-                placeholder="Ejemplo: VISITA_GUIADA"
-                required
-            >
+                value="{{ old('codigo', $servicio->codigo ?? '') }}"
+                maxlength="50" placeholder="Ejemplo: VISITA_GUIADA" required>
 
             @error('codigo')
                 <span class="invalid-feedback">
@@ -81,20 +60,11 @@
         <span class="text-danger">*</span>
     </label>
 
-    <input
-        type="text"
-        name="nombre"
-        id="nombre"
+    <input type="text" name="nombre" id="nombre"
         class="form-control
             @error('nombre') is-invalid @enderror"
-        value="{{ old(
-            'nombre',
-            $servicio->nombre ?? ''
-        ) }}"
-        maxlength="150"
-        placeholder="Ejemplo: Visita educativa guiada"
-        required
-    >
+        value="{{ old('nombre', $servicio->nombre ?? '') }}" maxlength="150"
+        placeholder="Ejemplo: Visita educativa guiada" required>
 
     @error('nombre')
         <span class="invalid-feedback">
@@ -108,18 +78,10 @@
         Descripción
     </label>
 
-    <textarea
-        name="descripcion"
-        id="descripcion"
-        rows="4"
-        maxlength="2000"
+    <textarea name="descripcion" id="descripcion" rows="4" maxlength="2000"
         class="form-control
             @error('descripcion') is-invalid @enderror"
-        placeholder="Descripción del servicio o experiencia"
-    >{{ old(
-        'descripcion',
-        $servicio->descripcion ?? ''
-    ) }}</textarea>
+        placeholder="Descripción del servicio o experiencia">{{ old('descripcion', $servicio->descripcion ?? '') }}</textarea>
 
     @error('descripcion')
         <span class="invalid-feedback">
@@ -136,18 +98,11 @@
             </label>
 
             <div class="input-group">
-                <input
-                    type="number"
-                    name="duracion_minutos"
-                    id="duracion_minutos"
+                <input type="number" name="duracion_minutos" id="duracion_minutos"
                     class="form-control
                         @error('duracion_minutos') is-invalid @enderror"
-                    value="{{ old(
-                        'duracion_minutos',
-                        $servicio->duracion_minutos ?? ''
-                    ) }}"
-                    min="1"
-                >
+                    value="{{ old('duracion_minutos', $servicio->duracion_minutos ?? '') }}"
+                    min="1">
 
                 <div class="input-group-append">
                     <span class="input-group-text">
@@ -170,18 +125,11 @@
                 Capacidad mínima
             </label>
 
-            <input
-                type="number"
-                name="capacidad_minima"
-                id="capacidad_minima"
+            <input type="number" name="capacidad_minima" id="capacidad_minima"
                 class="form-control
                     @error('capacidad_minima') is-invalid @enderror"
-                value="{{ old(
-                    'capacidad_minima',
-                    $servicio->capacidad_minima ?? ''
-                ) }}"
-                min="1"
-            >
+                value="{{ old('capacidad_minima', $servicio->capacidad_minima ?? '') }}"
+                min="1">
 
             @error('capacidad_minima')
                 <span class="invalid-feedback">
@@ -197,18 +145,11 @@
                 Capacidad máxima
             </label>
 
-            <input
-                type="number"
-                name="capacidad_maxima"
-                id="capacidad_maxima"
+            <input type="number" name="capacidad_maxima" id="capacidad_maxima"
                 class="form-control
                     @error('capacidad_maxima') is-invalid @enderror"
-                value="{{ old(
-                    'capacidad_maxima',
-                    $servicio->capacidad_maxima ?? ''
-                ) }}"
-                min="1"
-            >
+                value="{{ old('capacidad_maxima', $servicio->capacidad_maxima ?? '') }}"
+                min="1">
 
             @error('capacidad_maxima')
                 <span class="invalid-feedback">
@@ -234,20 +175,11 @@
                     </span>
                 </div>
 
-                <input
-                    type="number"
-                    name="precio"
-                    id="precio"
+                <input type="number" name="precio" id="precio"
                     class="form-control
-                        @error('precio') is-invalid @enderror"
-                    value="{{ old(
-                        'precio',
-                        $servicio->precio ?? 0
-                    ) }}"
-                    min="0"
-                    step="1"
-                    required
-                >
+        @error('precio') is-invalid @enderror"
+                    value="{{ old('precio', isset($servicio) ? $servicio->precio : '') }}"
+                    min="1" step="1" required>
 
                 @error('precio')
                     <span class="invalid-feedback">
@@ -269,40 +201,18 @@
                 <span class="text-danger">*</span>
             </label>
 
-            <select
-                name="tipo_cobro"
-                id="tipo_cobro"
+            <select name="tipo_cobro" id="tipo_cobro"
                 class="form-control
-                    @error('tipo_cobro') is-invalid @enderror"
-                required
-            >
+                    @error('tipo_cobro') is-invalid @enderror" required>
                 <option value="">
                     Seleccione una opción
                 </option>
 
-                <option
-                    value="POR_PERSONA"
-                    @selected(
-                        old(
-                            'tipo_cobro',
-                            $servicio->tipo_cobro
-                                ?? 'POR_PERSONA'
-                        ) === 'POR_PERSONA'
-                    )
-                >
+                <option value="POR_PERSONA" @selected(old('tipo_cobro', $servicio->tipo_cobro ?? 'POR_PERSONA') === 'POR_PERSONA')>
                     Por persona
                 </option>
 
-                <option
-                    value="POR_GRUPO"
-                    @selected(
-                        old(
-                            'tipo_cobro',
-                            $servicio->tipo_cobro
-                                ?? ''
-                        ) === 'POR_GRUPO'
-                    )
-                >
+                <option value="POR_GRUPO" @selected(old('tipo_cobro', $servicio->tipo_cobro ?? '') === 'POR_GRUPO')>
                     Por grupo
                 </option>
             </select>
@@ -327,31 +237,12 @@
             </label>
 
             <div class="custom-control custom-switch mt-2">
-                <input
-                    type="hidden"
-                    name="requiere_reserva"
-                    value="0"
-                >
+                <input type="hidden" name="requiere_reserva" value="0">
 
-                <input
-                    type="checkbox"
-                    name="requiere_reserva"
-                    id="requiere_reserva"
-                    value="1"
-                    class="custom-control-input"
-                    @checked(
-                        old(
-                            'requiere_reserva',
-                            $servicio->requiere_reserva
-                                ?? true
-                        )
-                    )
-                >
+                <input type="checkbox" name="requiere_reserva" id="requiere_reserva" value="1"
+                    class="custom-control-input" @checked(old('requiere_reserva', $servicio->requiere_reserva ?? true))>
 
-                <label
-                    for="requiere_reserva"
-                    class="custom-control-label"
-                >
+                <label for="requiere_reserva" class="custom-control-label">
                     Sí, requiere una reserva previa
                 </label>
             </div>

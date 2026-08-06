@@ -488,6 +488,7 @@
 @stop
 
 @section('js')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const maximoServicios = 2;
@@ -676,12 +677,12 @@
                 ${
                     servicio.duracion_minutos
                         ? `
-                                                                                                            <small class="text-muted">
-                                                                                                                <i class="far fa-clock mr-1"></i>
-                                                                                                                ${servicio.duracion_minutos}
-                                                                                                                minutos
-                                                                                                            </small>
-                                                                                                        `
+                                                                                                                    <small class="text-muted">
+                                                                                                                        <i class="far fa-clock mr-1"></i>
+                                                                                                                        ${servicio.duracion_minutos}
+                                                                                                                        minutos
+                                                                                                                    </small>
+                                                                                                                `
                         : ''
                 }
 
@@ -903,9 +904,6 @@
                             <span class="horario-franja">
                                 ${escaparHtml(horario.hora_inicio)} -
                                 ${escaparHtml(horario.hora_termino)}
-                            </span>
-                            <span class="horario-cupos">
-                                ${horario.cupos_disponibles} cupos disponibles
                             </span>
                         `;
 
@@ -1146,7 +1144,19 @@
 
                 if (!cards.length) {
                     event.preventDefault();
-                    alert('Debes seleccionar al menos un servicio.');
+                    console.log(typeof Swal);
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Selecciona un servicio',
+                        html: `
+                        Antes de continuar debes seleccionar
+                        <strong>al menos un servicio</strong>.
+                            `,
+                        confirmButtonText: 'Aceptar',
+                        confirmButtonColor: '#17a2b8',
+                        allowOutsideClick: false,
+                        allowEscapeKey: true
+                    });
                     return;
                 }
 
@@ -1157,7 +1167,18 @@
 
                 if (incompletos) {
                     event.preventDefault();
-                    alert('Cada servicio seleccionado debe tener una fecha y un horario.');
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Faltan datos',
+                        html: `
+        <p class="mb-0">
+            Antes de continuar debes seleccionar un
+            <strong>horario para cada servicio</strong>.
+        </p>
+    `,
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: '#17a2b8'
+                    });
                 }
             });
 

@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\HorarioDisponible;
 use Illuminate\Http\Request;
 use App\Models\ServicioExperiencia;
+use Carbon\Carbon;
+use Carbon\CarbonPeriod;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
 
 class HorarioDisponibleController extends Controller
 {
@@ -288,6 +292,135 @@ class HorarioDisponibleController extends Controller
             ->with(
                 'success',
                 'El horario fue reactivado correctamente.'
+            );
+    }
+
+    public function generar()
+    {
+        $servicios = ServicioExperiencia::query()
+            ->where('activo', true)
+            ->orderBy('nombre')
+            ->get();
+
+        return view(
+            'horarios-disponibles.generar',
+            compact('servicios')
+        );
+    }
+
+    public function guardarRecurrentes(Request $request)
+    {
+        $datos = $request->validate([
+            'fecha_desde' => [
+                'required',
+                'date',
+                'after_or_equal:today',
+            ],
+            'fecha_hasta' => [
+                'required',
+                'date',
+                'after_or_equal:fecha_desde',
+            ],
+            'dias_semana' => [
+                'required',
+                'array',
+                'min:1',
+            ],
+            'dias_semana.*' => [
+                'required',
+                'integer',
+                'between:0,6',
+            ],
+            'hora_inicio' => [
+                'required',
+                'date_format:H:i',
+            ],
+            'hora_termino' => [
+                'required',
+                'date_format:H:i',
+                'after:hora_inicio',
+            ],
+            'capacidad_maxima' => [
+                'required',
+                'integer',
+                'min:1',
+            ],
+            'servicios' => [
+                'required',
+                'array',
+                'min:1',
+            ],
+            'servicios.*' => [
+                'integer',
+                'distinct',
+                'exists:servicios_experiencias,id',
+            ],
+        ]);
+
+        $periodo = CarbonPeriod::create(
+            $datos['fecha_desde'],
+            $datos['fecha_hasta']
+        );
+
+        $diasSeleccionados = collect($datos['dias_semana'])
+            ->map(fn($dia) => (int) $dia);
+
+        $fechas = collect($periodo)
+            ->filter(
+                fn(Carbon $fecha) =>
+                $diasSeleccionados->contains($fecha->dayOfWeek)
+            );
+
+        if ($fechas->isEmpty()) {
+            throw ValidationException::withMessages([
+                'dias_semana' =>
+                'No existen fechas coincidentes dentro del rango seleccionado.',
+            ]);
+        }
+
+        $creados = 0;
+        $omitidos = 0;
+
+        DB::transaction(function () use (
+            $fechas,
+            $datos,
+            &$creados,
+            &$omitidos
+        ) {
+            foreach ($fechas as $fecha) {
+                $existe = HorarioDisponible::query()
+                    ->whereDate('fecha', $fecha->toDateString())
+                    ->where('hora_inicio', $datos['hora_inicio'])
+                    ->where('hora_termino', $datos['hora_termino'])
+                    ->exists();
+
+                if ($existe) {
+                    $omitidos++;
+                    continue;
+                }
+
+                $horario = HorarioDisponible::create([
+                    'fecha' => $fecha->toDateString(),
+                    'hora_inicio' => $datos['hora_inicio'],
+                    'hora_termino' => $datos['hora_termino'],
+                    'capacidad_maxima' => $datos['capacidad_maxima'],
+                    'activo' => true,
+                ]);
+
+                $horario->servicios()->sync(
+                    $datos['servicios']
+                );
+
+                $creados++;
+            }
+        });
+
+        return redirect()
+            ->route('horarios-disponibles.index')
+            ->with(
+                'success',
+                "Se crearon {$creados} horarios. " .
+                    "Se omitieron {$omitidos} horarios duplicados."
             );
     }
 }

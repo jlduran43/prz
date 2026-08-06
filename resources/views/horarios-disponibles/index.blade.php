@@ -3,13 +3,18 @@
 @section('title', 'Horarios de atención')
 
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1>Horarios de atención</h1>
+    <div class="d-flex align-items-center">
+
+        <a href="{{ route('horarios-disponibles.generar') }}" class="btn btn-success mr-2">
+            <i class="fas fa-calendar-plus mr-1"></i>
+            Generar horarios
+        </a>
 
         <a href="{{ route('horarios-disponibles.create') }}" class="btn btn-primary">
             <i class="fas fa-plus mr-1"></i>
             Nuevo horario de atención
         </a>
+
     </div>
 @stop
 

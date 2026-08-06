@@ -6,153 +6,246 @@ use App\Http\Controllers\HorarioDisponibleController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\ReservaWizardController;
 use App\Http\Controllers\ServicioExperienciaController;
-use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\TipoClienteController;
+use Illuminate\Support\Facades\Route;
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->name('dashboard');
+/*
+|--------------------------------------------------------------------------
+| Dashboard
+|--------------------------------------------------------------------------
+*/
 
-Route::patch(
-    'tipos-cliente/{tipoCliente}/cambiar-estado',
-    [TipoClienteController::class, 'cambiarEstado']
-)->name('tipos-cliente.cambiar-estado');
+Route::view('/dashboard', 'dashboard')
+    ->name('dashboard');
+
+/*
+|--------------------------------------------------------------------------
+| Tipos de cliente
+|--------------------------------------------------------------------------
+*/
+
+Route::controller(TipoClienteController::class)
+    ->prefix('tipos-cliente')
+    ->name('tipos-cliente.')
+    ->group(function () {
+        Route::patch(
+            '{tipoCliente}/cambiar-estado',
+            'cambiarEstado'
+        )->name('cambiar-estado');
+    });
 
 Route::resource(
     'tipos-cliente',
     TipoClienteController::class
-)->parameters([
-    'tipos-cliente' => 'tipoCliente',
-])->except([
-    'destroy',
-]);
+)
+    ->parameters([
+        'tipos-cliente' => 'tipoCliente',
+    ])
+    ->except('destroy');
 
-Route::patch(
-    'regiones/{region}/cambiar-estado',
-    [RegionController::class, 'cambiarEstado']
-)->name('regiones.cambiar-estado');
+/*
+|--------------------------------------------------------------------------
+| Regiones
+|--------------------------------------------------------------------------
+*/
 
-Route::resource('regiones', RegionController::class)
+Route::controller(RegionController::class)
+    ->prefix('regiones')
+    ->name('regiones.')
+    ->group(function () {
+        Route::patch(
+            '{region}/cambiar-estado',
+            'cambiarEstado'
+        )->name('cambiar-estado');
+    });
+
+Route::resource(
+    'regiones',
+    RegionController::class
+)
     ->parameters([
         'regiones' => 'region',
     ])
-    ->except([
-        'destroy',
-    ]);
+    ->except('destroy');
 
-Route::patch(
-    'comunas/{comuna}/cambiar-estado',
-    [ComunaController::class, 'cambiarEstado']
-)->name('comunas.cambiar-estado');
+/*
+|--------------------------------------------------------------------------
+| Comunas
+|--------------------------------------------------------------------------
+*/
 
-Route::resource('comunas', ComunaController::class)
+Route::controller(ComunaController::class)
+    ->prefix('comunas')
+    ->name('comunas.')
+    ->group(function () {
+        Route::patch(
+            '{comuna}/cambiar-estado',
+            'cambiarEstado'
+        )->name('cambiar-estado');
+    });
+
+Route::resource(
+    'comunas',
+    ComunaController::class
+)
     ->parameters([
         'comunas' => 'comuna',
     ])
-    ->except([
-        'destroy',
-    ]);
+    ->except('destroy');
 
-Route::patch(
-    'categorias-servicio/{categoria}/activar',
-    [CategoriaServicioController::class, 'activar']
-)->name('categorias-servicio.activar');
+/*
+|--------------------------------------------------------------------------
+| Categorías de servicio
+|--------------------------------------------------------------------------
+*/
+
+Route::controller(CategoriaServicioController::class)
+    ->prefix('categorias-servicio')
+    ->name('categorias-servicio.')
+    ->group(function () {
+        Route::patch(
+            '{categoria}/activar',
+            'activar'
+        )->name('activar');
+    });
 
 Route::resource(
     'categorias-servicio',
     CategoriaServicioController::class
-)->parameters([
-    'categorias-servicio' => 'categoria',
-]);
+)
+    ->parameters([
+        'categorias-servicio' => 'categoria',
+    ]);
 
-Route::patch(
-    'horarios-disponibles/{horario}/activar',
-    [HorarioDisponibleController::class, 'activar']
-)->name('horarios-disponibles.activar');
+/*
+|--------------------------------------------------------------------------
+| Horarios disponibles
+|--------------------------------------------------------------------------
+*/
+
+Route::controller(HorarioDisponibleController::class)
+    ->prefix('horarios-disponibles')
+    ->name('horarios-disponibles.')
+    ->group(function () {
+        /*
+         * Deben declararse antes del resource para que "generar"
+         * no sea interpretado como el identificador de un horario.
+         */
+        Route::get(
+            'generar',
+            'generar'
+        )->name('generar');
+
+        Route::post(
+            'recurrentes',
+            'guardarRecurrentes'
+        )->name('recurrentes.guardar');
+
+        Route::patch(
+            '{horario}/activar',
+            'activar'
+        )->name('activar');
+    });
 
 Route::resource(
     'horarios-disponibles',
     HorarioDisponibleController::class
-)->parameters([
-    'horarios-disponibles' => 'horario',
-]);
+)
+    ->parameters([
+        'horarios-disponibles' => 'horario',
+    ]);
 
-Route::patch(
-    '/servicios-experiencias/{servicio}/activar',
-    [ServicioExperienciaController::class, 'activar']
-)->name('servicios-experiencias.activar');
+/*
+|--------------------------------------------------------------------------
+| Servicios y experiencias
+|--------------------------------------------------------------------------
+*/
+
+Route::controller(ServicioExperienciaController::class)
+    ->prefix('servicios-experiencias')
+    ->name('servicios-experiencias.')
+    ->group(function () {
+        Route::patch(
+            '{servicio}/activar',
+            'activar'
+        )->name('activar');
+    });
 
 Route::resource(
     'servicios-experiencias',
     ServicioExperienciaController::class
-)->parameters([
-    'servicios-experiencias' => 'servicio',
-]);
+)
+    ->parameters([
+        'servicios-experiencias' => 'servicio',
+    ]);
 
-Route::prefix('reservas')
+/*
+|--------------------------------------------------------------------------
+| Wizard de reservas
+|--------------------------------------------------------------------------
+*/
+
+Route::controller(ReservaWizardController::class)
+    ->prefix('reservas')
     ->name('reservas.')
     ->group(function () {
+        /*
+         * Paso 1: datos del cliente
+         */
         Route::get(
-            '/crear/cliente',
-            [ReservaWizardController::class, 'cliente']
+            'crear/cliente',
+            'cliente'
         )->name('cliente');
 
         Route::post(
-            '/crear/cliente',
-            [ReservaWizardController::class, 'guardarCliente']
+            'crear/cliente',
+            'guardarCliente'
         )->name('cliente.guardar');
 
+        /*
+         * Paso 2: datos de la reserva
+         */
         Route::get(
-            '/crear/datos-reserva',
-            [ReservaWizardController::class, 'reserva']
+            'crear/datos-reserva',
+            'reserva'
         )->name('datos');
 
         Route::post(
-            '/crear/datos-reserva',
-            [ReservaWizardController::class, 'guardarReserva']
+            'crear/datos-reserva',
+            'guardarReserva'
         )->name('datos.guardar');
 
         /*
-        |--------------------------------------------------------------------------
-        | Consultar servicios disponibles por fecha
-        |--------------------------------------------------------------------------
-        */
+         * Consultas AJAX
+         */
         Route::get(
-            '/servicios-disponibles',
-            [
-                ReservaWizardController::class,
-                'consultarServiciosDisponibles',
-            ]
+            'servicios-disponibles',
+            'consultarServiciosDisponibles'
         )->name('servicios-disponibles');
 
-        /*
-        |--------------------------------------------------------------------------
-        | Consultar horarios de un servicio
-        |--------------------------------------------------------------------------
-        */
         Route::get(
-            '/consultar-horarios',
-            [
-                ReservaWizardController::class,
-                'consultarHorarios',
-            ]
+            'consultar-horarios',
+            'consultarHorarios'
         )->name('consultar-horarios');
 
         Route::get(
-            '/crear/confirmacion',
-            [ReservaWizardController::class, 'confirmacion']
+            'comunas-por-region/{region}',
+            'comunasPorRegion'
+        )->name('comunas-por-region');
+
+        /*
+         * Paso 3: confirmación
+         */
+        Route::get(
+            'crear/confirmacion',
+            'confirmacion'
         )->name('confirmacion');
 
+        /*
+         * Paso 4: guardar definitivamente
+         */
         Route::post(
-            '/crear/finalizar',
-            [ReservaWizardController::class, 'finalizar']
+            'crear/finalizar',
+            'finalizar'
         )->name('finalizar');
-
-        Route::get(
-            '/comunas-por-region/{region}',
-            [
-                ReservaWizardController::class,
-                'comunasPorRegion',
-            ]
-        )->name('comunas-por-region');
     });

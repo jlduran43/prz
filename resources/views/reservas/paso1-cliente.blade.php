@@ -48,37 +48,21 @@
                         <span class="text-danger">*</span>
                     </label>
 
-                    <select
-                        id="tipo_cliente_id"
-                        name="tipo_cliente_id"
-                        class="form-control @error('tipo_cliente_id') is-invalid @enderror"
-                        required
-                    >
+                    <select id="tipo_cliente_id" name="tipo_cliente_id"
+                        class="form-control @error('tipo_cliente_id') is-invalid @enderror" required>
                         <option value="">
                             Seleccione un tipo de cliente
                         </option>
 
                         @foreach ($tipos as $tipo)
-                            <option
-                                value="{{ $tipo->id }}"
-                                data-codigo="{{ $tipo->codigo }}"
-                                data-estructura="{{ $tipo->tipo_estructura }}"
-                                @selected(
-                                    old(
-                                        'tipo_cliente_id',
-                                        $datosCliente['tipo_cliente_id'] ?? ''
-                                    ) == $tipo->id
-                                )
-                            >
+                            <option value="{{ $tipo->id }}" data-codigo="{{ $tipo->codigo }}"
+                                data-estructura="{{ $tipo->tipo_estructura }}" @selected(old('tipo_cliente_id', $datosCliente['tipo_cliente_id'] ?? '') == $tipo->id)>
                                 {{ $tipo->nombre }}
                             </option>
                         @endforeach
                     </select>
 
-                    <small
-                        id="descripcion-tipo"
-                        class="form-text text-muted mt-2"
-                    >
+                    <small id="descripcion-tipo" class="form-text text-muted mt-2">
                         Selecciona el tipo de cliente que realizará la reserva.
                     </small>
 
@@ -108,17 +92,9 @@
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <input
-                                id="nombres"
-                                name="nombres"
-                                type="text"
+                            <input id="nombres" name="nombres" type="text"
                                 class="form-control @error('nombres') is-invalid @enderror"
-                                value="{{ old(
-                                    'nombres',
-                                    $datosCliente['nombres'] ?? ''
-                                ) }}"
-                                placeholder="Ej.: María José"
-                            >
+                                value="{{ old('nombres', $datosCliente['nombres'] ?? '') }}" placeholder="Ej.: María José">
 
                             @error('nombres')
                                 <span class="invalid-feedback">
@@ -135,17 +111,10 @@
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <input
-                                id="apellidos"
-                                name="apellidos"
-                                type="text"
+                            <input id="apellidos" name="apellidos" type="text"
                                 class="form-control @error('apellidos') is-invalid @enderror"
-                                value="{{ old(
-                                    'apellidos',
-                                    $datosCliente['apellidos'] ?? ''
-                                ) }}"
-                                placeholder="Ej.: González Pérez"
-                            >
+                                value="{{ old('apellidos', $datosCliente['apellidos'] ?? '') }}"
+                                placeholder="Ej.: González Pérez">
 
                             @error('apellidos')
                                 <span class="invalid-feedback">
@@ -169,19 +138,10 @@
                                     </span>
                                 </div>
 
-                                <input
-                                    id="rut_persona"
-                                    name="rut_persona"
-                                    type="text"
+                                <input id="rut_persona" name="rut_persona" type="text"
                                     class="form-control rut-chileno @error('rut_persona') is-invalid @enderror"
-                                    value="{{ old(
-                                        'rut_persona',
-                                        $datosCliente['rut_persona'] ?? ''
-                                    ) }}"
-                                    placeholder="12.345.678-5"
-                                    maxlength="12"
-                                    autocomplete="off"
-                                >
+                                    value="{{ old('rut_persona', $datosCliente['rut_persona'] ?? '') }}"
+                                    placeholder="12.345.678-5" maxlength="12" autocomplete="off">
 
                                 <div class="input-group-append">
                                     <span class="input-group-text rut-estado">
@@ -217,25 +177,23 @@
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <label
-                                id="label-nombre-entidad"
-                                for="nombre_entidad"
-                            >
+                            <label id="label-nombre-entidad" for="nombre_entidad">
                                 Nombre de la organización
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <input
-                                id="nombre_entidad"
-                                name="nombre_entidad"
-                                type="text"
-                                class="form-control @error('nombre_entidad') is-invalid @enderror"
-                                value="{{ old(
-                                    'nombre_entidad',
-                                    $datosCliente['nombre_entidad'] ?? ''
-                                ) }}"
-                                placeholder="Ingrese el nombre"
-                            >
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-building"></i>
+                                    </span>
+                                </div>
+
+                                <input id="nombre_entidad" name="nombre_entidad" type="text"
+                                    class="form-control @error('nombre_entidad') is-invalid @enderror"
+                                    value="{{ old('nombre_entidad', $datosCliente['nombre_entidad'] ?? '') }}"
+                                    placeholder="Ingrese el nombre">
+                            </div>
 
                             @error('nombre_entidad')
                                 <span class="invalid-feedback">
@@ -247,10 +205,7 @@
 
                     <div id="contenedor-rut-entidad" class="col-md-6">
                         <div class="form-group">
-                            <label
-                                id="label-rut-entidad"
-                                for="rut_entidad"
-                            >
+                            <label id="label-rut-entidad" for="rut_entidad">
                                 RUT de la organización
                                 <span class="text-danger">*</span>
                             </label>
@@ -262,19 +217,10 @@
                                     </span>
                                 </div>
 
-                                <input
-                                    id="rut_entidad"
-                                    name="rut_entidad"
-                                    type="text"
+                                <input id="rut_entidad" name="rut_entidad" type="text"
                                     class="form-control rut-chileno @error('rut_entidad') is-invalid @enderror"
-                                    value="{{ old(
-                                        'rut_entidad',
-                                        $datosCliente['rut_entidad'] ?? ''
-                                    ) }}"
-                                    placeholder="76.543.210-K"
-                                    maxlength="12"
-                                    autocomplete="off"
-                                >
+                                    value="{{ old('rut_entidad', $datosCliente['rut_entidad'] ?? '') }}"
+                                    placeholder="76.543.210-K" maxlength="12" autocomplete="off">
 
                                 <div class="input-group-append">
                                     <span class="input-group-text rut-estado">
@@ -302,17 +248,18 @@
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <input
-                                id="nombre_encargado"
-                                name="nombre_encargado"
-                                type="text"
-                                class="form-control @error('nombre_encargado') is-invalid @enderror"
-                                value="{{ old(
-                                    'nombre_encargado',
-                                    $datosCliente['nombre_encargado'] ?? ''
-                                ) }}"
-                                placeholder="Nombre completo"
-                            >
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-user"></i>
+                                    </span>
+                                </div>
+
+                                <input id="nombre_encargado" name="nombre_encargado" type="text"
+                                    class="form-control @error('nombre_encargado') is-invalid @enderror"
+                                    value="{{ old('nombre_encargado', $datosCliente['nombre_encargado'] ?? '') }}"
+                                    placeholder="Nombre completo">
+                            </div>
 
                             @error('nombre_encargado')
                                 <span class="invalid-feedback">
@@ -336,19 +283,10 @@
                                     </span>
                                 </div>
 
-                                <input
-                                    id="rut_encargado"
-                                    name="rut_encargado"
-                                    type="text"
+                                <input id="rut_encargado" name="rut_encargado" type="text"
                                     class="form-control rut-chileno @error('rut_encargado') is-invalid @enderror"
-                                    value="{{ old(
-                                        'rut_encargado',
-                                        $datosCliente['rut_encargado'] ?? ''
-                                    ) }}"
-                                    placeholder="12.345.678-5"
-                                    maxlength="12"
-                                    autocomplete="off"
-                                >
+                                    value="{{ old('rut_encargado', $datosCliente['rut_encargado'] ?? '') }}"
+                                    placeholder="12.345.678-5" maxlength="12" autocomplete="off">
 
                                 <div class="input-group-append">
                                     <span class="input-group-text rut-estado">
@@ -389,18 +327,18 @@
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <input
-                                id="telefono"
-                                name="telefono"
-                                type="tel"
-                                class="form-control @error('telefono') is-invalid @enderror"
-                                value="{{ old(
-                                    'telefono',
-                                    $datosCliente['telefono'] ?? ''
-                                ) }}"
-                                placeholder="+56 9 1234 5678"
-                                required
-                            >
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-phone"></i>
+                                    </span>
+                                </div>
+
+                                <input id="telefono" name="telefono" type="tel"
+                                    class="form-control @error('telefono') is-invalid @enderror"
+                                    value="{{ old('telefono', $datosCliente['telefono'] ?? '') }}"
+                                    placeholder="+56 9 1234 5678" required>
+                            </div>
 
                             @error('telefono')
                                 <span class="invalid-feedback">
@@ -417,18 +355,18 @@
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <input
-                                id="email"
-                                name="email"
-                                type="email"
-                                class="form-control @error('email') is-invalid @enderror"
-                                value="{{ old(
-                                    'email',
-                                    $datosCliente['email'] ?? ''
-                                ) }}"
-                                placeholder="correo@ejemplo.cl"
-                                required
-                            >
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-envelope"></i>
+                                    </span>
+                                </div>
+
+                                <input id="email" name="email" type="email"
+                                    class="form-control @error('email') is-invalid @enderror"
+                                    value="{{ old('email', $datosCliente['email'] ?? '') }}"
+                                    placeholder="correo@ejemplo.cl" required>
+                            </div>
 
                             @error('email')
                                 <span class="invalid-feedback">
@@ -445,26 +383,14 @@
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <select
-                                id="region_id"
-                                name="region_id"
-                                class="form-control @error('region_id') is-invalid @enderror"
-                                required
-                            >
+                            <select id="region_id" name="region_id"
+                                class="form-control @error('region_id') is-invalid @enderror" required>
                                 <option value="">
                                     Seleccione una región
                                 </option>
 
                                 @foreach ($regiones as $region)
-                                    <option
-                                        value="{{ $region->id }}"
-                                        @selected(
-                                            old(
-                                                'region_id',
-                                                $datosCliente['region_id'] ?? ''
-                                            ) == $region->id
-                                        )
-                                    >
+                                    <option value="{{ $region->id }}" @selected(old('region_id', $datosCliente['region_id'] ?? '') == $region->id)>
                                         {{ $region->nombre }}
                                     </option>
                                 @endforeach
@@ -485,16 +411,9 @@
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <select
-                                id="comuna_id"
-                                name="comuna_id"
+                            <select id="comuna_id" name="comuna_id"
                                 class="form-control @error('comuna_id') is-invalid @enderror"
-                                data-selected="{{ old(
-                                    'comuna_id',
-                                    $datosCliente['comuna_id'] ?? ''
-                                ) }}"
-                                required
-                            >
+                                data-selected="{{ old('comuna_id', $datosCliente['comuna_id'] ?? '') }}" required>
                                 <option value="">
                                     Seleccione una región primero
                                 </option>
@@ -696,8 +615,8 @@
 
                 const mensaje =
                     grupo
-                        ?.closest('.form-group')
-                        ?.querySelector('.rut-mensaje');
+                    ?.closest('.form-group')
+                    ?.querySelector('.rut-mensaje');
 
                 if (!grupo || !estado) {
                     return;
@@ -772,8 +691,8 @@
 
                 const mensaje =
                     grupo
-                        ?.closest('.form-group')
-                        ?.querySelector('.rut-mensaje');
+                    ?.closest('.form-group')
+                    ?.querySelector('.rut-mensaje');
 
                 grupo?.classList.remove(
                     'rut-valido',
