@@ -313,7 +313,7 @@ return [
             'submenu' => [
                 [
                     'text' => 'Nueva reserva',
-                    'route' => 'reservas.cliente',
+                    'route' => 'reservas.operacion',
                     'active' => [
                         'reservas/crear/cliente*',
                         'reservas/crear/datos-reserva*',
@@ -328,6 +328,16 @@ return [
                     'icon' => 'fas fa-list',
                 ],
             ],
+        ],
+
+        [
+            'header' => 'DISPONIBILIDAD',
+        ],
+
+        [
+            'text' => 'Horarios de atención',
+            'route' => 'horarios-disponibles.index',
+            'icon' => 'fas fa-fw fa-calendar-alt',
         ],
 
         [
@@ -358,11 +368,6 @@ return [
                     'text' => 'Servicios y experiencias',
                     'route' => 'servicios-experiencias.index',
                     'icon' => 'fas fa-hiking',
-                ],
-                [
-                    'text' => 'Horarios de atención',
-                    'route' => 'horarios-disponibles.index',
-                    'icon' => 'fas fa-clock',
                 ],
             ],
         ],

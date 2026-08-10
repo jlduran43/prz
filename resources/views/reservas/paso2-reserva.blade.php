@@ -4,6 +4,12 @@
 
 @section('content_header')
     @php
+        $tipoOperacion = $tipoOperacion ?? session('reserva.tipo_operacion');
+
+        $esCotizacion = $tipoOperacion === 'COTIZACION';
+
+        $esReserva = $tipoOperacion === 'RESERVA';
+
         $datosCliente = $datosCliente ?? session('reserva.cliente', []);
         $datosReserva = $datosReserva ?? session('reserva.datos', []);
 
@@ -13,9 +19,41 @@
     @endphp
 
     <div>
-        <h1 class="mb-1">Nueva reserva</h1>
+        <h1 class="mb-1">
+            @if ($esCotizacion)
+                Nueva cotización
+            @else
+                Nueva reserva
+            @endif
+        </h1>
         <p class="text-muted mb-0">
-            Selecciona hasta dos servicios y define una fecha y un horario para cada uno.
+            @if ($esCotizacion)
+                <div class="alert alert-info">
+
+                    <i class="fas fa-file-invoice-dollar mr-1"></i>
+
+                    Selecciona un máximo de dos servicios.
+
+                    El sistema calculará el valor estimado según
+                    la cantidad de personas indicada.
+
+                    <strong>
+                        En una cotización no se seleccionan horarios.
+                    </strong>
+
+                </div>
+            @else
+                <div class="alert alert-info">
+
+                    <i class="fas fa-info-circle mr-1"></i>
+
+                    Primero selecciona la fecha de la visita.
+
+                    Luego podrás escoger un máximo de dos
+                    servicios y sus horarios disponibles.
+
+                </div>
+            @endif
         </p>
     </div>
 @stop
@@ -232,35 +270,99 @@
             <div class="card-header">
                 <h3 class="card-title">
                     <i class="fas fa-star mr-1"></i>
-                    Servicios, fecha y horarios
+                    @if ($esCotizacion)
+                        Servicios a cotizar
+                    @else
+                        Servicios, fecha y horarios
+                    @endif
                 </h3>
             </div>
 
             <div class="card-body">
-                <div class="form-group mb-4">
-                    <label for="fecha_reserva">
-                        Fecha de la visita
-                        <span class="text-danger">*</span>
-                    </label>
+                @if ($esReserva)
+                    <div class="form-group mb-4">
 
-                    <input type="date" id="fecha_reserva" name="fecha_reserva" class="form-control"
-                        min="{{ now()->format('Y-m-d') }}"
-                        value="{{ old('fecha_reserva', session('reserva.datos.fecha_reserva')) }}">
+                        <label for="fecha_reserva">
 
-                    <small class="form-text text-muted">
-                        Selecciona una fecha para ver los servicios disponibles.
-                    </small>
-                </div>
+                            Fecha de la visita
 
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle mr-1"></i>
-                    Primero selecciona la fecha de la visita. Luego podrás escoger
-                    un máximo de dos servicios y sus horarios disponibles.
-                </div>
+                            <span class="text-danger">*</span>
+
+                        </label>
+
+
+                        <input type="date" id="fecha_reserva" name="fecha_reserva" class="form-control"
+                            min="{{ now()->format('Y-m-d') }}"
+                            value="{{ old('fecha_reserva', session('reserva.datos.fecha_reserva')) }}" required>
+
+
+                        <small class="form-text text-muted">
+
+                            Selecciona una fecha para consultar
+                            los servicios y horarios disponibles.
+
+                        </small>
+
+                    </div>
+                @endif
+
+                @if ($esCotizacion)
+                    <div class="alert alert-info">
+
+                        <i class="fas fa-file-invoice-dollar mr-1"></i>
+
+                        Selecciona un máximo de dos servicios.
+
+                        El sistema calculará el valor estimado según
+                        la cantidad de personas indicada.
+
+                        <strong>
+                            En una cotización no se seleccionan horarios.
+                        </strong>
+
+                    </div>
+                @else
+                    @if ($esCotizacion)
+                        <div class="alert alert-info">
+
+                            <i class="fas fa-file-invoice-dollar mr-1"></i>
+
+                            Selecciona un máximo de dos servicios.
+
+                            El sistema calculará el valor estimado según
+                            la cantidad de personas indicada.
+
+                            <strong>
+                                En una cotización no se seleccionan horarios.
+                            </strong>
+
+                        </div>
+                    @else
+                        <div class="alert alert-info">
+
+                            <i class="fas fa-info-circle mr-1"></i>
+
+                            Primero selecciona la fecha de la visita.
+
+                            Luego podrás escoger un máximo de dos
+                            servicios y sus horarios disponibles.
+
+                        </div>
+                    @endif
+                @endif
 
                 <div id="mensaje-servicios" class="alert alert-light border text-center">
-                    <i class="fas fa-calendar-alt mr-1"></i>
-                    Selecciona una fecha para consultar los servicios disponibles.
+                    @if ($esCotizacion)
+                        <i class="fas fa-spinner fa-spin mr-1"></i>
+
+                        Cargando servicios disponibles para cotizar...
+                    @else
+                        <i class="fas fa-calendar-alt mr-1"></i>
+
+                        Selecciona una fecha para consultar
+                        los servicios disponibles.
+                    @endif
+
                 </div>
 
                 <div id="contenedor-servicios" class="lista-servicios"></div>
@@ -269,7 +371,13 @@
                     <div>
                         <strong>Servicios seleccionados</strong>
                         <small class="d-block text-muted">
-                            Cada servicio seleccionado debe tener un horario.
+                            @if ($esCotizacion)
+                                Puedes seleccionar hasta dos servicios
+                                para calcular el valor estimado.
+                            @else
+                                Cada servicio seleccionado debe tener un horario.
+                            @endif
+
                         </small>
                     </div>
 
@@ -492,6 +600,8 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const maximoServicios = 2;
+            const esCotizacion = @json($esCotizacion);
+            const tipoOperacion = @json($tipoOperacion);
             const datosAnteriores = @json(old('servicios', $datosReserva['servicios'] ?? []));
 
             const urlServicios = @json(route('reservas.servicios-disponibles'));
@@ -677,12 +787,12 @@
                 ${
                     servicio.duracion_minutos
                         ? `
-                                                                                                                    <small class="text-muted">
-                                                                                                                        <i class="far fa-clock mr-1"></i>
-                                                                                                                        ${servicio.duracion_minutos}
-                                                                                                                        minutos
-                                                                                                                    </small>
-                                                                                                                `
+                                                                                                                                                                                                <small class="text-muted">
+                                                                                                                                                                                                    <i class="far fa-clock mr-1"></i>
+                                                                                                                                                                                                    ${servicio.duracion_minutos}
+                                                                                                                                                                                                    minutos
+                                                                                                                                                                                                </small>
+                                                                                                                                                                                            `
                         : ''
                 }
 
@@ -712,53 +822,140 @@
         </span>
     </label>
 
-    <div class="servicio-configuracion" style="display: none;">
-        <input
-            type="hidden"
-            name="servicios[${servicio.id}][servicio_id]"
-            value="${servicio.id}"
-            class="campo-servicio"
-            disabled
-        >
+    ${
+    esCotizacion
+        ? `
+                                                                <div class="servicio-configuracion">
 
-        <div class="configuracion-header">
-            <h6 class="configuracion-titulo">
-                <i class="fas fa-calendar-alt text-primary mr-1"></i>
-                Configuración de la visita
-            </h6>
+                                                                    <div class="configuracion-header">
 
-            <button
-                type="button"
-                class="btn btn-sm btn-outline-danger quitar-servicio"
-            >
-                <i class="fas fa-times mr-1"></i>
-                Quitar servicio
-            </button>
-        </div>
+                                                                        <h6 class="configuracion-titulo">
 
-        <input
-    type="hidden"
-    name="servicios[${servicio.id}][fecha]"
-    class="fecha-servicio campo-servicio"
-    value="${fechaReservaInput.value}"
-    disabled
->
+                                                                            <i
+                                                                                class="fas fa-file-invoice-dollar
+                                                                                       text-info mr-1">
+                                                                            </i>
 
-        <div class="mensaje-horarios alert alert-info mb-3">
-            <i class="fas fa-calendar-alt mr-1"></i>
-            Selecciona una fecha para consultar los horarios.
-        </div>
+                                                                            Servicio incluido en la cotización
 
-        <div class="row contenedor-horarios"></div>
+                                                                        </h6>
 
-        <input
-            type="hidden"
-            name="servicios[${servicio.id}][horario_id]"
-            class="horario-id campo-servicio"
-            disabled
-        >
-    </div>
-`;
+
+                                                                        <button
+                                                                            type="button"
+                                                                            class="
+                                                                                btn
+                                                                                btn-sm
+                                                                                btn-outline-danger
+                                                                                quitar-servicio
+                                                                            "
+                                                                        >
+
+                                                                            <i class="fas fa-times mr-1"></i>
+
+                                                                            Quitar servicio
+
+                                                                        </button>
+
+                                                                    </div>
+
+
+                                                                    <input
+                                                                        type="hidden"
+                                                                        name="servicios[${servicio.id}][servicio_id]"
+                                                                        value="${servicio.id}"
+                                                                        class="campo-servicio"
+                                                                        disabled
+                                                                    >
+
+                                                                </div>
+                                                            `
+        : `
+                                                                <div class="servicio-configuracion">
+
+                                                                    <input
+                                                                        type="hidden"
+                                                                        name="servicios[${servicio.id}][servicio_id]"
+                                                                        value="${servicio.id}"
+                                                                        class="campo-servicio"
+                                                                        disabled
+                                                                    >
+
+
+                                                                    <div class="configuracion-header">
+
+                                                                        <h6 class="configuracion-titulo">
+
+                                                                            <i
+                                                                                class="fas fa-calendar-alt
+                                                                                       text-primary mr-1">
+                                                                            </i>
+
+                                                                            Configuración de la visita
+
+                                                                        </h6>
+
+
+                                                                        <button
+                                                                            type="button"
+                                                                            class="
+                                                                                btn
+                                                                                btn-sm
+                                                                                btn-outline-danger
+                                                                                quitar-servicio
+                                                                            "
+                                                                        >
+
+                                                                            <i class="fas fa-times mr-1"></i>
+
+                                                                            Quitar servicio
+
+                                                                        </button>
+
+                                                                    </div>
+
+
+                                                                    <input
+                                                                        type="hidden"
+                                                                        name="servicios[${servicio.id}][fecha]"
+                                                                        class="fecha-servicio campo-servicio"
+                                                                        value="${fechaReservaInput?.value || ''}"
+                                                                        disabled
+                                                                    >
+
+
+                                                                    <div
+                                                                        class="
+                                                                            mensaje-horarios
+                                                                            alert
+                                                                            alert-info
+                                                                            mb-3
+                                                                        "
+                                                                    >
+
+                                                                        <i class="fas fa-calendar-alt mr-1"></i>
+
+                                                                        Selecciona una fecha para
+                                                                        consultar los horarios.
+
+                                                                    </div>
+
+
+                                                                    <div
+                                                                        class="row contenedor-horarios">
+                                                                    </div>
+
+
+                                                                    <input
+                                                                        type="hidden"
+                                                                        name="servicios[${servicio.id}][horario_id]"
+                                                                        class="horario-id campo-servicio"
+                                                                        disabled
+                                                                    >
+
+                                                                </div>
+                                                            `
+}`;
 
                 const checkbox = card.querySelector('.servicio-checkbox');
                 const fechaInput = card.querySelector('.fecha-servicio');
@@ -776,7 +973,7 @@
                         limpiarConfiguracion(card);
                     }
 
-                    if (checkbox.checked) {
+                    if (checkbox.checked && !esCotizacion) {
                         const fecha = fechaReservaInput.value;
 
                         card.querySelector('.fecha-servicio').value = fecha;
@@ -804,29 +1001,48 @@
             }
 
             function limpiarConfiguracion(card) {
-                card.querySelector(
-                    '.fecha-servicio'
-                ).value = '';
+                const fechaInput =
+                    card.querySelector('.fecha-servicio');
 
-                card.querySelector(
-                    '.horario-id'
-                ).value = '';
+                const horarioInput =
+                    card.querySelector('.horario-id');
 
-                card.querySelector(
-                    '.contenedor-horarios'
-                ).innerHTML = '';
+                const contenedorHorarios =
+                    card.querySelector('.contenedor-horarios');
 
                 const mensajeHorarios =
                     card.querySelector('.mensaje-horarios');
 
-                mensajeHorarios.className =
-                    'mensaje-horarios alert alert-info mb-3';
 
-                mensajeHorarios.innerHTML = `
-        <i class="fas fa-calendar-alt mr-1"></i>
-        Selecciona una fecha para consultar
-        los horarios.
-    `;
+                /*
+                 * Estos elementos solamente existen
+                 * cuando estamos realizando una reserva.
+                 */
+
+                if (fechaInput) {
+                    fechaInput.value = '';
+                }
+
+                if (horarioInput) {
+                    horarioInput.value = '';
+                }
+
+                if (contenedorHorarios) {
+                    contenedorHorarios.innerHTML = '';
+                }
+
+                if (mensajeHorarios) {
+
+                    mensajeHorarios.className =
+                        'mensaje-horarios alert alert-info mb-3';
+
+                    mensajeHorarios.innerHTML = `
+            <i class="fas fa-calendar-alt mr-1"></i>
+            Selecciona una fecha para consultar
+            los horarios.
+        `;
+                }
+
 
                 const configuracion =
                     card.querySelector('.servicio-configuracion');
@@ -874,13 +1090,43 @@
                         throw new Error(datos.message || 'No fue posible consultar los horarios.');
                     }
 
-                    const horarios = datos.horarios || [];
+                    const todosLosHorarios = datos.horarios || [];
+
+                    const ahora = new Date();
+
+                    const fechaHoy = [
+                        ahora.getFullYear(),
+                        String(ahora.getMonth() + 1).padStart(2, '0'),
+                        String(ahora.getDate()).padStart(2, '0'),
+                    ].join('-');
+
+                    const minutosActuales =
+                        (ahora.getHours() * 60) + ahora.getMinutes();
+
+                    const horarios = todosLosHorarios.filter(function(horario) {
+                        /*
+                         * Para fechas futuras se muestran todos los horarios
+                         * recibidos desde Laravel.
+                         */
+                        if (fecha !== fechaHoy) {
+                            return true;
+                        }
+
+                        /*
+                         * Para hoy solamente se muestran horarios que todavía
+                         * no hayan comenzado.
+                         */
+                        const minutosInicio =
+                            convertirHoraMinutos(horario.hora_inicio);
+
+                        return minutosInicio > minutosActuales;
+                    });
 
                     if (!horarios.length) {
                         mensajeHorarios.className = 'mensaje-horarios alert alert-warning mb-3';
                         mensajeHorarios.innerHTML = `
                             <i class="fas fa-calendar-times mr-1"></i>
-                            No existen horarios para la fecha seleccionada.
+                            No existen horarios futuros disponibles para la fecha seleccionada.
                         `;
                         return;
                     }
@@ -1010,11 +1256,24 @@
                         window.location.origin
                     );
 
-                    url.searchParams.set('fecha', fecha);
                     url.searchParams.set(
-                        'cantidad_personas',
-                        cantidadPersonas()
+                        'tipo_operacion',
+                        tipoOperacion
                     );
+
+                    if (!esCotizacion) {
+
+                        url.searchParams.set(
+                            'fecha',
+                            fecha
+                        );
+
+                        url.searchParams.set(
+                            'cantidad_personas',
+                            cantidadPersonas()
+                        );
+
+                    }
 
                     const respuesta = await fetch(url, {
                         method: 'GET',
@@ -1092,28 +1351,69 @@
             }
 
             async function restaurarDatosAnteriores() {
-                const entradas = Object.values(datosAnteriores || {});
+
+                const entradas =
+                    Object.values(datosAnteriores || {});
+
 
                 for (const datos of entradas) {
-                    const servicioId = String(datos.servicio_id || '');
-                    const card = contenedor.querySelector(
-                        `.servicio-card[data-servicio-id="${servicioId}"]`
-                    );
+
+                    const servicioId =
+                        String(datos.servicio_id || '');
+
+                    const card =
+                        contenedor.querySelector(
+                            `.servicio-card[data-servicio-id="${servicioId}"]`
+                        );
+
 
                     if (!card) {
                         continue;
                     }
 
-                    const checkbox = card.querySelector('.servicio-checkbox');
-                    const fecha = card.querySelector('.fecha-servicio');
+
+                    const checkbox =
+                        card.querySelector('.servicio-checkbox');
+
 
                     checkbox.checked = true;
+
                     actualizarEstadoServicios();
 
-                    fecha.value = datos.fecha || '';
+
+                    /*
+                     * En cotización solamente restauramos
+                     * el servicio seleccionado.
+                     *
+                     * No existen fecha ni horario.
+                     */
+
+                    if (esCotizacion) {
+                        continue;
+                    }
+
+
+                    const fecha =
+                        card.querySelector('.fecha-servicio');
+
+
+                    if (!fecha) {
+                        continue;
+                    }
+
+
+                    fecha.value =
+                        datos.fecha || '';
+
 
                     if (fecha.value) {
-                        await cargarHorarios(card, fecha.value, datos.horario_id || '');
+
+                        await cargarHorarios(
+                            card,
+                            fecha.value,
+                            datos.horario_id || ''
+                        );
+
                     }
                 }
             }
@@ -1134,8 +1434,11 @@
                 .forEach(input => {
                     input.addEventListener('input', function() {
                         actualizarPrecio();
-                        clearTimeout(window.__recargaHorarios);
-                        window.__recargaHorarios = setTimeout(recargarHorariosSeleccionados, 350);
+
+                        if (!esCotizacion) {
+                            clearTimeout(window.__recargaHorarios);
+                            window.__recargaHorarios = setTimeout(recargarHorariosSeleccionados, 350);
+                        }
                     });
                 });
 
@@ -1160,64 +1463,103 @@
                     return;
                 }
 
-                const incompletos = cards.some(card =>
-                    !card.querySelector('.fecha-servicio').value ||
-                    !card.querySelector('.horario-id').value
-                );
+                if (!esCotizacion) {
 
-                if (incompletos) {
-                    event.preventDefault();
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'Faltan datos',
-                        html: `
-        <p class="mb-0">
-            Antes de continuar debes seleccionar un
-            <strong>horario para cada servicio</strong>.
-        </p>
-    `,
-                        confirmButtonText: 'Entendido',
-                        confirmButtonColor: '#17a2b8'
+                    const incompletos = cards.some(card => {
+
+                        const fecha =
+                            card.querySelector('.fecha-servicio');
+
+                        const horario =
+                            card.querySelector('.horario-id');
+
+                        return (
+                            !fecha?.value ||
+                            !horario?.value
+                        );
                     });
+
+
+                    if (incompletos) {
+
+                        event.preventDefault();
+
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Faltan datos',
+                            html: `
+                <p class="mb-0">
+                    Antes de continuar debes seleccionar un
+                    <strong>
+                        horario para cada servicio.
+                    </strong>
+                </p>
+            `,
+                            confirmButtonText: 'Entendido',
+                            confirmButtonColor: '#17a2b8'
+                        });
+
+                        return;
+                    }
                 }
             });
 
             cantidadPersonas();
 
-            fechaReservaInput.addEventListener(
-                'change',
-                async function() {
-                    const fecha = this.value;
+            if (fechaReservaInput) {
 
-                    contenedor.innerHTML = '';
-                    totalSeleccionados.textContent = '0';
-                    serviciosError.classList.add('d-none');
-                    detalleServicios.innerHTML = `
-            <div class="text-muted">
-                Selecciona un servicio para ver el detalle.
-            </div>
-        `;
-                    precioTotal.textContent = formatearPrecio(0);
+                fechaReservaInput.addEventListener(
+                    'change',
+                    async function() {
 
-                    if (!fecha) {
-                        mensaje.className =
-                            'alert alert-light border text-center';
+                        const fecha = this.value;
 
-                        mensaje.innerHTML = `
-                <i class="fas fa-calendar-alt mr-1"></i>
-                Selecciona una fecha para consultar
-                los servicios disponibles.
+                        contenedor.innerHTML = '';
+
+                        totalSeleccionados.textContent = '0';
+
+                        serviciosError.classList.add('d-none');
+
+                        detalleServicios.innerHTML = `
+                <div class="text-muted">
+                    Selecciona un servicio para ver el detalle.
+                </div>
             `;
 
-                        return;
+                        precioTotal.textContent = formatearPrecio(0);
+
+
+                        if (!fecha) {
+
+                            mensaje.className =
+                                'alert alert-light border text-center';
+
+                            mensaje.innerHTML = `
+                    <i class="fas fa-calendar-alt mr-1"></i>
+                    Selecciona una fecha para consultar
+                    los servicios disponibles.
+                `;
+
+                            return;
+                        }
+
+
+                        await cargarServicios(fecha);
                     }
+                );
 
-                    await cargarServicios(fecha);
-                }
-            );
+            }
 
-            if (fechaReservaInput.value) {
-                cargarServicios(fechaReservaInput.value);
+            if (esCotizacion) {
+
+                cargarServicios('');
+
+            } else if (fechaReservaInput && fechaReservaInput.value) {
+
+                cargarServicios(
+                    fechaReservaInput.value
+                );
+
             }
         });
     </script>

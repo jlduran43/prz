@@ -39,7 +39,7 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="fecha_desde">
-                                Desde
+                                Inicio Temporada
                                 <span class="text-danger">*</span>
                             </label>
 
@@ -91,7 +91,7 @@
 
                 <div class="form-group">
                     <label>
-                        Días de atención
+                        Días disponibles
                         <span class="text-danger">*</span>
                     </label>
 

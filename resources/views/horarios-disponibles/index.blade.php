@@ -85,6 +85,7 @@
                         <th>Fecha</th>
                         <th>Hora de inicio</th>
                         <th>Hora de término</th>
+                        <th>Servicios asociados</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
@@ -107,6 +108,22 @@
 
                             <td class="align-middle">
                                 {{ substr($horario->hora_termino, 0, 5) }}
+                            </td>
+
+                            <td style="min-width: 340px;">
+                                <div class="d-flex flex-column">
+                                    @forelse ($horario->servicios as $servicio)
+                                        <span class="mb-1">
+                                            <i class="fas fa-circle text-info mr-2" style="font-size: 7px;"></i>
+                                            {{ $servicio->nombre }}
+                                        </span>
+                                    @empty
+                                        <span class="text-muted">
+                                            <i class="fas fa-minus-circle mr-1"></i>
+                                            Sin servicios asociados
+                                        </span>
+                                    @endforelse
+                                </div>
                             </td>
 
                             <td class="align-middle">

@@ -189,6 +189,22 @@ Route::controller(ReservaWizardController::class)
     ->prefix('reservas')
     ->name('reservas.')
     ->group(function () {
+
+        /*
+         * Paso 0: tipo de operación
+         * Cotizar o reservar y pagar
+         */
+        Route::get(
+            'crear',
+            'operacion'
+        )->name('operacion');
+
+        Route::post(
+            'crear/operacion',
+            'guardarOperacion'
+        )->name('operacion.guardar');
+
+
         /*
          * Paso 1: datos del cliente
          */
@@ -202,6 +218,7 @@ Route::controller(ReservaWizardController::class)
             'guardarCliente'
         )->name('cliente.guardar');
 
+
         /*
          * Paso 2: datos de la reserva
          */
@@ -214,6 +231,25 @@ Route::controller(ReservaWizardController::class)
             'crear/datos-reserva',
             'guardarReserva'
         )->name('datos.guardar');
+
+
+        /*
+         * Paso 3: confirmación
+         */
+        Route::get(
+            'crear/confirmacion',
+            'confirmacion'
+        )->name('confirmacion');
+
+
+        /*
+         * Paso 4: guardar definitivamente
+         */
+        Route::post(
+            'crear/finalizar',
+            'finalizar'
+        )->name('finalizar');
+
 
         /*
          * Consultas AJAX
@@ -232,20 +268,4 @@ Route::controller(ReservaWizardController::class)
             'comunas-por-region/{region}',
             'comunasPorRegion'
         )->name('comunas-por-region');
-
-        /*
-         * Paso 3: confirmación
-         */
-        Route::get(
-            'crear/confirmacion',
-            'confirmacion'
-        )->name('confirmacion');
-
-        /*
-         * Paso 4: guardar definitivamente
-         */
-        Route::post(
-            'crear/finalizar',
-            'finalizar'
-        )->name('finalizar');
     });

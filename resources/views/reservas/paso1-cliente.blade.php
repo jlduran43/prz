@@ -15,6 +15,25 @@
 @stop
 
 @section('content')
+    @if (session('reserva.tipo_operacion') === 'COTIZACION')
+        <div class="alert alert-info py-2">
+
+            <i class="fas fa-file-invoice-dollar mr-1"></i>
+
+            <strong>Modalidad:</strong>
+            Solicitud de cotización
+
+        </div>
+    @elseif (session('reserva.tipo_operacion') === 'PAGO')
+        <div class="alert alert-success py-2">
+
+            <i class="fas fa-credit-card mr-1"></i>
+
+            <strong>Modalidad:</strong>
+            Reserva con pago
+
+        </div>
+    @endif
     @include('reservas.partials._wizard', ['paso' => 1])
 
     <form method="POST" action="{{ route('reservas.cliente.guardar') }}">
@@ -92,9 +111,18 @@
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <input id="nombres" name="nombres" type="text"
-                                class="form-control @error('nombres') is-invalid @enderror"
-                                value="{{ old('nombres', $datosCliente['nombres'] ?? '') }}" placeholder="Ej.: María José">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-user"></i>
+                                    </span>
+                                </div>
+
+                                <input id="nombres" name="nombres" type="text"
+                                    class="form-control @error('nombres') is-invalid @enderror"
+                                    value="{{ old('nombres', $datosCliente['nombres'] ?? '') }}"
+                                    placeholder="Ej.: María José">
+                            </div>
 
                             @error('nombres')
                                 <span class="invalid-feedback">
@@ -111,10 +139,18 @@
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <input id="apellidos" name="apellidos" type="text"
-                                class="form-control @error('apellidos') is-invalid @enderror"
-                                value="{{ old('apellidos', $datosCliente['apellidos'] ?? '') }}"
-                                placeholder="Ej.: González Pérez">
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-user"></i>
+                                    </span>
+                                </div>
+
+                                <input id="apellidos" name="apellidos" type="text"
+                                    class="form-control @error('apellidos') is-invalid @enderror"
+                                    value="{{ old('apellidos', $datosCliente['apellidos'] ?? '') }}"
+                                    placeholder="Ej.: González Pérez">
+                            </div>
 
                             @error('apellidos')
                                 <span class="invalid-feedback">
@@ -429,11 +465,18 @@
                 </div>
             </div>
 
-            <div class="card-footer text-right">
-                <button class="btn btn-primary" type="submit">
+            <div class="card-footer d-flex justify-content-between align-items-center">
+
+                <a href="{{ route('reservas.operacion') }}" class="btn btn-default">
+                    <i class="fas fa-arrow-left mr-1"></i>
+                    Volver
+                </a>
+
+                <button type="submit" class="btn btn-primary ml-auto">
                     Siguiente
                     <i class="fas fa-arrow-right ml-1"></i>
                 </button>
+
             </div>
         </div>
     </form>

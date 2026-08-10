@@ -212,64 +212,120 @@
                 </div>
             </div>
 
-            {{-- Datos de la reserva --}}
+            {{-- Datos de la reserva / cotización --}}
             <div class="col-lg-6 mt-3 mt-lg-0">
+
                 <div class="card card-outline card-info h-100">
+
                     <div class="card-header">
+
                         <h3 class="card-title">
-                            <i class="fas fa-calendar-alt mr-2"></i>
-                            Datos de la reserva
+
+                            @if ($esCotizacion)
+                                <i class="fas fa-file-invoice-dollar mr-2"></i>
+                                Datos de la cotización
+                            @else
+                                <i class="fas fa-calendar-alt mr-2"></i>
+                                Datos de la reserva
+                            @endif
+
                         </h3>
+
                     </div>
 
+
                     <div class="card-body">
+
                         <dl class="row mb-0">
 
-                            <dt class="col-sm-6">
-                                Fecha
-                            </dt>
+                            {{-- ============================================ --}}
+                            {{-- SERVICIOS --}}
+                            {{-- ============================================ --}}
 
                             @foreach ($detallesServicios as $detalle)
-                                <dt class="col-sm-4">
+                                <dt class="col-sm-5">
                                     Servicio
                                 </dt>
 
-                                <dd class="col-sm-8">
-                                    {{ $detalle['nombre'] }}
+                                <dd class="col-sm-7">
+                                    <strong>
+                                        {{ $detalle['servicio']->nombre }}
+                                    </strong>
                                 </dd>
 
-                                <dt class="col-sm-4">
-                                    Fecha
-                                </dt>
 
-                                <dd class="col-sm-8">
-                                    {{ \Carbon\Carbon::parse($detalle['fecha'])->format('d/m/Y') }}
-                                </dd>
+                                {{-- Fecha y horario solamente en RESERVA --}}
 
-                                <dt class="col-sm-4">
-                                    Horario
-                                </dt>
+                                @if ($esReserva)
+                                    <dt class="col-sm-5">
+                                        Fecha
+                                    </dt>
 
-                                <dd class="col-sm-8">
-                                    {{ $detalle['hora_inicio'] }}
-                                    a
-                                    {{ $detalle['hora_termino'] }}
-                                </dd>
+                                    <dd class="col-sm-7">
+                                        {{ \Carbon\Carbon::parse($detalle['fecha'])->format('d/m/Y') }}
+                                    </dd>
 
-                                <div class="col-12">
-                                    <hr>
-                                </div>
+
+                                    <dt class="col-sm-5">
+                                        Horario
+                                    </dt>
+
+                                    <dd class="col-sm-7">
+
+                                        @if (!empty($detalle['horario']))
+                                            <span class="badge badge-info p-2">
+
+                                                <i class="far fa-clock mr-1"></i>
+
+                                                {{ substr($detalle['horario']->hora_inicio, 0, 5) }}
+
+                                                -
+
+                                                {{ substr($detalle['horario']->hora_termino, 0, 5) }}
+
+                                            </span>
+                                        @else
+                                            <span class="text-danger">
+                                                Horario no disponible
+                                            </span>
+                                        @endif
+
+                                    </dd>
+                                @endif
+
+
+                                @if (!$loop->last)
+                                    <div class="col-12">
+                                        <hr class="my-3">
+                                    </div>
+                                @endif
                             @endforeach
+
+
+                            <div class="col-12">
+                                <hr class="my-3">
+                            </div>
+
+
+                            {{-- ============================================ --}}
+                            {{-- ASISTENTES --}}
+                            {{-- ============================================ --}}
 
                             <dt class="col-sm-6">
                                 Cantidad de asistentes
                             </dt>
 
                             <dd class="col-sm-6">
-                                {{ $reserva['cantidad_asistentes'] }}
+                                {{ $reserva['cantidad_asistentes'] ?? 0 }}
                             </dd>
 
+
+                            {{-- ============================================ --}}
+                            {{-- ESTABLECIMIENTO EDUCACIONAL --}}
+                            {{-- ============================================ --}}
+
                             @if (($cliente['codigo_tipo_cliente'] ?? null) === 'ESTABLECIMIENTO_EDUCACIONAL')
+
                                 <dt class="col-sm-6">
                                     Cantidad de alumnos
                                 </dt>
@@ -277,6 +333,7 @@
                                 <dd class="col-sm-6">
                                     {{ $reserva['cantidad_alumnos'] ?? '-' }}
                                 </dd>
+
 
                                 <dt class="col-sm-6">
                                     Cantidad de profesores
@@ -286,11 +343,13 @@
                                     {{ $reserva['cantidad_profesores'] ?? '-' }}
                                 </dd>
 
+
                                 <dt class="col-sm-6">
                                     Nivel educacional
                                 </dt>
 
                                 <dd class="col-sm-6">
+
                                     {{ match ($reserva['nivel_educacional'] ?? null) {
                                         'PARVULARIA' => 'Educación parvularia',
 
@@ -308,7 +367,9 @@
 
                                         default => '-',
                                     } }}
+
                                 </dd>
+
 
                                 <dt class="col-sm-6">
                                     Curso
@@ -317,6 +378,7 @@
                                 <dd class="col-sm-6">
                                     {{ $reserva['curso'] ?? '-' }}
                                 </dd>
+
 
                                 @if (!empty($reserva['objetivo_visita']))
                                     <dt class="col-sm-6">
@@ -327,11 +389,15 @@
                                         {{ $reserva['objetivo_visita'] }}
                                     </dd>
                                 @endif
+
                             @endif
 
                         </dl>
+
                     </div>
+
                 </div>
+
             </div>
 
         </div>
@@ -377,26 +443,36 @@
                                 <tr>
                                     <td>
                                         <div class="font-weight-bold">
-                                            {{ $detalle['nombre'] }}
+                                            {{ $detalle['servicio']->nombre }}
                                         </div>
                                     </td>
 
                                     <td>
-                                        @if ($detalle['hora_inicio'] && $detalle['hora_termino'])
-                                            <span class="badge badge-info p-2">
-                                                <i class="far fa-clock mr-1"></i>
 
-                                                {{ $detalle['hora_inicio'] }}
+                                        @if ($esReserva)
+                                            @if (!empty($detalle['horario']))
+                                                <span class="badge badge-info p-2">
 
-                                                -
+                                                    <i class="far fa-clock mr-1"></i>
 
-                                                {{ $detalle['hora_termino'] }}
-                                            </span>
+                                                    {{ substr($detalle['horario']->hora_inicio, 0, 5) }}
+
+                                                    -
+
+                                                    {{ substr($detalle['horario']->hora_termino, 0, 5) }}
+
+                                                </span>
+                                            @else
+                                                <span class="text-danger">
+                                                    Horario no disponible
+                                                </span>
+                                            @endif
                                         @else
-                                            <span class="text-danger">
-                                                Horario no disponible
+                                            <span class="text-muted">
+                                                No aplica
                                             </span>
                                         @endif
+
                                     </td>
 
                                     <td>
@@ -436,58 +512,97 @@
         </div>
 
         {{-- Resumen total --}}
+        @php
+            /*
+             * Por ahora todavía no tenemos implementado
+             * el módulo de convenios y descuentos.
+             */
+            $descuentoTotal = 0;
+
+            /*
+             * $total ya viene calculado desde el Controller
+             * como la suma de los subtotales de los servicios.
+             */
+            $subtotalGeneral = $total;
+
+            $totalFinal = $subtotalGeneral - $descuentoTotal;
+        @endphp
+
         <div class="row justify-content-end">
             <div class="col-lg-5">
                 <div class="card card-outline card-warning">
+
                     <div class="card-header">
                         <h3 class="card-title">
+
                             <i class="fas fa-receipt mr-2"></i>
-                            Resumen de pago
+
+                            @if ($esCotizacion)
+                                Resumen de cotización
+                            @else
+                                Resumen de pago
+                            @endif
+
                         </h3>
                     </div>
 
+
                     <div class="card-body">
-                        <div
-                            class="d-flex justify-content-between
-                                   align-items-center mb-2">
+
+                        <div class="d-flex justify-content-between
+                           align-items-center mb-2">
+
                             <span>
                                 Subtotal
                             </span>
 
                             <strong>
-                                $
-                                {{ number_format($subtotal, 0, ',', '.') }}
+                                ${{ number_format($subtotalGeneral, 0, ',', '.') }}
                             </strong>
+
                         </div>
 
-                        <div
-                            class="d-flex justify-content-between
-                                   align-items-center mb-3">
-                            <span>
-                                Descuento
-                            </span>
 
-                            <strong>
-                                $
-                                {{ number_format($descuento, 0, ',', '.') }}
-                            </strong>
-                        </div>
+                        @if ($descuentoTotal > 0)
+                            <div
+                                class="d-flex justify-content-between
+                               align-items-center mb-3">
+
+                                <span>
+                                    Descuento
+                                </span>
+
+                                <strong class="text-success">
+                                    -${{ number_format($descuentoTotal, 0, ',', '.') }}
+                                </strong>
+
+                            </div>
+                        @endif
+
 
                         <hr>
 
+
                         <div
                             class="d-flex justify-content-between
-                                   align-items-center total-reserva">
+                           align-items-center total-reserva">
+
                             <span>
-                                Total
+                                @if ($esCotizacion)
+                                    Total estimado
+                                @else
+                                    Total
+                                @endif
                             </span>
 
                             <strong>
-                                $
-                                {{ number_format($total, 0, ',', '.') }}
+                                ${{ number_format($totalFinal, 0, ',', '.') }}
                             </strong>
+
                         </div>
+
                     </div>
+
                 </div>
             </div>
         </div>

@@ -27,7 +27,24 @@ class HorarioDisponibleController extends Controller
             $query->where('activo', $estado);
         }
 
-        $horarios = $query
+        $horarios = HorarioDisponible::query()
+            ->with([
+                'servicios' => function ($query) {
+                    $query->orderBy('nombre');
+                },
+            ])
+            ->when(
+                $fecha !== '',
+                function ($query) use ($fecha) {
+                    $query->whereDate('fecha', $fecha);
+                }
+            )
+            ->when(
+                $estado !== null && $estado !== '',
+                function ($query) use ($estado) {
+                    $query->where('activo', $estado);
+                }
+            )
             ->orderBy('fecha')
             ->orderBy('hora_inicio')
             ->paginate(10)
