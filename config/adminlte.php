@@ -331,13 +331,15 @@ return [
         ],
 
         [
-            'header' => 'DISPONIBILIDAD',
-        ],
-
-        [
             'text' => 'Horarios de atención',
             'route' => 'horarios-disponibles.index',
             'icon' => 'fas fa-fw fa-calendar-alt',
+        ],
+
+        [
+            'text' => 'Convenios y descuentos',
+            'route' => 'convenios.index',
+            'icon' => 'fas fa-fw fa-percent',
         ],
 
         [

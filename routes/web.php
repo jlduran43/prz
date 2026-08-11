@@ -6,6 +6,7 @@ use App\Http\Controllers\HorarioDisponibleController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\ReservaWizardController;
 use App\Http\Controllers\ServicioExperienciaController;
+use App\Http\Controllers\ConvenioController;
 use App\Http\Controllers\TipoClienteController;
 use Illuminate\Support\Facades\Route;
 
@@ -17,6 +18,11 @@ use Illuminate\Support\Facades\Route;
 
 Route::view('/dashboard', 'dashboard')
     ->name('dashboard');
+
+Route::resource(
+    'convenios',
+    ConvenioController::class
+);
 
 /*
 |--------------------------------------------------------------------------
@@ -178,6 +184,11 @@ Route::resource(
     ->parameters([
         'servicios-experiencias' => 'servicio',
     ]);
+
+Route::post(
+    '/reservas/validar-convenio',
+    [ReservaWizardController::class, 'validarConvenio']
+)->name('reservas.validar-convenio');
 
 /*
 |--------------------------------------------------------------------------

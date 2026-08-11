@@ -400,6 +400,71 @@
                 </h3>
             </div>
 
+            <div class="card card-outline card-warning mt-3">
+
+                <div class="card-header">
+
+                    <h3 class="card-title">
+
+                        <i class="fas fa-percent mr-2"></i>
+
+                        Convenio o descuento
+
+                    </h3>
+
+                </div>
+
+
+                <div class="card-body">
+
+                    <label for="codigo_convenio">
+
+                        Código de convenio
+
+                        <small class="text-muted">
+                            (opcional)
+                        </small>
+
+                    </label>
+
+
+                    <div class="input-group">
+
+                        <input type="text" id="codigo_convenio" name="codigo_convenio" class="form-control"
+                            maxlength="50" autocomplete="off"
+                            value="{{ old('codigo_convenio', $convenioAplicado['codigo'] ?? '') }}"
+                            placeholder="Ej.: MUNICIPAL2026">
+
+
+                        <div class="input-group-append">
+
+                            <button type="button" id="btnAplicarConvenio" class="btn btn-warning">
+
+                                <i class="fas fa-check mr-1"></i>
+
+                                Aplicar
+
+                            </button>
+
+                        </div>
+
+                    </div>
+
+
+                    <small class="form-text text-muted">
+
+                        El código será validado junto al
+                        RUT de la entidad registrada.
+
+                    </small>
+
+
+                    <div id="resultadoConvenio" class="mt-3"></div>
+
+                </div>
+
+            </div>
+
             <div class="card-body">
                 @if ($esEstablecimiento)
                     <div class="alert alert-info">
@@ -558,21 +623,83 @@
                             <div>
                                 <strong>Total de asistentes</strong>
                                 <small class="d-block text-muted">
-                                    Cantidad utilizada para validar los cupos.
+                                    @if ($esCotizacion)
+                                        Cantidad utilizada para calcular el valor estimado.
+                                    @else
+                                        Cantidad utilizada para validar los cupos.
+                                    @endif
                                 </small>
                             </div>
                             <strong id="totalAsistentes" class="text-info h4 mb-0">1</strong>
                         </div>
                     </div>
 
-                    <div class="col-md-6 mb-3">
+                    {{-- Subtotal --}}
+                    <div class="col-md-3 mb-3">
+
                         <div class="selection-summary">
-                            <strong>Total estimado</strong>
-                            <strong id="precioTotal" class="text-primary h4 mb-0">$0</strong>
+
+                            <div>
+                                <strong>
+                                    Subtotal
+                                </strong>
+                            </div>
+
+                            <strong id="subtotalGeneral" class="text-dark h5 mb-0">
+                                $0
+                            </strong>
+
                         </div>
+
+                    </div>
+
+                    {{-- Descuento --}}
+                    <div class="col-md-3 mb-3">
+
+                        <div class="selection-summary">
+
+                            <div>
+                                <strong>
+                                    Descuento
+                                </strong>
+                            </div>
+
+                            <strong id="descuentoConvenio" class="text-success h5 mb-0">
+                                $0
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                    {{-- Total --}}
+                    <div class="col-md-3 mb-3">
+
+                        <div class="selection-summary">
+
+                            <div>
+
+                                <strong>
+
+                                    @if ($esCotizacion)
+                                        Total estimado
+                                    @else
+                                        Total
+                                    @endif
+
+                                </strong>
+
+                            </div>
+
+
+                            <strong id="precioTotal" class="text-primary h4 mb-0">
+                                $0
+                            </strong>
+
+                        </div>
+
                     </div>
                 </div>
-
                 <div id="detalleServicios"></div>
             </div>
         </div>
@@ -607,6 +734,10 @@
             const urlServicios = @json(route('reservas.servicios-disponibles'));
             const urlHorarios = @json(route('reservas.consultar-horarios'));
 
+            const urlValidarConvenio = @json(route('reservas.validar-convenio'));
+
+            const csrfToken = @json(csrf_token());
+
             const formulario = document.getElementById('formReserva');
             const fechaReservaInput = document.getElementById('fecha_reserva');
             const contenedor = document.getElementById('contenedor-servicios');
@@ -619,6 +750,13 @@
             const alumnosInput = document.getElementById('cantidad_alumnos');
             const profesoresInput = document.getElementById('cantidad_profesores');
             const totalAsistentes = document.getElementById('totalAsistentes');
+            const codigoConvenioInput = document.getElementById('codigo_convenio');
+            const btnAplicarConvenio = document.getElementById('btnAplicarConvenio');
+            const resultadoConvenio = document.getElementById('resultadoConvenio');
+            const subtotalGeneralElemento = document.getElementById('subtotalGeneral');
+            const descuentoConvenioElemento = document.getElementById('descuentoConvenio');
+
+            let convenioActual = @json($convenioAplicado ?? null);
 
             function escaparHtml(valor) {
                 const div = document.createElement('div');
@@ -662,40 +800,344 @@
             }
 
             function actualizarPrecio() {
-                const personas = cantidadPersonas();
-                const cards = obtenerCardsSeleccionadas();
-                let total = 0;
+
+                const personas =
+                    cantidadPersonas();
+
+                const cards =
+                    obtenerCardsSeleccionadas();
+
+                let subtotalGeneral = 0;
+
                 let html = '';
 
-                cards.forEach(card => {
-                    const precio = Number(card.dataset.precio) || 0;
-                    const tipoCobro = card.dataset.tipoCobro || 'FIJO';
-                    const subtotal = calcularSubtotal(precio, tipoCobro, personas);
-                    total += subtotal;
 
-                    const descripcion = tipoCobro === 'POR_PERSONA' ?
+                cards.forEach(card => {
+
+                    const precio =
+                        Number(
+                            card.dataset.precio
+                        ) || 0;
+
+                    const tipoCobro =
+                        card.dataset.tipoCobro ||
+                        'FIJO';
+
+
+                    const subtotal =
+                        calcularSubtotal(
+                            precio,
+                            tipoCobro,
+                            personas
+                        );
+
+
+                    subtotalGeneral += subtotal;
+
+
+                    const descripcion =
+                        tipoCobro === 'POR_PERSONA' ?
                         `${formatearPrecio(precio)} × ${personas} personas` :
                         tipoCobro === 'POR_GRUPO' ?
                         `${formatearPrecio(precio)} por grupo` :
                         'Precio fijo';
 
+
                     html += `
-                        <div class="detalle-precio-fila">
-                            <div>
-                                <strong>${escaparHtml(card.dataset.nombre)}</strong>
-                                <small class="d-block text-muted">${descripcion}</small>
-                            </div>
-                            <strong>${formatearPrecio(subtotal)}</strong>
-                        </div>
-                    `;
+            <div class="detalle-precio-fila">
+
+                <div>
+
+                    <strong>
+                        ${escaparHtml(
+                            card.dataset.nombre
+                        )}
+                    </strong>
+
+                    <small
+                        class="d-block text-muted"
+                    >
+                        ${descripcion}
+                    </small>
+
+                </div>
+
+                <strong>
+                    ${formatearPrecio(subtotal)}
+                </strong>
+
+            </div>
+        `;
                 });
 
-                detalleServicios.innerHTML = html || `
-                    <div class="text-muted">Selecciona un servicio para ver el detalle.</div>
+
+                let porcentaje = 0;
+
+
+                if (convenioActual) {
+
+                    porcentaje =
+                        Number(
+                            convenioActual
+                            .porcentaje_descuento
+                        ) || 0;
+                }
+
+
+                const descuento =
+                    Math.round(
+                        subtotalGeneral *
+                        (porcentaje / 100)
+                    );
+
+
+                const total =
+                    Math.max(
+                        subtotalGeneral - descuento,
+                        0
+                    );
+
+
+                detalleServicios.innerHTML =
+                    html || `
+            <div class="text-muted">
+                Selecciona un servicio para
+                ver el detalle.
+            </div>
+        `;
+
+
+                if (subtotalGeneralElemento) {
+
+                    subtotalGeneralElemento.textContent =
+                        formatearPrecio(
+                            subtotalGeneral
+                        );
+                }
+
+
+                if (descuentoConvenioElemento) {
+
+                    descuentoConvenioElemento.textContent =
+                        descuento > 0 ?
+                        `-${formatearPrecio(descuento)}` :
+                        formatearPrecio(0);
+                }
+
+
+                precioTotal.textContent =
+                    formatearPrecio(total);
+            }
+
+            if (
+                btnAplicarConvenio &&
+                codigoConvenioInput
+            ) {
+
+                btnAplicarConvenio.addEventListener(
+                    'click',
+                    async function() {
+
+                        const codigo =
+                            codigoConvenioInput
+                            .value
+                            .trim();
+
+
+                        if (!codigo) {
+
+                            convenioActual = null;
+
+                            resultadoConvenio.innerHTML = `
+                    <div class="alert alert-warning mb-0">
+                        Ingresa un código de convenio.
+                    </div>
                 `;
 
-                precioTotal.textContent = formatearPrecio(total);
+                            actualizarPrecio();
+
+                            return;
+                        }
+
+
+                        btnAplicarConvenio.disabled =
+                            true;
+
+
+                        btnAplicarConvenio.innerHTML = `
+                <span
+                    class="
+                        spinner-border
+                        spinner-border-sm
+                        mr-1
+                    "
+                ></span>
+
+                Validando...
+            `;
+
+
+                        try {
+
+                            const respuesta =
+                                await fetch(
+                                    urlValidarConvenio, {
+                                        method: 'POST',
+
+                                        headers: {
+                                            'Content-Type': 'application/json',
+
+                                            Accept: 'application/json',
+
+                                            'X-CSRF-TOKEN': csrfToken,
+
+                                            'X-Requested-With': 'XMLHttpRequest',
+                                        },
+
+                                        body: JSON.stringify({
+                                            codigo_convenio: codigo,
+                                        }),
+                                    }
+                                );
+
+
+                            const datos =
+                                await respuesta.json();
+
+
+                            if (
+                                !respuesta.ok ||
+                                !datos.ok
+                            ) {
+
+                                throw new Error(
+                                    datos.mensaje ||
+                                    'No fue posible validar el convenio.'
+                                );
+                            }
+
+
+                            convenioActual =
+                                datos.convenio;
+
+
+                            codigoConvenioInput.value =
+                                convenioActual.codigo;
+
+
+                            resultadoConvenio.innerHTML = `
+                    <div
+                        class="
+                            alert
+                            alert-success
+                            mb-0
+                        "
+                    >
+
+                        <i
+                            class="
+                                fas
+                                fa-check-circle
+                                mr-1
+                            "
+                        ></i>
+
+                        <strong>
+                            ${escaparHtml(
+                                convenioActual.nombre
+                            )}
+                        </strong>
+
+                        <div class="mt-1">
+
+                            Descuento aplicado:
+
+                            <strong>
+                                ${Number(
+                                    convenioActual
+                                        .porcentaje_descuento
+                                )}%
+                            </strong>
+
+                        </div>
+
+                    </div>
+                `;
+
+
+                            actualizarPrecio();
+
+                        } catch (error) {
+
+                            convenioActual = null;
+
+
+                            resultadoConvenio.innerHTML = `
+                    <div
+                        class="
+                            alert
+                            alert-danger
+                            mb-0
+                        "
+                    >
+
+                        <i
+                            class="
+                                fas
+                                fa-times-circle
+                                mr-1
+                            "
+                        ></i>
+
+                        ${escaparHtml(
+                            error.message
+                        )}
+
+                    </div>
+                `;
+
+
+                            actualizarPrecio();
+
+                        } finally {
+
+                            btnAplicarConvenio.disabled =
+                                false;
+
+                            btnAplicarConvenio.innerHTML = `
+                    <i
+                        class="
+                            fas
+                            fa-check
+                            mr-1
+                        "
+                    ></i>
+
+                    Aplicar
+                `;
+                        }
+                    }
+                );
             }
+
+            codigoConvenioInput?.addEventListener(
+                'input',
+                function() {
+
+                    if (
+                        convenioActual &&
+                        this.value.trim().toUpperCase() !==
+                        convenioActual.codigo
+                    ) {
+
+                        convenioActual = null;
+
+                        resultadoConvenio.innerHTML = '';
+
+                        actualizarPrecio();
+                    }
+                }
+            );
 
             function actualizarEstadoServicios() {
                 const cardsSeleccionadas =
@@ -787,12 +1229,12 @@
                 ${
                     servicio.duracion_minutos
                         ? `
-                                                                                                                                                                                                <small class="text-muted">
-                                                                                                                                                                                                    <i class="far fa-clock mr-1"></i>
-                                                                                                                                                                                                    ${servicio.duracion_minutos}
-                                                                                                                                                                                                    minutos
-                                                                                                                                                                                                </small>
-                                                                                                                                                                                            `
+                                                                                                                                                                                                                                    <small class="text-muted">
+                                                                                                                                                                                                                                        <i class="far fa-clock mr-1"></i>
+                                                                                                                                                                                                                                        ${servicio.duracion_minutos}
+                                                                                                                                                                                                                                        minutos
+                                                                                                                                                                                                                                    </small>
+                                                                                                                                                                                                                                `
                         : ''
                 }
 
@@ -825,136 +1267,136 @@
     ${
     esCotizacion
         ? `
-                                                                <div class="servicio-configuracion">
+                                                                                                    <div class="servicio-configuracion">
 
-                                                                    <div class="configuracion-header">
+                                                                                                        <div class="configuracion-header">
 
-                                                                        <h6 class="configuracion-titulo">
+                                                                                                            <h6 class="configuracion-titulo">
 
-                                                                            <i
-                                                                                class="fas fa-file-invoice-dollar
-                                                                                       text-info mr-1">
-                                                                            </i>
+                                                                                                                <i
+                                                                                                                    class="fas fa-file-invoice-dollar
+                                                                                                                           text-info mr-1">
+                                                                                                                </i>
 
-                                                                            Servicio incluido en la cotización
+                                                                                                                Servicio incluido en la cotización
 
-                                                                        </h6>
-
-
-                                                                        <button
-                                                                            type="button"
-                                                                            class="
-                                                                                btn
-                                                                                btn-sm
-                                                                                btn-outline-danger
-                                                                                quitar-servicio
-                                                                            "
-                                                                        >
-
-                                                                            <i class="fas fa-times mr-1"></i>
-
-                                                                            Quitar servicio
-
-                                                                        </button>
-
-                                                                    </div>
+                                                                                                            </h6>
 
 
-                                                                    <input
-                                                                        type="hidden"
-                                                                        name="servicios[${servicio.id}][servicio_id]"
-                                                                        value="${servicio.id}"
-                                                                        class="campo-servicio"
-                                                                        disabled
-                                                                    >
+                                                                                                            <button
+                                                                                                                type="button"
+                                                                                                                class="
+                                                                                                                    btn
+                                                                                                                    btn-sm
+                                                                                                                    btn-outline-danger
+                                                                                                                    quitar-servicio
+                                                                                                                "
+                                                                                                            >
 
-                                                                </div>
-                                                            `
+                                                                                                                <i class="fas fa-times mr-1"></i>
+
+                                                                                                                Quitar servicio
+
+                                                                                                            </button>
+
+                                                                                                        </div>
+
+
+                                                                                                        <input
+                                                                                                            type="hidden"
+                                                                                                            name="servicios[${servicio.id}][servicio_id]"
+                                                                                                            value="${servicio.id}"
+                                                                                                            class="campo-servicio"
+                                                                                                            disabled
+                                                                                                        >
+
+                                                                                                    </div>
+                                                                                                `
         : `
-                                                                <div class="servicio-configuracion">
+                                                                                                    <div class="servicio-configuracion">
 
-                                                                    <input
-                                                                        type="hidden"
-                                                                        name="servicios[${servicio.id}][servicio_id]"
-                                                                        value="${servicio.id}"
-                                                                        class="campo-servicio"
-                                                                        disabled
-                                                                    >
-
-
-                                                                    <div class="configuracion-header">
-
-                                                                        <h6 class="configuracion-titulo">
-
-                                                                            <i
-                                                                                class="fas fa-calendar-alt
-                                                                                       text-primary mr-1">
-                                                                            </i>
-
-                                                                            Configuración de la visita
-
-                                                                        </h6>
+                                                                                                        <input
+                                                                                                            type="hidden"
+                                                                                                            name="servicios[${servicio.id}][servicio_id]"
+                                                                                                            value="${servicio.id}"
+                                                                                                            class="campo-servicio"
+                                                                                                            disabled
+                                                                                                        >
 
 
-                                                                        <button
-                                                                            type="button"
-                                                                            class="
-                                                                                btn
-                                                                                btn-sm
-                                                                                btn-outline-danger
-                                                                                quitar-servicio
-                                                                            "
-                                                                        >
+                                                                                                        <div class="configuracion-header">
 
-                                                                            <i class="fas fa-times mr-1"></i>
+                                                                                                            <h6 class="configuracion-titulo">
 
-                                                                            Quitar servicio
+                                                                                                                <i
+                                                                                                                    class="fas fa-calendar-alt
+                                                                                                                           text-primary mr-1">
+                                                                                                                </i>
 
-                                                                        </button>
+                                                                                                                Configuración de la visita
 
-                                                                    </div>
+                                                                                                            </h6>
 
 
-                                                                    <input
-                                                                        type="hidden"
-                                                                        name="servicios[${servicio.id}][fecha]"
-                                                                        class="fecha-servicio campo-servicio"
-                                                                        value="${fechaReservaInput?.value || ''}"
-                                                                        disabled
-                                                                    >
+                                                                                                            <button
+                                                                                                                type="button"
+                                                                                                                class="
+                                                                                                                    btn
+                                                                                                                    btn-sm
+                                                                                                                    btn-outline-danger
+                                                                                                                    quitar-servicio
+                                                                                                                "
+                                                                                                            >
+
+                                                                                                                <i class="fas fa-times mr-1"></i>
+
+                                                                                                                Quitar servicio
+
+                                                                                                            </button>
+
+                                                                                                        </div>
 
 
-                                                                    <div
-                                                                        class="
-                                                                            mensaje-horarios
-                                                                            alert
-                                                                            alert-info
-                                                                            mb-3
-                                                                        "
-                                                                    >
-
-                                                                        <i class="fas fa-calendar-alt mr-1"></i>
-
-                                                                        Selecciona una fecha para
-                                                                        consultar los horarios.
-
-                                                                    </div>
+                                                                                                        <input
+                                                                                                            type="hidden"
+                                                                                                            name="servicios[${servicio.id}][fecha]"
+                                                                                                            class="fecha-servicio campo-servicio"
+                                                                                                            value="${fechaReservaInput?.value || ''}"
+                                                                                                            disabled
+                                                                                                        >
 
 
-                                                                    <div
-                                                                        class="row contenedor-horarios">
-                                                                    </div>
+                                                                                                        <div
+                                                                                                            class="
+                                                                                                                mensaje-horarios
+                                                                                                                alert
+                                                                                                                alert-info
+                                                                                                                mb-3
+                                                                                                            "
+                                                                                                        >
+
+                                                                                                            <i class="fas fa-calendar-alt mr-1"></i>
+
+                                                                                                            Selecciona una fecha para
+                                                                                                            consultar los horarios.
+
+                                                                                                        </div>
 
 
-                                                                    <input
-                                                                        type="hidden"
-                                                                        name="servicios[${servicio.id}][horario_id]"
-                                                                        class="horario-id campo-servicio"
-                                                                        disabled
-                                                                    >
+                                                                                                        <div
+                                                                                                            class="row contenedor-horarios">
+                                                                                                        </div>
 
-                                                                </div>
-                                                            `
+
+                                                                                                        <input
+                                                                                                            type="hidden"
+                                                                                                            name="servicios[${servicio.id}][horario_id]"
+                                                                                                            class="horario-id campo-servicio"
+                                                                                                            disabled
+                                                                                                        >
+
+                                                                                                    </div>
+                                                                                                `
 }`;
 
                 const checkbox = card.querySelector('.servicio-checkbox');

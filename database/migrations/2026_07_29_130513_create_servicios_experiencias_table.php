@@ -26,6 +26,10 @@ return new class extends Migration
             $table->unsignedInteger('capacidad_minima')->nullable();
             $table->unsignedInteger('capacidad_maxima')->nullable();
 
+            $table->unsignedTinyInteger('max_cursos_simultaneos')->default(1);
+
+            $table->unsignedInteger('max_alumnos_por_curso')->nullable();
+
             $table->decimal('precio', 12, 2)->default(0);
 
             $table->enum('tipo_cobro', [

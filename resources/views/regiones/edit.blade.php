@@ -6,10 +6,8 @@
     <div class="d-flex justify-content-between align-items-center">
         <h1>Editar región</h1>
 
-        <a
-            href="{{ route('regiones.index') }}"
-            class="btn btn-secondary"
-        >
+        <a href="{{ route('regiones.index') }}"
+            class="btn btn-secondary">
             <i class="fas fa-arrow-left"></i>
             Volver
         </a>
@@ -24,10 +22,7 @@
             </h3>
         </div>
 
-        <form
-            action="{{ route('regiones.update', $region) }}"
-            method="POST"
-        >
+        <form   action="{{ route('regiones.update', $region) }}" method="POST">
             @csrf
             @method('PUT')
 
@@ -43,10 +38,8 @@
                     Actualizar
                 </button>
 
-                <a
-                    href="{{ route('regiones.index') }}"
-                    class="btn btn-secondary"
-                >
+                <a  href="{{ route('regiones.index') }}"
+                    class="btn btn-secondary">
                     Cancelar
                 </a>
             </div>

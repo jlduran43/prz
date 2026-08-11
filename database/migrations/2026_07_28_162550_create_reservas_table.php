@@ -51,6 +51,23 @@ return new class extends Migration
             $table->string('curso', 100)
                 ->nullable();
 
+            $table->foreignId('convenio_id')
+                ->nullable()
+                ->constrained('convenios')
+                ->nullOnDelete();
+
+            $table->string('codigo_convenio', 50)
+                ->nullable();
+
+            $table->string('nombre_convenio', 150)
+                ->nullable();
+
+            $table->decimal(
+                'porcentaje_descuento',
+                5,
+                2
+            )->default(0);
+
             $table->decimal('subtotal', 12, 2)
                 ->default(0);
 
@@ -64,6 +81,9 @@ return new class extends Migration
                 ->default('PENDIENTE');
 
             $table->text('observaciones')
+                ->nullable();
+
+            $table->text('objetivo_visita')
                 ->nullable();
 
             $table->timestamps();

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\CategoriaServicio;
 use App\Models\ConfiguracionReserva;
+use App\Models\Convenio;
 use App\Models\HorarioDisponible;
 use Illuminate\Http\Request;
 use App\Models\Region;
@@ -378,6 +379,12 @@ class ReservaWizardController extends Controller
                 'nullable',
                 'string',
                 'max:500',
+            ],
+
+            'codigo_convenio' => [
+                'nullable',
+                'string',
+                'max:50',
             ],
         ];
 
@@ -813,8 +820,16 @@ class ReservaWizardController extends Controller
                 ->values();
 
 
-            $total =
-                $detalleServicios->sum('subtotal');
+            $subtotalGeneral = (float) $detalleServicios->sum('subtotal');
+
+
+            $convenioAplicado = session('reserva.convenio');
+
+
+            $resumen = $this->calcularResumen(
+                $subtotalGeneral,
+                $convenioAplicado
+            );
 
 
             return view(
@@ -844,7 +859,16 @@ class ReservaWizardController extends Controller
 
                     'detallesServicios' => $detalleServicios,
 
-                    'total' => $total,
+                    'convenio' => $convenioAplicado,
+
+                    'subtotalGeneral' => $resumen['subtotal'],
+
+                    'porcentajeDescuento' => $resumen['porcentaje_descuento'],
+
+                    'descuentoTotal' => $resumen['descuento'],
+
+                    'total' =>
+                    $resumen['total'],
                 ]
             );
         }
@@ -1320,6 +1344,46 @@ class ReservaWizardController extends Controller
                         );
                     });
 
+                $convenioSesion =
+                    session('reserva.convenio');
+
+                $convenio = null;
+
+                if ($convenioSesion) {
+
+                    /*
+                        * Volvemos a validar el convenio antes
+                        * de guardar definitivamente la reserva.
+                    */
+                    $convenio =
+                        $this->obtenerConvenioValido(
+                            $convenioSesion['codigo'],
+                            $datosCliente
+                        );
+                }
+
+
+                /*
+                    |--------------------------------------------------------------------------
+                    | Calcular subtotal, descuento y total
+                    |--------------------------------------------------------------------------
+                */
+
+                $resumen =
+                    $this->calcularResumen(
+                        $subtotalGeneral,
+                        $convenio
+                            ? [
+                                'porcentaje_descuento' =>
+                                (float)
+                                $convenio->porcentaje_descuento,
+                            ]
+                            : null
+                    );
+
+
+
+
                 /*
             |--------------------------------------------------------------------------
             | Fecha principal de la reserva
@@ -1336,73 +1400,59 @@ class ReservaWizardController extends Controller
             |--------------------------------------------------------------------------
             */
                 $reserva = Reserva::query()->create([
-                    'tipo_cliente_id' =>
-                    $datosCliente['tipo_cliente_id'],
+                    'tipo_cliente_id' => $datosCliente['tipo_cliente_id'],
 
-                    'nombres' =>
-                    $datosCliente['nombres'] ?? null,
+                    'nombres' => $datosCliente['nombres'] ?? null,
 
-                    'apellidos' =>
-                    $datosCliente['apellidos'] ?? null,
+                    'apellidos' => $datosCliente['apellidos'] ?? null,
 
-                    'rut_persona' =>
-                    $datosCliente['rut_persona'] ?? null,
+                    'rut_persona' => $datosCliente['rut_persona'] ?? null,
 
-                    'nombre_entidad' =>
-                    $datosCliente['nombre_entidad'] ?? null,
+                    'nombre_entidad' => $datosCliente['nombre_entidad'] ?? null,
 
-                    'rut_entidad' =>
-                    $datosCliente['rut_entidad'] ?? null,
+                    'rut_entidad' => $datosCliente['rut_entidad'] ?? null,
 
-                    'nombre_encargado' =>
-                    $datosCliente['nombre_encargado'] ?? null,
+                    'nombre_encargado' => $datosCliente['nombre_encargado'] ?? null,
 
-                    'rut_encargado' =>
-                    $datosCliente['rut_encargado'] ?? null,
+                    'rut_encargado' => $datosCliente['rut_encargado'] ?? null,
 
-                    'email' =>
-                    $datosCliente['email'],
+                    'email' => $datosCliente['email'],
 
-                    'telefono' =>
-                    $datosCliente['telefono'],
+                    'telefono' => $datosCliente['telefono'],
 
-                    'region_id' =>
-                    $datosCliente['region_id'] ?? null,
+                    'region_id' => $datosCliente['region_id'] ?? null,
 
-                    'comuna_id' =>
-                    $datosCliente['comuna_id'] ?? null,
+                    'comuna_id' => $datosCliente['comuna_id'] ?? null,
 
-                    'fecha' =>
-                    $fechaPrincipal,
+                    'fecha' => $fechaPrincipal,
 
-                    'cantidad_asistentes' =>
-                    $cantidadPersonas,
+                    'cantidad_asistentes' => $cantidadPersonas,
 
-                    'cantidad_alumnos' =>
-                    $datosReserva['cantidad_alumnos'] ?? null,
+                    'cantidad_alumnos' => $datosReserva['cantidad_alumnos'] ?? null,
 
-                    'cantidad_profesores' =>
-                    $datosReserva['cantidad_profesores'] ?? null,
+                    'cantidad_profesores' => $datosReserva['cantidad_profesores'] ?? null,
 
-                    'nivel_educacional' =>
-                    $datosReserva['nivel_educacional'] ?? null,
+                    'nivel_educacional' => $datosReserva['nivel_educacional'] ?? null,
 
-                    'curso' =>
-                    $datosReserva['curso'] ?? null,
+                    'curso' => $datosReserva['curso'] ?? null,
 
-                    'objetivo_visita' =>
-                    $datosReserva['objetivo_visita'] ?? null,
+                    'objetivo_visita' => $datosReserva['objetivo_visita'] ?? null,
 
-                    'subtotal' =>
-                    $subtotalGeneral,
+                    'convenio_id' => $convenio?->id,
 
-                    'descuento' => 0,
+                    'codigo_convenio' => $convenio?->codigo,
 
-                    'total' =>
-                    $subtotalGeneral,
+                    'nombre_convenio' => $convenio?->nombre,
 
-                    'estado' =>
-                    'PENDIENTE',
+                    'porcentaje_descuento' => $resumen['porcentaje_descuento'],
+
+                    'subtotal' => $resumen['subtotal'],
+
+                    'descuento' => $resumen['descuento'],
+
+                    'total' => $resumen['total'],
+
+                    'estado' => 'PENDIENTE',
                 ]);
 
                 /*
@@ -1513,6 +1563,7 @@ class ReservaWizardController extends Controller
             'datosReserva' => session('reserva.datos', []),
             'categoriasServicio' => $categoriasServicio,
             'tipoOperacion' => $tipoOperacion,
+            'convenioAplicado' => session('reserva.convenio'),
         ]);
     }
 
@@ -1880,5 +1931,245 @@ class ReservaWizardController extends Controller
                 'RECHAZADA',
             ])
             ->sum('reserva_servicios.cantidad_personas');
+    }
+
+    private function normalizarRutConvenio(?string $rut): string
+    {
+
+        return mb_strtoupper(
+            preg_replace(
+                '/[^0-9kK]/',
+                '',
+                (string) $rut
+            )
+        );
+    }
+
+    private function obtenerConvenioValido(string $codigo, array $datosCliente): Convenio
+    {
+
+        /*
+    |--------------------------------------------------------------------------
+    | El convenio solamente se puede utilizar
+    | si existe una entidad con RUT.
+    |--------------------------------------------------------------------------
+    */
+
+        $rutEntidad =
+            $datosCliente['rut_entidad'] ?? null;
+
+        if (! $rutEntidad) {
+
+            throw ValidationException::withMessages([
+                'codigo_convenio' =>
+                'Este cliente no posee un RUT de entidad para validar el convenio.',
+            ]);
+        }
+
+
+        $codigo =
+            mb_strtoupper(
+                trim($codigo)
+            );
+
+        $rutNormalizado =
+            $this->normalizarRutConvenio(
+                $rutEntidad
+            );
+
+
+        $convenio = Convenio::query()
+
+            ->where('codigo', $codigo)
+
+            ->where('activo', true)
+
+            ->whereDate(
+                'fecha_inicio',
+                '<=',
+                now()->toDateString()
+            )
+
+            ->where(function ($query) {
+
+                $query
+                    ->whereNull('fecha_termino')
+                    ->orWhereDate(
+                        'fecha_termino',
+                        '>=',
+                        now()->toDateString()
+                    );
+            })
+
+            /*
+         * Seguridad adicional:
+         * el RUT debe estar autorizado.
+         */
+            ->whereHas(
+                'entidades',
+                function ($query) use (
+                    $rutNormalizado
+                ) {
+
+                    $query
+                        ->where(
+                            'rut_normalizado',
+                            $rutNormalizado
+                        )
+                        ->where(
+                            'activo',
+                            true
+                        );
+                }
+            )
+
+            ->first();
+
+
+        if (! $convenio) {
+
+            throw ValidationException::withMessages([
+                'codigo_convenio' =>
+                'El código no es válido, está vencido o no corresponde al RUT de esta entidad.',
+            ]);
+        }
+
+
+        return $convenio;
+    }
+
+    public function validarConvenio(Request $request)
+    {
+        $datos = $request->validate([
+            'codigo_convenio' => [
+                'required',
+                'string',
+                'max:50',
+            ],
+        ]);
+
+
+        $datosCliente =
+            session('reserva.cliente', []);
+
+
+        if (empty($datosCliente)) {
+
+            return response()->json([
+                'ok' => false,
+                'mensaje' =>
+                'No se encontraron los datos del cliente.',
+            ], 422);
+        }
+
+
+        try {
+
+            $convenio =
+                $this->obtenerConvenioValido(
+                    $datos['codigo_convenio'],
+                    $datosCliente
+                );
+
+
+            session([
+                'reserva.convenio' => [
+
+                    'id' =>
+                    $convenio->id,
+
+                    'codigo' =>
+                    $convenio->codigo,
+
+                    'nombre' =>
+                    $convenio->nombre,
+
+                    'porcentaje_descuento' =>
+                    (float)
+                    $convenio->porcentaje_descuento,
+                ],
+            ]);
+
+
+            return response()->json([
+                'ok' => true,
+
+                'convenio' => [
+                    'id' =>
+                    $convenio->id,
+
+                    'codigo' =>
+                    $convenio->codigo,
+
+                    'nombre' =>
+                    $convenio->nombre,
+
+                    'porcentaje_descuento' =>
+                    (float)
+                    $convenio->porcentaje_descuento,
+                ],
+            ]);
+        } catch (ValidationException $exception) {
+
+            session()->forget(
+                'reserva.convenio'
+            );
+
+            return response()->json([
+                'ok' => false,
+
+                'mensaje' =>
+                collect(
+                    $exception->errors()
+                )->flatten()->first(),
+            ], 422);
+        }
+    }
+
+    private function calcularResumen(
+        float $subtotal,
+        ?array $convenio
+    ): array {
+
+        $porcentaje = 0;
+
+
+        if ($convenio) {
+
+            $porcentaje =
+                (float) (
+                    $convenio['porcentaje_descuento']
+                    ?? 0
+                );
+        }
+
+
+        $descuento =
+            round(
+                $subtotal
+                    * ($porcentaje / 100)
+            );
+
+
+        $total =
+            max(
+                $subtotal - $descuento,
+                0
+            );
+
+
+        return [
+            'subtotal' =>
+            $subtotal,
+
+            'porcentaje_descuento' =>
+            $porcentaje,
+
+            'descuento' =>
+            $descuento,
+
+            'total' =>
+            $total,
+        ];
     }
 }

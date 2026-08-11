@@ -31,9 +31,13 @@ return new class extends Migration
                     ->constrained('horarios_disponibles')
                     ->restrictOnDelete();
 
-                $table->date('fecha')->nullable();
+                $table->unsignedInteger('cantidad_personas')
+                    ->default(1);
 
-                $table->unsignedInteger('cantidad_personas');
+                $table->unsignedTinyInteger('cantidad_cursos')
+                    ->default(0);
+
+                $table->date('fecha')->nullable();
 
                 $table
                     ->decimal('precio', 12, 2)

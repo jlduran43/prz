@@ -6,16 +6,14 @@
                 <span class="text-danger">*</span>
             </label>
 
-            <input
-                type="text"
-                id="codigo"
-                name="codigo"
-                class="form-control @error('codigo') is-invalid @enderror"
-                value="{{ old('codigo', $region->codigo ?? '') }}"
-                maxlength="10"
-                placeholder="Ejemplo: 13"
-                required
-            >
+            <input  type="text"
+                    id="codigo"
+                    name="codigo"
+                    class="form-control @error('codigo') is-invalid @enderror"
+                    value="{{ old('codigo', $region->codigo ?? '') }}"
+                    maxlength="10"
+                    placeholder="Ejemplo: 13"
+                    required>
 
             @error('codigo')
                 <span class="invalid-feedback">
@@ -32,16 +30,14 @@
                 <span class="text-danger">*</span>
             </label>
 
-            <input
-                type="text"
-                id="nombre"
-                name="nombre"
-                class="form-control @error('nombre') is-invalid @enderror"
-                value="{{ old('nombre', $region->nombre ?? '') }}"
-                maxlength="150"
-                placeholder="Ejemplo: Región Metropolitana de Santiago"
-                required
-            >
+            <input  type="text"
+                    id="nombre"
+                    name="nombre"
+                    class="form-control @error('nombre') is-invalid @enderror"
+                    value="{{ old('nombre', $region->nombre ?? '') }}"
+                    maxlength="150"
+                    placeholder="Ejemplo: Región Metropolitana de Santiago"
+                    required>
 
             @error('nombre')
                 <span class="invalid-feedback">
@@ -54,14 +50,12 @@
 
 <div class="form-group">
     <div class="custom-control custom-switch">
-        <input
-            type="checkbox"
-            class="custom-control-input"
-            id="activo"
-            name="activo"
-            value="1"
-            @checked(old('activo', $region->activo ?? true))
-        >
+        <input  type="checkbox"
+                class="custom-control-input"
+                id="activo"
+                name="activo"
+                value="1"
+                @checked(old('activo', $region->activo ?? true))>
 
         <label class="custom-control-label" for="activo">
             Región activa

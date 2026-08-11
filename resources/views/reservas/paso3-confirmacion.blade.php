@@ -512,27 +512,14 @@
         </div>
 
         {{-- Resumen total --}}
-        @php
-            /*
-             * Por ahora todavía no tenemos implementado
-             * el módulo de convenios y descuentos.
-             */
-            $descuentoTotal = 0;
-
-            /*
-             * $total ya viene calculado desde el Controller
-             * como la suma de los subtotales de los servicios.
-             */
-            $subtotalGeneral = $total;
-
-            $totalFinal = $subtotalGeneral - $descuentoTotal;
-        @endphp
-
         <div class="row justify-content-end">
+
             <div class="col-lg-5">
+
                 <div class="card card-outline card-warning">
 
                     <div class="card-header">
+
                         <h3 class="card-title">
 
                             <i class="fas fa-receipt mr-2"></i>
@@ -544,13 +531,20 @@
                             @endif
 
                         </h3>
+
                     </div>
 
 
                     <div class="card-body">
 
-                        <div class="d-flex justify-content-between
-                           align-items-center mb-2">
+                        {{-- Subtotal --}}
+                        <div
+                            class="
+                        d-flex
+                        justify-content-between
+                        align-items-center
+                        mb-2
+                    ">
 
                             <span>
                                 Subtotal
@@ -563,17 +557,67 @@
                         </div>
 
 
-                        @if ($descuentoTotal > 0)
+                        {{-- Convenio aplicado --}}
+                        @if ($convenio)
                             <div
-                                class="d-flex justify-content-between
-                               align-items-center mb-3">
+                                class="
+                            alert
+                            alert-success
+                            py-2
+                            mt-3
+                        ">
+
+                                <i
+                                    class="
+                                fas
+                                fa-percent
+                                mr-1
+                            "></i>
+
+                                <strong>
+                                    {{ $convenio['nombre'] }}
+                                </strong>
+
+                                <div class="mt-1">
+
+                                    Código:
+
+                                    <strong>
+                                        {{ $convenio['codigo'] }}
+                                    </strong>
+
+                                </div>
+
+                                <div>
+
+                                    Descuento:
+
+                                    <strong>
+                                        {{ number_format($porcentajeDescuento, 0) }}%
+                                    </strong>
+
+                                </div>
+
+                            </div>
+
+
+                            {{-- Monto descuento --}}
+                            <div
+                                class="
+                            d-flex
+                            justify-content-between
+                            align-items-center
+                            mb-3
+                        ">
 
                                 <span>
                                     Descuento
                                 </span>
 
                                 <strong class="text-success">
+
                                     -${{ number_format($descuentoTotal, 0, ',', '.') }}
+
                                 </strong>
 
                             </div>
@@ -583,20 +627,30 @@
                         <hr>
 
 
+                        {{-- Total --}}
                         <div
-                            class="d-flex justify-content-between
-                           align-items-center total-reserva">
+                            class="
+                        d-flex
+                        justify-content-between
+                        align-items-center
+                        total-reserva
+                    ">
 
                             <span>
+
                                 @if ($esCotizacion)
                                     Total estimado
                                 @else
                                     Total
                                 @endif
+
                             </span>
 
+
                             <strong>
-                                ${{ number_format($totalFinal, 0, ',', '.') }}
+
+                                ${{ number_format($total, 0, ',', '.') }}
+
                             </strong>
 
                         </div>
@@ -604,7 +658,9 @@
                     </div>
 
                 </div>
+
             </div>
+
         </div>
 
         {{-- Botones --}}
