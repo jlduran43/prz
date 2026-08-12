@@ -40,18 +40,29 @@
         <div class="card-header">
             <form method="GET" action="{{ route('tipos-cliente.index') }}">
                 <div class="row align-items-center">
-                    <div class="col-md-8">
-                        <input type="text" name="buscar" class="form-control" value="{{ $buscar }}"
-                            placeholder="Buscar por código o nombre...">
+                    <div class="col-md-10">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                            </div>
+                            <input  type="text"
+                                    name="buscar"
+                                    class="form-control"
+                                    value="{{ $buscar }}"
+                                    placeholder="Buscar por código o nombre...">
+                        </div>
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="col-md-2">
                         <div class="d-flex">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-search"></i>
                                 Buscar
                             </button>
                             <a href="{{ route('tipos-cliente.index') }}" class="btn btn-secondary ml-1">
+                                <i class="fas fa-eraser mr-1"></i>
                                 Limpiar
                             </a>
                         </div>

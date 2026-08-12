@@ -28,6 +28,7 @@
                 </button>
 
                 <a href="{{ route('tipos-cliente.index') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left mr-1"></i>
                     Volver
                 </a>
             </div>

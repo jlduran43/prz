@@ -311,14 +311,42 @@
                             {{-- ASISTENTES --}}
                             {{-- ============================================ --}}
 
-                            <dt class="col-sm-6">
-                                Cantidad de asistentes
-                            </dt>
+                            <div class="col-12">
+                                <div class="row mt-3">
 
-                            <dd class="col-sm-6">
-                                {{ $reserva['cantidad_asistentes'] ?? 0 }}
-                            </dd>
+                                    <div class="col-md-6">
+                                        <div class="border rounded p-3 h-100">
+                                            <div class="text-muted small mb-1">
+                                                <i class="fas fa-users mr-1"></i>
+                                                Cantidad de asistentes
+                                            </div>
 
+                                            <div class="h5 mb-0 font-weight-bold">
+                                                {{ $calculo['cantidad_asistentes'] }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    @if ($calculo['entradas_liberadas'] > 0)
+                                        <div class="col-md-6 mt-3 mt-md-0">
+                                            <div class="border rounded p-3 h-100">
+                                                <div class="text-muted small mb-1">
+                                                    <i class="fas fa-ticket-alt mr-1"></i>
+                                                    Entradas liberadas
+                                                </div>
+
+                                                <div>
+                                                    <span class="badge badge-success p-2">
+                                                        {{ $calculo['entradas_liberadas'] }}
+                                                        entrada{{ $calculo['entradas_liberadas'] > 1 ? 's' : '' }}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+
+                                </div>
+                            </div>
 
                             {{-- ============================================ --}}
                             {{-- ESTABLECIMIENTO EDUCACIONAL --}}
@@ -403,7 +431,7 @@
         </div>
 
         {{-- Servicios seleccionados --}}
-        <div class="card card-outline card-success mt-4">
+        <div class="card card-outline card-success">
             <div class="card-header">
                 <h3 class="card-title">
                     <i class="fas fa-concierge-bell mr-2"></i>
@@ -411,117 +439,124 @@
                 </h3>
             </div>
 
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="thead-light">
+            <div class="card-body table-responsive p-0">
+                <table class="table table-hover">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Servicio</th>
+
+                            @if ($tipoOperacion === 'RESERVA')
+                                <th>Horario</th>
+                            @endif
+
+                            <th>Tipo de cobro</th>
+
+                            <th class="text-right">
+                                Precio
+                            </th>
+
+                            <th class="text-right">
+                                Subtotal
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @foreach ($calculo['servicios'] as $detalle)
                             <tr>
-                                <th>
-                                    Servicio
-                                </th>
 
-                                <th>
-                                    Horario
-                                </th>
+                                {{-- SERVICIO --}}
+                                <td>
+                                    <strong>
+                                        {{ $detalle['servicio']->nombre }}
+                                    </strong>
 
-                                <th>
-                                    Tipo de cobro
-                                </th>
+                                    @if ($detalle['servicio']->tipo_cobro === 'POR_PERSONA' && $detalle['entradas_liberadas'] > 0)
+                                        <div class="text-muted small mt-1">
 
-                                <th class="text-right">
-                                    Precio
-                                </th>
+                                            ${{ number_format($detalle['precio'], 0, ',', '.') }}
 
-                                <th class="text-right">
-                                    Subtotal
-                                </th>
-                            </tr>
-                        </thead>
+                                            ×
 
-                        <tbody>
-                            @foreach ($detallesServicios as $detalle)
-                                <tr>
-                                    <td>
-                                        <div class="font-weight-bold">
-                                            {{ $detalle['servicio']->nombre }}
+                                            {{ $detalle['personas_pagadas'] }}
+                                            personas
+
+                                            ·
+
+                                            {{ $detalle['entradas_liberadas'] }}
+
+                                            entrada{{ $detalle['entradas_liberadas'] > 1 ? 's' : '' }}
+
+                                            liberada{{ $detalle['entradas_liberadas'] > 1 ? 's' : '' }}
+
                                         </div>
-                                    </td>
+                                    @endif
+                                </td>
 
+
+                                {{-- HORARIO --}}
+                                @if ($esReserva)
                                     <td>
+                                        @if (!empty($detalle['horario']))
+                                            <span class="badge badge-info p-2">
 
-                                        @if ($esReserva)
-                                            @if (!empty($detalle['horario']))
-                                                <span class="badge badge-info p-2">
+                                                <i class="far fa-clock mr-1"></i>
 
-                                                    <i class="far fa-clock mr-1"></i>
+                                                {{ substr($detalle['horario']->hora_inicio, 0, 5) }}
 
-                                                    {{ substr($detalle['horario']->hora_inicio, 0, 5) }}
+                                                -
 
-                                                    -
+                                                {{ substr($detalle['horario']->hora_termino, 0, 5) }}
 
-                                                    {{ substr($detalle['horario']->hora_termino, 0, 5) }}
-
-                                                </span>
-                                            @else
-                                                <span class="text-danger">
-                                                    Horario no disponible
-                                                </span>
-                                            @endif
+                                            </span>
                                         @else
                                             <span class="text-muted">
-                                                No aplica
+                                                -
                                             </span>
                                         @endif
-
                                     </td>
+                                @endif
 
-                                    <td>
-                                        @switch($detalle['tipo_cobro'])
-                                            @case('POR_PERSONA')
-                                                Por persona
-                                            @break
 
-                                            @case('POR_GRUPO')
-                                                Por grupo
-                                            @break
+                                {{-- TIPO DE COBRO --}}
+                                <td>
+                                    @if ($detalle['servicio']->tipo_cobro === 'POR_PERSONA')
+                                        Por persona
+                                    @else
+                                        Por grupo
+                                    @endif
+                                </td>
 
-                                            @case('FIJO')
-                                                Precio fijo
-                                            @break
 
-                                            @default
-                                                {{ $detalle['tipo_cobro'] }}
-                                        @endswitch
-                                    </td>
+                                {{-- PRECIO --}}
+                                <td class="text-right">
+                                    ${{ number_format($detalle['precio'], 0, ',', '.') }}
+                                </td>
 
-                                    <td class="text-right">
-                                        $
-                                        {{ number_format($detalle['precio_unitario'], 0, ',', '.') }}
-                                    </td>
 
-                                    <td class="text-right font-weight-bold">
-                                        $
-                                        {{ number_format($detalle['subtotal'], 0, ',', '.') }}
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                                {{-- SUBTOTAL --}}
+                                <td class="text-right">
+                                    <strong>
+                                        ${{ number_format($detalle['subtotal'], 0, ',', '.') }}
+                                    </strong>
+                                </td>
+
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
 
         {{-- Resumen total --}}
+        {{-- Resumen total --}}
         <div class="row justify-content-end">
-
             <div class="col-lg-5">
 
                 <div class="card card-outline card-warning">
 
                     <div class="card-header">
-
                         <h3 class="card-title">
-
                             <i class="fas fa-receipt mr-2"></i>
 
                             @if ($esCotizacion)
@@ -529,129 +564,106 @@
                             @else
                                 Resumen de pago
                             @endif
-
                         </h3>
-
                     </div>
-
 
                     <div class="card-body">
 
                         {{-- Subtotal --}}
-                        <div
-                            class="
-                        d-flex
-                        justify-content-between
-                        align-items-center
-                        mb-2
-                    ">
-
-                            <span>
+                        <div class="d-flex justify-content-between align-items-center pb-3">
+                            <span class="text-muted">
                                 Subtotal
                             </span>
 
                             <strong>
                                 ${{ number_format($subtotalGeneral, 0, ',', '.') }}
                             </strong>
-
                         </div>
 
 
-                        {{-- Convenio aplicado --}}
-                        @if ($convenio)
-                            <div
-                                class="
-                            alert
-                            alert-success
-                            py-2
-                            mt-3
-                        ">
-
-                                <i
-                                    class="
-                                fas
-                                fa-percent
-                                mr-1
-                            "></i>
-
-                                <strong>
-                                    {{ $convenio['nombre'] }}
-                                </strong>
-
-                                <div class="mt-1">
-
-                                    Código:
-
-                                    <strong>
-                                        {{ $convenio['codigo'] }}
-                                    </strong>
-
-                                </div>
+                        {{-- Entradas liberadas --}}
+                        @if ($entradasLiberadas > 0)
+                            <div class="d-flex justify-content-between align-items-center py-3 border-top">
 
                                 <div>
-
-                                    Descuento:
-
-                                    <strong>
-                                        {{ number_format($porcentajeDescuento, 0) }}%
-                                    </strong>
-
+                                    <i class="fas fa-ticket-alt text-success mr-1"></i>
+                                    <span>
+                                        Entradas liberadas
+                                    </span>
                                 </div>
 
-                            </div>
-
-
-                            {{-- Monto descuento --}}
-                            <div
-                                class="
-                            d-flex
-                            justify-content-between
-                            align-items-center
-                            mb-3
-                        ">
-
-                                <span>
-                                    Descuento
+                                <span class="badge badge-success p-2">
+                                    {{ $entradasLiberadas }}
+                                    entrada{{ $entradasLiberadas > 1 ? 's' : '' }}
+                                    por servicio
                                 </span>
-
-                                <strong class="text-success">
-
-                                    -${{ number_format($descuentoTotal, 0, ',', '.') }}
-
-                                </strong>
 
                             </div>
                         @endif
 
 
-                        <hr>
+                        {{-- Convenio --}}
+                        @if ($convenio)
+                            <div class="border-top pt-3">
+
+                                <div class="alert alert-success mb-3">
+                                    <div class="font-weight-bold">
+                                        <i class="fas fa-percent mr-1"></i>
+                                        Convenio aplicado
+                                    </div>
+
+                                    <div class="mt-2">
+                                        {{ data_get($convenio, 'nombre') }}
+                                    </div>
+
+                                    <small>
+                                        Código:
+                                        <strong>
+                                            {{ data_get($convenio, 'codigo') }}
+                                        </strong>
+
+                                        · Descuento:
+                                        <strong>
+                                            {{ number_format($porcentajeDescuento, 0) }}%
+                                        </strong>
+                                    </small>
+                                </div>
+
+
+                                <div class="d-flex justify-content-between align-items-center pb-3">
+
+                                    <span>
+                                        Descuento
+                                    </span>
+
+                                    <strong class="text-success">
+                                        -${{ number_format($descuentoTotal, 0, ',', '.') }}
+                                    </strong>
+
+                                </div>
+
+                            </div>
+                        @endif
 
 
                         {{-- Total --}}
-                        <div
-                            class="
-                        d-flex
-                        justify-content-between
-                        align-items-center
-                        total-reserva
-                    ">
+                        <div class="border-top pt-3">
 
-                            <span>
+                            <div class="d-flex justify-content-between align-items-center">
 
-                                @if ($esCotizacion)
-                                    Total estimado
-                                @else
-                                    Total
-                                @endif
+                                <span class="h5 mb-0">
+                                    @if ($esCotizacion)
+                                        Total estimado
+                                    @else
+                                        Total
+                                    @endif
+                                </span>
 
-                            </span>
+                                <strong class="h4 mb-0 text-primary">
+                                    ${{ number_format($total, 0, ',', '.') }}
+                                </strong>
 
-
-                            <strong>
-
-                                ${{ number_format($total, 0, ',', '.') }}
-
-                            </strong>
+                            </div>
 
                         </div>
 
@@ -660,7 +672,6 @@
                 </div>
 
             </div>
-
         </div>
 
         {{-- Botones --}}

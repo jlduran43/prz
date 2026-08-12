@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\CategoriaServicio;
+use App\Models\Comuna;
 use App\Models\ConfiguracionReserva;
 use App\Models\Convenio;
 use App\Models\HorarioDisponible;
@@ -636,381 +637,212 @@ class ReservaWizardController extends Controller
 
     public function confirmacion()
     {
-        /*
-    |--------------------------------------------------------------------------
-    | 1. Validar sesión
-    |--------------------------------------------------------------------------
-    */
-
+        $datosCliente = session('reserva.cliente', []);
+        $datosReserva = session('reserva.datos', []);
         $tipoOperacion = session('reserva.tipo_operacion');
-        $datosCliente = session('reserva.cliente');
-        $datosReserva = session('reserva.datos');
 
-        if (! $tipoOperacion) {
+        if (empty($datosCliente) || empty($datosReserva)) {
             return redirect()
-                ->route('reservas.operacion');
+                ->route('reservas.cliente')
+                ->with('error', 'Debes completar los pasos anteriores.');
         }
-
-        if (! $datosCliente) {
-            return redirect()
-                ->route('reservas.cliente');
-        }
-
-        if (! $datosReserva) {
-            return redirect()
-                ->route('reservas.datos');
-        }
-
-        $esCotizacion =
-            $tipoOperacion === 'COTIZACION';
-
-        $esReserva =
-            $tipoOperacion === 'RESERVA';
-
-
-        /*
-|--------------------------------------------------------------------------
-| Datos descriptivos del cliente
-|--------------------------------------------------------------------------
-*/
-
-        if (!empty($datosCliente['tipo_cliente_id'])) {
-
-            $tipoCliente = DB::table('tipos_cliente')
-                ->where('id', $datosCliente['tipo_cliente_id'])
-                ->first();
-        }
-
-        if (!empty($datosCliente['region_id'])) {
-
-            $regionNombre = DB::table('regiones')
-                ->where('id', $datosCliente['region_id'])
-                ->value('nombre');
-        }
-
-        if (!empty($datosCliente['comuna_id'])) {
-
-            $comunaNombre = DB::table('comunas')
-                ->where('id', $datosCliente['comuna_id'])
-                ->value('nombre');
-        }
-
-        if (! $tipoOperacion) {
-            return redirect()
-                ->route('reservas.operacion');
-        }
-
-        if (! $datosCliente) {
-            return redirect()
-                ->route('reservas.cliente');
-        }
-
-        if (! $datosReserva) {
-            return redirect()
-                ->route('reservas.datos');
-        }
-
-        $esCotizacion =
-            $tipoOperacion === 'COTIZACION';
-
-        $esReserva =
-            $tipoOperacion === 'RESERVA';
-
 
         /*
     |--------------------------------------------------------------------------
-    | 2. Obtener servicios seleccionados
+    | TIPO DE OPERACIÓN
     |--------------------------------------------------------------------------
     */
-
-        $selecciones =
-            $datosReserva['servicios'] ?? [];
-
-        $idsServicios =
-            collect($selecciones)
-            ->pluck('servicio_id')
-            ->filter()
-            ->values();
-
-
-        $servicios =
-            ServicioExperiencia::query()
-            ->with('categoria')
-            ->whereIn('id', $idsServicios)
-            ->get()
-            ->keyBy('id');
-
+        $esCotizacion = $tipoOperacion === 'COTIZACION';
+        $esReserva = $tipoOperacion === 'RESERVA';
 
         /*
     |--------------------------------------------------------------------------
-    | 3. COTIZACIÓN
+    | ALIAS QUE YA UTILIZA EL BLADE
+    |--------------------------------------------------------------------------
+    */
+        $cliente = $datosCliente;
+        $reserva = $datosReserva;
+
+        /*
+    |--------------------------------------------------------------------------
+    | TIPO DE CLIENTE
+    |--------------------------------------------------------------------------
+    */
+        $codigoTipoCliente =
+            $cliente['codigo_tipo_cliente']
+            ?? $cliente['tipo_cliente_codigo']
+            ?? null;
+
+        $tipoCliente = null;
+
+        if ($codigoTipoCliente) {
+            $tipoCliente = TipoCliente::where(
+                'codigo',
+                $codigoTipoCliente
+            )->first();
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | REGIÓN Y COMUNA
+    |--------------------------------------------------------------------------
+    */
+        $regionNombre = '-';
+        $comunaNombre = '-';
+
+        if (!empty($cliente['region_id'])) {
+            $region = Region::find($cliente['region_id']);
+
+            if ($region) {
+                $regionNombre = $region->nombre;
+            }
+        }
+
+        if (!empty($cliente['comuna_id'])) {
+            $comuna = Comuna::find($cliente['comuna_id']);
+
+            if ($comuna) {
+                $comunaNombre = $comuna->nombre;
+            }
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | CÁLCULO DE SERVICIOS / ENTRADAS LIBERADAS
+    |--------------------------------------------------------------------------
+    */
+        $calculo = $this->calcularTotalesReserva(
+            $datosCliente,
+            $datosReserva
+        );
+
+        $detallesServicios = $calculo['servicios'];
+
+        $subtotalGeneral = $calculo['subtotal'];
+
+        $entradasLiberadas = $calculo['entradas_liberadas'];
+
+        $personasPagadas = $calculo['personas_pagadas'];
+
+        /*
+    |--------------------------------------------------------------------------
+    | CONVENIO
     |--------------------------------------------------------------------------
     |
-    | No existen fecha ni horario.
-    | Solamente preparamos servicios y precios.
-    |--------------------------------------------------------------------------
+    | El convenio solamente corresponde a establecimientos educacionales.
+    |
     */
+        $esEstablecimiento =
+            $codigoTipoCliente === 'ESTABLECIMIENTO_EDUCACIONAL';
 
-        if ($esCotizacion) {
+        $convenio = null;
+        $porcentajeDescuento = 0;
+        $descuentoTotal = 0;
 
-            $cantidadPersonas =
-                (int) ($datosReserva['cantidad_asistentes'] ?? 0);
+        if ($esEstablecimiento) {
 
-            $detalleServicios =
-                collect($selecciones)
-                ->map(function ($seleccion) use (
-                    $servicios,
-                    $cantidadPersonas
-                ) {
+            /*
+         * Primero buscamos el convenio que ya haya quedado
+         * guardado durante el paso anterior.
+         */
+            $convenio =
+                session('reserva.convenio')
+                ?? ($datosReserva['convenio'] ?? null);
 
-                    $servicioId =
-                        $seleccion['servicio_id'];
+            if ($convenio) {
 
-                    $servicio =
-                        $servicios->get($servicioId);
+                /*
+             * Compatible tanto si convenio es un modelo
+             * como si es un array.
+             */
+                $porcentajeDescuento = (float) data_get(
+                    $convenio,
+                    'porcentaje_descuento',
+                    data_get(
+                        $convenio,
+                        'porcentaje',
+                        0
+                    )
+                );
 
-                    if (! $servicio) {
-                        return null;
-                    }
-
-
-                    $precio =
-                        (float) $servicio->precio;
-
-                    $tipoCobro =
-                        $servicio->tipo_cobro;
-
-
-                    $subtotal =
-                        $tipoCobro === 'POR_PERSONA'
-                        ? $precio * $cantidadPersonas
-                        : $precio;
-
-
-                    return [
-
-                        'servicio_id' =>
-                        $servicio->id,
-
-                        'servicio' =>
-                        $servicio,
-
-                        'precio_unitario' =>
-                        $precio,
-
-                        'tipo_cobro' =>
-                        $tipoCobro,
-
-                        'cantidad_personas' =>
-                        $cantidadPersonas,
-
-                        'subtotal' =>
-                        $subtotal,
-
-                        /*
-                         * En cotización no existen:
-                         *
-                         * horario_id
-                         * horario
-                         * fecha
-                         */
-                    ];
-                })
-                ->filter()
-                ->values();
-
-
-            $subtotalGeneral = (float) $detalleServicios->sum('subtotal');
-
-
-            $convenioAplicado = session('reserva.convenio');
-
-
-            $resumen = $this->calcularResumen(
-                $subtotalGeneral,
-                $convenioAplicado
-            );
-
-
-            return view(
-                'reservas.paso3-confirmacion',
-                [
-                    'paso' => 3,
-
-                    'tipoOperacion' => $tipoOperacion,
-
-                    'esCotizacion' => true,
-
-                    'esReserva' => false,
-
-                    'datosCliente' => $datosCliente,
-
-                    'cliente' => $datosCliente,
-
-                    'datosReserva' => $datosReserva,
-
-                    'reserva' => $datosReserva,
-
-                    'tipoCliente' => $tipoCliente,
-
-                    'regionNombre' => $regionNombre,
-
-                    'comunaNombre' => $comunaNombre,
-
-                    'detallesServicios' => $detalleServicios,
-
-                    'convenio' => $convenioAplicado,
-
-                    'subtotalGeneral' => $resumen['subtotal'],
-
-                    'porcentajeDescuento' => $resumen['porcentaje_descuento'],
-
-                    'descuentoTotal' => $resumen['descuento'],
-
-                    'total' =>
-                    $resumen['total'],
-                ]
-            );
+                $descuentoTotal = round(
+                    $subtotalGeneral
+                        * ($porcentajeDescuento / 100)
+                );
+            }
         }
-
 
         /*
     |--------------------------------------------------------------------------
-    | 4. RESERVA
-    |--------------------------------------------------------------------------
-    |
-    | Aquí sí necesitamos fecha y horario.
+    | TOTAL FINAL
     |--------------------------------------------------------------------------
     */
+        $total = max(
+            0,
+            $subtotalGeneral - $descuentoTotal
+        );
 
-        $idsHorarios =
-            collect($selecciones)
-            ->pluck('horario_id')
-            ->filter()
-            ->values();
+        $totalGeneral = $total;
 
+        /*
+    |--------------------------------------------------------------------------
+    | GUARDAR CÁLCULO
+    |--------------------------------------------------------------------------
+    */
+        session([
+            'reserva.calculo' => [
+                ...$calculo,
 
-        $horarios =
-            HorarioDisponible::query()
-            ->whereIn('id', $idsHorarios)
-            ->get()
-            ->keyBy('id');
+                'subtotal' => $subtotalGeneral,
 
+                'porcentaje_descuento' =>
+                $porcentajeDescuento,
 
-        $cantidadPersonas =
-            (int) ($datosReserva['cantidad_asistentes'] ?? 0);
+                'descuento' =>
+                $descuentoTotal,
 
+                'total' =>
+                $total,
+            ],
+        ]);
 
-        $detalleServicios =
-            collect($selecciones)
-            ->map(function ($seleccion) use (
-                $servicios,
-                $horarios,
-                $cantidadPersonas
-            ) {
-
-                $servicioId =
-                    $seleccion['servicio_id'];
-
-                $horarioId =
-                    $seleccion['horario_id'];
-
-                $fecha =
-                    $seleccion['fecha'];
-
-
-                $servicio =
-                    $servicios->get($servicioId);
-
-                $horario =
-                    $horarios->get($horarioId);
-
-
-                if (! $servicio || ! $horario) {
-                    return null;
-                }
-
-
-                $precio =
-                    (float) $servicio->precio;
-
-                $tipoCobro =
-                    $servicio->tipo_cobro;
-
-
-                $subtotal =
-                    $tipoCobro === 'POR_PERSONA'
-                    ? $precio * $cantidadPersonas
-                    : $precio;
-
-
-                return [
-
-                    'servicio_id' =>
-                    $servicio->id,
-
-                    'servicio' =>
-                    $servicio,
-
-                    'horario_id' =>
-                    $horario->id,
-
-                    'horario' =>
-                    $horario,
-
-                    'fecha' =>
-                    $fecha,
-
-                    'precio_unitario' =>
-                    $precio,
-
-                    'tipo_cobro' =>
-                    $tipoCobro,
-
-                    'cantidad_personas' =>
-                    $cantidadPersonas,
-
-                    'subtotal' =>
-                    $subtotal,
-                ];
-            })
-            ->filter()
-            ->values();
-
-
-        $total =
-            $detalleServicios->sum('subtotal');
-
-
+        /*
+    |--------------------------------------------------------------------------
+    | VISTA
+    |--------------------------------------------------------------------------
+    */
         return view(
             'reservas.paso3-confirmacion',
-            [
-                'paso' => 3,
+            compact(
+                'datosCliente',
+                'datosReserva',
 
-                'tipoOperacion' => $tipoOperacion,
+                'cliente',
+                'reserva',
 
-                'esCotizacion' => false,
+                'tipoOperacion',
+                'esCotizacion',
+                'esReserva',
 
-                'esReserva' => true,
+                'tipoCliente',
+                'regionNombre',
+                'comunaNombre',
 
-                'datosCliente' => $datosCliente,
+                'calculo',
+                'detallesServicios',
 
-                'cliente' => $datosCliente,
+                'subtotalGeneral',
+                'totalGeneral',
 
-                'datosReserva' => $datosReserva,
+                'entradasLiberadas',
+                'personasPagadas',
 
-                'reserva' => $datosReserva,
+                'convenio',
+                'porcentajeDescuento',
+                'descuentoTotal',
 
-                'tipoCliente' => $tipoCliente,
-
-                'regionNombre' => $regionNombre,
-
-                'comunaNombre' => $comunaNombre,
-
-                'detallesServicios' => $detalleServicios,
-
-                'total' => $total,
-            ]
+                'total'
+            )
         );
     }
 
@@ -2170,6 +2002,142 @@ class ReservaWizardController extends Controller
 
             'total' =>
             $total,
+        ];
+    }
+
+    private function calcularTotalesReserva(
+        array $datosCliente,
+        array $datosReserva
+    ): array {
+        $codigoTipoCliente =
+            $datosCliente['codigo_tipo_cliente']
+            ?? $datosCliente['tipo_cliente_codigo']
+            ?? null;
+
+        $cantidadAsistentes = (int) (
+            $datosReserva['cantidad_asistentes']
+            ?? $datosReserva['cantidad_personas']
+            ?? 0
+        );
+
+        /*
+    |--------------------------------------------------------------------------
+    | REGLA DE ENTRADAS LIBERADAS
+    |--------------------------------------------------------------------------
+    |
+    | Persona natural:
+    | - No tiene entrada liberada.
+    |
+    | Otros tipos:
+    | - Desde 11 asistentes: 1 entrada liberada.
+    |
+    */
+        $esPersonaNatural = $codigoTipoCliente === 'PERSONA';
+
+        $esEstablecimiento = $codigoTipoCliente === 'ESTABLECIMIENTO_EDUCACIONAL';
+
+        /*
+            |--------------------------------------------------------------------------
+            | REGLA DE ENTRADAS LIBERADAS
+            |--------------------------------------------------------------------------
+            |
+            | Persona natural:
+            |   Nunca tiene entradas liberadas.
+            |
+            | Cualquier otro tipo de cliente:
+            |   Desde 11 asistentes -> 1 entrada liberada.
+            |
+            | Establecimiento educacional:
+            |   Desde 26 asistentes -> 2 entradas liberadas.
+            |
+        */
+
+        $entradasLiberadas = 0;
+
+        if (!$esPersonaNatural && $cantidadAsistentes >= 11) {
+            $entradasLiberadas = 1;
+        }
+
+        if ($esEstablecimiento && $cantidadAsistentes >= 26) {
+            $entradasLiberadas = 2;
+        }
+
+        $personasPagadas = max(
+            0,
+            $cantidadAsistentes - $entradasLiberadas
+        );
+
+        $subtotalGeneral = 0;
+
+        $detallesServicios = [];
+
+        foreach ($datosReserva['servicios'] ?? [] as $item) {
+
+            $servicioId =
+                $item['servicio_id']
+                ?? $item['servicio_experiencia_id']
+                ?? null;
+
+            if (!$servicioId) {
+                continue;
+            }
+
+            $servicio = \App\Models\ServicioExperiencia::find($servicioId);
+
+            if (!$servicio) {
+                continue;
+            }
+
+            $precio = (float) $servicio->precio;
+
+            /*
+        |--------------------------------------------------------------------------
+        | CALCULAR SUBTOTAL
+        |--------------------------------------------------------------------------
+        */
+            if ($servicio->tipo_cobro === 'POR_PERSONA') {
+
+                $subtotalServicio =
+                    $precio * $personasPagadas;
+            } else {
+
+                $subtotalServicio = $precio;
+            }
+
+            $subtotalGeneral += $subtotalServicio;
+
+            /*
+        |--------------------------------------------------------------------------
+        | ESTRUCTURA COMPATIBLE CON TU BLADE ACTUAL
+        |--------------------------------------------------------------------------
+        */
+            $detallesServicios[] = [
+                'servicio' => $servicio,
+
+                'fecha' => $item['fecha'] ?? null,
+                'horario_id' => $item['horario_id'] ?? null,
+
+                'cantidad_asistentes' => $cantidadAsistentes,
+                'personas_pagadas' => $personasPagadas,
+                'entradas_liberadas' => $entradasLiberadas,
+
+                'precio' => $precio,
+                'subtotal' => $subtotalServicio,
+            ];
+        }
+
+        return [
+            'cantidad_asistentes' => $cantidadAsistentes,
+
+            'personas_pagadas' => $personasPagadas,
+
+            'entradas_liberadas' => $entradasLiberadas,
+
+            'subtotal' => $subtotalGeneral,
+
+            'total' => $subtotalGeneral,
+
+            'servicios' => $detallesServicios,
         ];
     }
 }
