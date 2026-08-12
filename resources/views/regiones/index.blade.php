@@ -19,7 +19,10 @@
             <i class="fas fa-check-circle"></i>
             {{ session('success') }}
 
-            <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
+            <button type="button"
+                    class="close"
+                    data-dismiss="alert"
+                    aria-label="Cerrar">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
@@ -30,10 +33,7 @@
             <i class="fas fa-exclamation-circle"></i>
             {{ session('error') }}
 
-            <button type="button"
-                    class="close"
-                    data-dismiss="alert"
-                    aria-label="Cerrar">
+            <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
@@ -100,20 +100,18 @@
                                     <i class="fas fa-eye"></i>
                                 </a>
 
-                                <a href="{{ route('regiones.edit', $region) }}" class="btn btn-warning btn-sm" title="Editar">
+                                <a href="{{ route('regiones.edit', $region) }}" class="btn btn-warning btn-sm"
+                                    title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </a>
 
                                 <button type="button"
-                                        class="btn btn-sm
+                                    class="btn btn-sm
                                         {{ $region->activo ? 'btn-secondary' : 'btn-success' }}"
-                                        title="{{ $region->activo ? 'Desactivar' : 'Activar' }}"
-                                        data-toggle="modal"
-                                        data-target="#modalCambiarEstadoRegion"
-                                        data-id="{{ $region->id }}"
-                                        data-nombre="{{ $region->nombre }}"
-                                        data-activo="{{ $region->activo ? 1 : 0 }}">
-                                    <i  class="fas {{ $region->activo ? 'fa-ban' : 'fa-check' }}"></i>
+                                    title="{{ $region->activo ? 'Desactivar' : 'Activar' }}" data-toggle="modal"
+                                    data-target="#modalCambiarEstadoRegion" data-id="{{ $region->id }}"
+                                    data-nombre="{{ $region->nombre }}" data-activo="{{ $region->activo ? 1 : 0 }}">
+                                    <i class="fas {{ $region->activo ? 'fa-ban' : 'fa-check' }}"></i>
                                 </button>
                             </td>
                         </tr>
@@ -126,12 +124,8 @@
                     @endforelse
                 </tbody>
             </table>
-            <div    class="modal fade"
-                    id="modalCambiarEstadoRegion"
-                    tabindex="-1"
-                    role="dialog"
-                    aria-labelledby="modalCambiarEstadoRegionLabel"
-                    aria-hidden="true">
+            <div class="modal fade" id="modalCambiarEstadoRegion" tabindex="-1" role="dialog"
+                aria-labelledby="modalCambiarEstadoRegionLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -146,26 +140,24 @@
                             </button>
                         </div>
 
-                        <div class="modal-body">
-                            <p id="mensajeCambiarEstadoRegion" class="mb-0"></p>
-                        </div>
+                        <form id="formCambiarEstadoRegion" method="POST" data-url-base="{{ url('regiones') }}">
 
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                                Cancelar
-                            </button>
+                            @csrf
+                            @method('PATCH')
 
-                            <form   id="formCambiarEstadoRegion"
-                                    method="POST"
-                                    data-url-base="{{ url('regiones') }}>
-                                @csrf
-                                @method('PATCH')
+                            <div class="modal-body">
+                                <p id="mensajeCambiarEstadoRegion" class="mb-0"></p>
+                            </div>
 
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                    Cancelar
+                                </button>
                                 <button type="submit" id="botonConfirmarEstadoRegion" class="btn">
                                     Confirmar
                                 </button>
-                            </form>
-                        </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -180,5 +172,5 @@
 @stop
 
 @section('js')
-    @vite('resources/js/regiones/index.js')
+    <script src="{{ asset('js/regiones/index.js') }}"></script>
 @stop

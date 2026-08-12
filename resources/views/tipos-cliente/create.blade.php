@@ -8,10 +8,7 @@
 
 @section('content')
     <div class="card card-outline card-primary">
-        <form
-            method="POST"
-            action="{{ route('tipos-cliente.store') }}"
-        >
+        <form method="POST" action="{{ route('tipos-cliente.store') }}">
             @csrf
 
             <div class="card-body">
@@ -21,16 +18,12 @@
             <div class="card-footer">
                 <button
                     type="submit"
-                    class="btn btn-primary"
-                >
+                    class="btn btn-primary">
                     <i class="fas fa-save mr-1"></i>
                     Guardar
                 </button>
 
-                <a
-                    href="{{ route('tipos-cliente.index') }}"
-                    class="btn btn-secondary"
-                >
+                <a href="{{ route('tipos-cliente.index') }}" class="btn btn-secondary">
                     Volver
                 </a>
             </div>

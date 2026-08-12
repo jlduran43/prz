@@ -2,40 +2,31 @@ $('#modalCambiarEstadoRegion').on(
     'show.bs.modal',
     function (event) {
 
-        const boton =
-            $(event.relatedTarget);
+        const boton = $(event.relatedTarget);
 
-        const id =
-            boton.data('id');
+        const id = boton.data('id');
 
-        const nombre =
-            boton.data('nombre');
+        const nombre = boton.data('nombre');
 
-        const activo =
-            Number(
+        const activo = Number(
                 boton.data('activo')
             );
 
-        const modal =
-            $(this);
+        const modal = $(this);
 
-        const formulario =
-            modal.find(
+        const formulario = modal.find(
                 '#formCambiarEstadoRegion'
             );
 
-        const mensaje =
-            modal.find(
+        const mensaje = modal.find(
                 '#mensajeCambiarEstadoRegion'
             );
 
-        const botonConfirmar =
-            modal.find(
+        const botonConfirmar = modal.find(
                 '#botonConfirmarEstadoRegion'
             );
 
-        const urlBase =
-            formulario.data('url-base');
+        const urlBase = formulario.data('url-base');
 
         formulario.attr(
             'action',

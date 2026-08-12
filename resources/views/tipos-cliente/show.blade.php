@@ -16,19 +16,10 @@
                 </dd>
 
                 <dt class="col-sm-3">Código</dt>
-                <dd class="col-sm-9">
-                    <code>{{ $tipoCliente->codigo }}</code>
-                </dd>
-
+                <dd class="col-sm-9"><code>{{ $tipoCliente->codigo }}</code></dd>
                 <dt class="col-sm-3">Nombre</dt>
-                <dd class="col-sm-9">
-                    {{ $tipoCliente->nombre }}
-                </dd>
-
-                <dt class="col-sm-3">
-                    Tipo de estructura
-                </dt>
-
+                <dd class="col-sm-9">{{ $tipoCliente->nombre }}</dd>
+                <dt class="col-sm-3">Tipo de estructura</dt>
                 <dd class="col-sm-9">
                     @if ($tipoCliente->tipo_estructura === 'PERSONA')
                         <span class="badge badge-info">
@@ -40,7 +31,6 @@
                         </span>
                     @endif
                 </dd>
-
                 <dt class="col-sm-3">Estado</dt>
                 <dd class="col-sm-9">
                     @if ($tipoCliente->activo)
@@ -53,7 +43,6 @@
                         </span>
                     @endif
                 </dd>
-
                 <dt class="col-sm-3">
                     Fecha de creación
                 </dt>
@@ -62,14 +51,12 @@
                 </dd>
             </dl>
         </div>
-
         <div class="card-footer">
             <a href="{{ route('tipos-cliente.edit', $tipoCliente) }}"
                 class="btn btn-warning">
                 <i class="fas fa-edit mr-1"></i>
                 Editar
             </a>
-
             <a href="{{ route('tipos-cliente.index') }}" class="btn btn-secondary">
                 Volver
             </a>

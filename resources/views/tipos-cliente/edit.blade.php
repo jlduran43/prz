@@ -8,13 +8,12 @@
 
 @section('content')
     <div class="card card-outline card-warning">
-        <form
-            method="POST"
-            action="{{ route(
-                'tipos-cliente.update',
-                $tipoCliente
-            ) }}"
-        >
+        <form   method="POST"
+                action="{{ route(
+                    'tipos-cliente.update',
+                    $tipoCliente
+                ) }}">
+
             @csrf
             @method('PUT')
 
@@ -23,18 +22,12 @@
             </div>
 
             <div class="card-footer">
-                <button
-                    type="submit"
-                    class="btn btn-warning"
-                >
+                <button type="submit" class="btn btn-warning">
                     <i class="fas fa-save mr-1"></i>
                     Actualizar
                 </button>
 
-                <a
-                    href="{{ route('tipos-cliente.index') }}"
-                    class="btn btn-secondary"
-                >
+                <a href="{{ route('tipos-cliente.index') }}" class="btn btn-secondary">
                     Volver
                 </a>
             </div>

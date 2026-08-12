@@ -400,70 +400,7 @@
                 </h3>
             </div>
 
-            <div class="card card-outline card-warning mt-3">
 
-                <div class="card-header">
-
-                    <h3 class="card-title">
-
-                        <i class="fas fa-percent mr-2"></i>
-
-                        Convenio o descuento
-
-                    </h3>
-
-                </div>
-
-
-                <div class="card-body">
-
-                    <label for="codigo_convenio">
-
-                        Código de convenio
-
-                        <small class="text-muted">
-                            (opcional)
-                        </small>
-
-                    </label>
-
-
-                    <div class="input-group">
-
-                        <input type="text" id="codigo_convenio" name="codigo_convenio" class="form-control"
-                            maxlength="50" autocomplete="off"
-                            value="{{ old('codigo_convenio', $convenioAplicado['codigo'] ?? '') }}"
-                            placeholder="Ej.: MUNICIPAL2026">
-
-
-                        <div class="input-group-append">
-
-                            <button type="button" id="btnAplicarConvenio" class="btn btn-warning">
-
-                                <i class="fas fa-check mr-1"></i>
-
-                                Aplicar
-
-                            </button>
-
-                        </div>
-
-                    </div>
-
-
-                    <small class="form-text text-muted">
-
-                        El código será validado junto al
-                        RUT de la entidad registrada.
-
-                    </small>
-
-
-                    <div id="resultadoConvenio" class="mt-3"></div>
-
-                </div>
-
-            </div>
 
             <div class="card-body">
                 @if ($esEstablecimiento)
@@ -591,30 +528,83 @@
                             </div>
                         </div>
 
-                    </div>
+                        <div class="col-md-12">
+                            @if ($codigoTipoCliente !== 'PERSONA')
+                                <div class="card card-outline card-warning mt-4 mb-4">
 
-                    <input type="hidden" name="cantidad_asistentes" id="cantidad_asistentes"
-                        value="{{ old('cantidad_asistentes', $datosReserva['cantidad_asistentes'] ?? 1) }}">
-                @else
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="cantidad_asistentes">
-                                    Cantidad de personas
-                                    <span class="text-danger">*</span>
-                                </label>
+                                    <div class="card-header">
 
-                                <input type="number" name="cantidad_asistentes" id="cantidad_asistentes"
-                                    class="form-control @error('cantidad_asistentes') is-invalid @enderror"
-                                    value="{{ old('cantidad_asistentes', $datosReserva['cantidad_asistentes'] ?? 1) }}"
-                                    min="1" required>
+                                        <h3 class="card-title">
+                                            <i class="fas fa-percent mr-2"></i>
+                                            Convenio o descuento
+                                        </h3>
 
-                                @error('cantidad_asistentes')
-                                    <span class="invalid-feedback">{{ $message }}</span>
-                                @enderror
+                                    </div>
+
+                                    <div class="card-body">
+
+                                        <label for="codigo_convenio">
+
+                                            Código de convenio
+
+                                            <small class="text-muted">
+                                                (opcional)
+                                            </small>
+
+                                        </label>
+
+                                        <div class="input-group">
+
+                                            <input type="text" id="codigo_convenio" name="codigo_convenio"
+                                                class="form-control" maxlength="50" autocomplete="off"
+                                                value="{{ old('codigo_convenio', $convenioAplicado['codigo'] ?? '') }}"
+                                                placeholder="Ej.: MUNICIPAL2026">
+
+                                            <div class="input-group-append">
+
+                                                <button type="button" id="btnAplicarConvenio" class="btn btn-warning">
+                                                    <i class="fas fa-check mr-1"></i>
+                                                    Aplicar
+                                                </button>
+
+                                            </div>
+
+                                        </div>
+
+                                        <small class="form-text text-muted">
+                                            El código será validado junto al RUT de la entidad registrada.
+                                        </small>
+
+                                        <div id="resultadoConvenio" class="mt-3"></div>
+
+                                    </div>
+
+                                </div>
+                            @endif
+
+                        </div>
+                        <input type="hidden" name="cantidad_asistentes" id="cantidad_asistentes"
+                            value="{{ old('cantidad_asistentes', $datosReserva['cantidad_asistentes'] ?? 1) }}">
+                    @else
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="cantidad_asistentes">
+                                        Cantidad de personas
+                                        <span class="text-danger">*</span>
+                                    </label>
+
+                                    <input type="number" name="cantidad_asistentes" id="cantidad_asistentes"
+                                        class="form-control @error('cantidad_asistentes') is-invalid @enderror"
+                                        value="{{ old('cantidad_asistentes', $datosReserva['cantidad_asistentes'] ?? 1) }}"
+                                        min="1" required>
+
+                                    @error('cantidad_asistentes')
+                                        <span class="invalid-feedback">{{ $message }}</span>
+                                    @enderror
+                                </div>
                             </div>
                         </div>
-                    </div>
                 @endif
 
                 <div class="row mt-2">
@@ -653,24 +643,26 @@
 
                     </div>
 
-                    {{-- Descuento --}}
-                    <div class="col-md-3 mb-3">
+                    @if ($codigoTipoCliente === 'ESTABLECIMIENTO_EDUCACIONAL')
+                        {{-- Descuento --}}
+                        <div class="col-md-3 mb-3">
 
-                        <div class="selection-summary">
+                            <div class="selection-summary">
 
-                            <div>
-                                <strong>
-                                    Descuento
+                                <div>
+                                    <strong>
+                                        Descuento
+                                    </strong>
+                                </div>
+
+                                <strong id="descuentoConvenio" class="text-success h5 mb-0">
+                                    $0
                                 </strong>
+
                             </div>
 
-                            <strong id="descuentoConvenio" class="text-success h5 mb-0">
-                                $0
-                            </strong>
-
                         </div>
-
-                    </div>
+                    @endif
 
                     {{-- Total --}}
                     <div class="col-md-3 mb-3">
@@ -729,6 +721,11 @@
             const maximoServicios = 2;
             const esCotizacion = @json($esCotizacion);
             const tipoOperacion = @json($tipoOperacion);
+
+            const codigoTipoCliente = @json($codigoTipoCliente);
+            const esPersonaNatural = codigoTipoCliente === 'PERSONA';
+            const esEstablecimiento = codigoTipoCliente === 'ESTABLECIMIENTO_EDUCACIONAL';
+
             const datosAnteriores = @json(old('servicios', $datosReserva['servicios'] ?? []));
 
             const urlServicios = @json(route('reservas.servicios-disponibles'));
@@ -756,7 +753,7 @@
             const subtotalGeneralElemento = document.getElementById('subtotalGeneral');
             const descuentoConvenioElemento = document.getElementById('descuentoConvenio');
 
-            let convenioActual = @json($convenioAplicado ?? null);
+            let convenioActual = esPersonaNatural ? null : @json($convenioAplicado ?? null);
 
             function escaparHtml(valor) {
                 const div = document.createElement('div');
@@ -804,6 +801,17 @@
                 const personas =
                     cantidadPersonas();
 
+                const entradasLiberadas =
+                    obtenerEntradasLiberadas(
+                        personas
+                    );
+
+                const personasCobradas =
+                    Math.max(
+                        personas - entradasLiberadas,
+                        0
+                    );
+
                 const cards =
                     obtenerCardsSeleccionadas();
 
@@ -828,20 +836,40 @@
                         calcularSubtotal(
                             precio,
                             tipoCobro,
-                            personas
+                            personasCobradas
                         );
 
 
                     subtotalGeneral += subtotal;
 
+                    let descripcion;
 
-                    const descripcion =
-                        tipoCobro === 'POR_PERSONA' ?
-                        `${formatearPrecio(precio)} × ${personas} personas` :
-                        tipoCobro === 'POR_GRUPO' ?
-                        `${formatearPrecio(precio)} por grupo` :
-                        'Precio fijo';
+                    if (tipoCobro === 'POR_PERSONA') {
 
+                        descripcion =
+                            `${formatearPrecio(precio)} × ${personasCobradas} personas`;
+
+                        if (entradasLiberadas === 1) {
+
+                            descripcion +=
+                                ' · 1 entrada liberada';
+
+                        } else if (entradasLiberadas === 2) {
+
+                            descripcion +=
+                                ' · 2 entradas liberadas';
+                        }
+
+                    } else if (tipoCobro === 'POR_GRUPO') {
+
+                        descripcion =
+                            `${formatearPrecio(precio)} por grupo`;
+
+                    } else {
+
+                        descripcion =
+                            'Precio fijo';
+                    }
 
                     html += `
             <div class="detalle-precio-fila">
@@ -873,8 +901,7 @@
 
                 let porcentaje = 0;
 
-
-                if (convenioActual) {
+                if (!esPersonaNatural && convenioActual) {
 
                     porcentaje =
                         Number(
@@ -1229,12 +1256,12 @@
                 ${
                     servicio.duracion_minutos
                         ? `
-                                                                                                                                                                                                                                    <small class="text-muted">
-                                                                                                                                                                                                                                        <i class="far fa-clock mr-1"></i>
-                                                                                                                                                                                                                                        ${servicio.duracion_minutos}
-                                                                                                                                                                                                                                        minutos
-                                                                                                                                                                                                                                    </small>
-                                                                                                                                                                                                                                `
+                                                                                                                                                                                                                                                                                <small class="text-muted">
+                                                                                                                                                                                                                                                                                    <i class="far fa-clock mr-1"></i>
+                                                                                                                                                                                                                                                                                    ${servicio.duracion_minutos}
+                                                                                                                                                                                                                                                                                    minutos
+                                                                                                                                                                                                                                                                                </small>
+                                                                                                                                                                                                                                                                            `
                         : ''
                 }
 
@@ -1267,136 +1294,136 @@
     ${
     esCotizacion
         ? `
-                                                                                                    <div class="servicio-configuracion">
+                                                                                                                                                <div class="servicio-configuracion">
 
-                                                                                                        <div class="configuracion-header">
+                                                                                                                                                    <div class="configuracion-header">
 
-                                                                                                            <h6 class="configuracion-titulo">
+                                                                                                                                                        <h6 class="configuracion-titulo">
 
-                                                                                                                <i
-                                                                                                                    class="fas fa-file-invoice-dollar
-                                                                                                                           text-info mr-1">
-                                                                                                                </i>
+                                                                                                                                                            <i
+                                                                                                                                                                class="fas fa-file-invoice-dollar
+                                                                                                                                                                       text-info mr-1">
+                                                                                                                                                            </i>
 
-                                                                                                                Servicio incluido en la cotización
+                                                                                                                                                            Servicio incluido en la cotización
 
-                                                                                                            </h6>
-
-
-                                                                                                            <button
-                                                                                                                type="button"
-                                                                                                                class="
-                                                                                                                    btn
-                                                                                                                    btn-sm
-                                                                                                                    btn-outline-danger
-                                                                                                                    quitar-servicio
-                                                                                                                "
-                                                                                                            >
-
-                                                                                                                <i class="fas fa-times mr-1"></i>
-
-                                                                                                                Quitar servicio
-
-                                                                                                            </button>
-
-                                                                                                        </div>
+                                                                                                                                                        </h6>
 
 
-                                                                                                        <input
-                                                                                                            type="hidden"
-                                                                                                            name="servicios[${servicio.id}][servicio_id]"
-                                                                                                            value="${servicio.id}"
-                                                                                                            class="campo-servicio"
-                                                                                                            disabled
-                                                                                                        >
+                                                                                                                                                        <button
+                                                                                                                                                            type="button"
+                                                                                                                                                            class="
+                                                                                                                                                                btn
+                                                                                                                                                                btn-sm
+                                                                                                                                                                btn-outline-danger
+                                                                                                                                                                quitar-servicio
+                                                                                                                                                            "
+                                                                                                                                                        >
 
-                                                                                                    </div>
-                                                                                                `
+                                                                                                                                                            <i class="fas fa-times mr-1"></i>
+
+                                                                                                                                                            Quitar servicio
+
+                                                                                                                                                        </button>
+
+                                                                                                                                                    </div>
+
+
+                                                                                                                                                    <input
+                                                                                                                                                        type="hidden"
+                                                                                                                                                        name="servicios[${servicio.id}][servicio_id]"
+                                                                                                                                                        value="${servicio.id}"
+                                                                                                                                                        class="campo-servicio"
+                                                                                                                                                        disabled
+                                                                                                                                                    >
+
+                                                                                                                                                </div>
+                                                                                                                                            `
         : `
-                                                                                                    <div class="servicio-configuracion">
+                                                                                                                                                <div class="servicio-configuracion">
 
-                                                                                                        <input
-                                                                                                            type="hidden"
-                                                                                                            name="servicios[${servicio.id}][servicio_id]"
-                                                                                                            value="${servicio.id}"
-                                                                                                            class="campo-servicio"
-                                                                                                            disabled
-                                                                                                        >
-
-
-                                                                                                        <div class="configuracion-header">
-
-                                                                                                            <h6 class="configuracion-titulo">
-
-                                                                                                                <i
-                                                                                                                    class="fas fa-calendar-alt
-                                                                                                                           text-primary mr-1">
-                                                                                                                </i>
-
-                                                                                                                Configuración de la visita
-
-                                                                                                            </h6>
+                                                                                                                                                    <input
+                                                                                                                                                        type="hidden"
+                                                                                                                                                        name="servicios[${servicio.id}][servicio_id]"
+                                                                                                                                                        value="${servicio.id}"
+                                                                                                                                                        class="campo-servicio"
+                                                                                                                                                        disabled
+                                                                                                                                                    >
 
 
-                                                                                                            <button
-                                                                                                                type="button"
-                                                                                                                class="
-                                                                                                                    btn
-                                                                                                                    btn-sm
-                                                                                                                    btn-outline-danger
-                                                                                                                    quitar-servicio
-                                                                                                                "
-                                                                                                            >
+                                                                                                                                                    <div class="configuracion-header">
 
-                                                                                                                <i class="fas fa-times mr-1"></i>
+                                                                                                                                                        <h6 class="configuracion-titulo">
 
-                                                                                                                Quitar servicio
+                                                                                                                                                            <i
+                                                                                                                                                                class="fas fa-calendar-alt
+                                                                                                                                                                       text-primary mr-1">
+                                                                                                                                                            </i>
 
-                                                                                                            </button>
+                                                                                                                                                            Configuración de la visita
 
-                                                                                                        </div>
+                                                                                                                                                        </h6>
 
 
-                                                                                                        <input
-                                                                                                            type="hidden"
-                                                                                                            name="servicios[${servicio.id}][fecha]"
-                                                                                                            class="fecha-servicio campo-servicio"
-                                                                                                            value="${fechaReservaInput?.value || ''}"
-                                                                                                            disabled
-                                                                                                        >
+                                                                                                                                                        <button
+                                                                                                                                                            type="button"
+                                                                                                                                                            class="
+                                                                                                                                                                btn
+                                                                                                                                                                btn-sm
+                                                                                                                                                                btn-outline-danger
+                                                                                                                                                                quitar-servicio
+                                                                                                                                                            "
+                                                                                                                                                        >
+
+                                                                                                                                                            <i class="fas fa-times mr-1"></i>
+
+                                                                                                                                                            Quitar servicio
+
+                                                                                                                                                        </button>
+
+                                                                                                                                                    </div>
 
 
-                                                                                                        <div
-                                                                                                            class="
-                                                                                                                mensaje-horarios
-                                                                                                                alert
-                                                                                                                alert-info
-                                                                                                                mb-3
-                                                                                                            "
-                                                                                                        >
-
-                                                                                                            <i class="fas fa-calendar-alt mr-1"></i>
-
-                                                                                                            Selecciona una fecha para
-                                                                                                            consultar los horarios.
-
-                                                                                                        </div>
+                                                                                                                                                    <input
+                                                                                                                                                        type="hidden"
+                                                                                                                                                        name="servicios[${servicio.id}][fecha]"
+                                                                                                                                                        class="fecha-servicio campo-servicio"
+                                                                                                                                                        value="${fechaReservaInput?.value || ''}"
+                                                                                                                                                        disabled
+                                                                                                                                                    >
 
 
-                                                                                                        <div
-                                                                                                            class="row contenedor-horarios">
-                                                                                                        </div>
+                                                                                                                                                    <div
+                                                                                                                                                        class="
+                                                                                                                                                            mensaje-horarios
+                                                                                                                                                            alert
+                                                                                                                                                            alert-info
+                                                                                                                                                            mb-3
+                                                                                                                                                        "
+                                                                                                                                                    >
+
+                                                                                                                                                        <i class="fas fa-calendar-alt mr-1"></i>
+
+                                                                                                                                                        Selecciona una fecha para
+                                                                                                                                                        consultar los horarios.
+
+                                                                                                                                                    </div>
 
 
-                                                                                                        <input
-                                                                                                            type="hidden"
-                                                                                                            name="servicios[${servicio.id}][horario_id]"
-                                                                                                            class="horario-id campo-servicio"
-                                                                                                            disabled
-                                                                                                        >
+                                                                                                                                                    <div
+                                                                                                                                                        class="row contenedor-horarios">
+                                                                                                                                                    </div>
 
-                                                                                                    </div>
-                                                                                                `
+
+                                                                                                                                                    <input
+                                                                                                                                                        type="hidden"
+                                                                                                                                                        name="servicios[${servicio.id}][horario_id]"
+                                                                                                                                                        class="horario-id campo-servicio"
+                                                                                                                                                        disabled
+                                                                                                                                                    >
+
+                                                                                                                                                </div>
+                                                                                                                                            `
 }`;
 
                 const checkbox = card.querySelector('.servicio-checkbox');
@@ -2002,6 +2029,56 @@
                     fechaReservaInput.value
                 );
 
+            }
+
+            function obtenerEntradasLiberadas(personas) {
+
+                /*
+                 * Persona natural:
+                 * nunca tiene entradas liberadas.
+                 */
+                if (esPersonaNatural) {
+                    return 0;
+                }
+
+
+                /*
+                 * Establecimiento educacional
+                 * con 26 o más asistentes:
+                 * 2 entradas liberadas.
+                 */
+                if (
+                    esEstablecimiento &&
+                    personas >= 26
+                ) {
+                    return 2;
+                }
+
+
+                /*
+                 * Cualquier cliente que NO sea
+                 * persona natural, desde 11 personas:
+                 * 1 entrada liberada.
+                 */
+                if (personas >= 11) {
+                    return 1;
+                }
+
+
+                return 0;
+            }
+
+            function cantidadPersonasCobradas(personas) {
+
+                const entradasLiberadas =
+                    obtenerEntradasLiberadas(
+                        personas
+                    );
+
+                return Math.max(
+                    personas - entradasLiberadas,
+                    0
+                );
             }
         });
     </script>

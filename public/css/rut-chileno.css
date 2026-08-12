@@ -1,0 +1,94 @@
+body {
+    background-color: pink !important;
+}
+
+.rut-input-group .input-group-text {
+    min-width: 44px;
+    justify-content: center;
+    background-color: #f8f9fa;
+}
+
+
+/* RUT VÁLIDO */
+
+.rut-input-group.rut-valido .form-control {
+    border-color: #28a745 !important;
+    color: #28a745 !important;
+    box-shadow:
+        0 0 0 .1rem
+        rgba(40, 167, 69, .12) !important;
+}
+
+.rut-input-group.rut-valido
+.input-group-prepend
+.input-group-text {
+    border-color: #28a745 !important;
+}
+
+.rut-input-group.rut-valido
+.rut-estado {
+    border-color: #28a745 !important;
+    background-color: #eaf7ed !important;
+}
+
+.rut-input-group.rut-valido
+.rut-estado i {
+    color: #28a745 !important;
+}
+
+.rut-input-group.rut-valido
+.form-control:focus {
+    border-color: #28a745 !important;
+    box-shadow:
+        0 0 0 .2rem
+        rgba(40, 167, 69, .15) !important;
+}
+
+
+/* RUT INVÁLIDO */
+
+.rut-input-group.rut-invalido .form-control {
+    border-color: #dc3545 !important;
+    color: #dc3545 !important;
+    box-shadow:
+        0 0 0 .1rem
+        rgba(220, 53, 69, .10) !important;
+}
+
+.rut-input-group.rut-invalido
+.input-group-prepend
+.input-group-text {
+    border-color: #dc3545 !important;
+}
+
+.rut-input-group.rut-invalido
+.rut-estado {
+    border-color: #dc3545 !important;
+    background-color: #fcebec !important;
+}
+
+.rut-input-group.rut-invalido
+.rut-estado i {
+    color: #dc3545 !important;
+}
+
+.rut-input-group.rut-invalido
+.form-control:focus {
+    border-color: #dc3545 !important;
+    box-shadow:
+        0 0 0 .2rem
+        rgba(220, 53, 69, .15) !important;
+}
+
+
+/* MENSAJE */
+
+.rut-mensaje.valido {
+    color: #28a745 !important;
+    font-weight: 600 !important;
+}
+
+.rut-mensaje.invalido {
+    color: #dc3545 !important;
+    font-weight: 600 !important;
+}

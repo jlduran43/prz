@@ -15,6 +15,8 @@
 @stop
 
 @section('content')
+    <link rel="stylesheet" href="{{ asset('css/rut-chileno.css') }}?v={{ time() }}">
+
     @if (session('reserva.tipo_operacion') === 'COTIZACION')
         <div class="alert alert-info py-2">
 
@@ -482,54 +484,7 @@
     </form>
 @stop
 
-@section('css')
-    <style>
-        .rut-input-group .input-group-text {
-            min-width: 44px;
-            justify-content: center;
-            background: #f8f9fa;
-        }
 
-        .rut-input-group.rut-valido .form-control {
-            border-color: #28a745;
-            box-shadow: 0 0 0 .1rem rgba(40, 167, 69, .12);
-        }
-
-        .rut-input-group.rut-valido .rut-estado {
-            border-color: #28a745;
-            background: #eaf7ed;
-        }
-
-        .rut-input-group.rut-invalido .form-control {
-            border-color: #dc3545;
-            box-shadow: 0 0 0 .1rem rgba(220, 53, 69, .10);
-        }
-
-        .rut-input-group.rut-invalido .rut-estado {
-            border-color: #dc3545;
-            background: #fcebec;
-        }
-
-        .rut-input-group .form-control:focus {
-            position: relative;
-            z-index: 3;
-        }
-
-        .rut-mensaje {
-            transition: color .2s ease;
-        }
-
-        .rut-mensaje.valido {
-            color: #218838 !important;
-            font-weight: 600;
-        }
-
-        .rut-mensaje.invalido {
-            color: #dc3545 !important;
-            font-weight: 600;
-        }
-    </style>
-@stop
 
 @section('js')
     <script>

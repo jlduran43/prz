@@ -6,7 +6,13 @@
                 <span class="text-danger">*</span>
             </label>
 
-            <input  type="text"
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">
+                        <i class="fas fa-hashtag"></i>
+                    </span>
+                </div>
+                <input  type="text"
                     id="codigo"
                     name="codigo"
                     class="form-control @error('codigo') is-invalid @enderror"
@@ -14,6 +20,7 @@
                     maxlength="10"
                     placeholder="Ejemplo: 13"
                     required>
+            </div>
 
             @error('codigo')
                 <span class="invalid-feedback">
@@ -30,17 +37,29 @@
                 <span class="text-danger">*</span>
             </label>
 
-            <input  type="text"
-                    id="nombre"
+            <div class="input-group">
+
+                <div class="input-group-prepend">
+                    <span class="input-group-text">
+                        <i class="fas fa-map"></i>
+                    </span>
+                </div>
+
+                <input
+                    type="text"
                     name="nombre"
-                    class="form-control @error('nombre') is-invalid @enderror"
+                    id="nombre"
+                    class="form-control
+                        @error('nombre') is-invalid @enderror"
                     value="{{ old('nombre', $region->nombre ?? '') }}"
-                    maxlength="150"
                     placeholder="Ejemplo: Región Metropolitana de Santiago"
-                    required>
+                    required
+                >
+
+            </div>
 
             @error('nombre')
-                <span class="invalid-feedback">
+                <span class="invalid-feedback d-block">
                     {{ $message }}
                 </span>
             @enderror
