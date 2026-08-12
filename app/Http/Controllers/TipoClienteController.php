@@ -71,10 +71,7 @@ class TipoClienteController extends Controller
         ]);
     }
 
-    public function update(
-        Request $request,
-        TipoCliente $tipoCliente
-    ): RedirectResponse {
+    public function update(Request $request, TipoCliente $tipoCliente): RedirectResponse {
         $datos = $this->validarDatos(
             $request,
             $tipoCliente
@@ -100,9 +97,7 @@ class TipoClienteController extends Controller
         //
     }
 
-    public function cambiarEstado(
-        TipoCliente $tipoCliente
-    ): RedirectResponse {
+    public function cambiarEstado(TipoCliente $tipoCliente): RedirectResponse {
         $tipoCliente->update([
             'activo' => ! $tipoCliente->activo,
         ]);

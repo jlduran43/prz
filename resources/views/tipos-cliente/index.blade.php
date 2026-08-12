@@ -47,11 +47,8 @@
                                     <i class="fas fa-search"></i>
                                 </span>
                             </div>
-                            <input  type="text"
-                                    name="buscar"
-                                    class="form-control"
-                                    value="{{ $buscar }}"
-                                    placeholder="Buscar por código o nombre...">
+                            <input type="text" name="buscar" class="form-control" value="{{ $buscar }}"
+                                placeholder="Buscar por código o nombre...">
                         </div>
                     </div>
 
@@ -148,8 +145,13 @@
                     @endforelse
                 </tbody>
             </table>
-            <div class="modal fade" id="modalCambiarEstado" tabindex="-1" role="dialog"
-                aria-labelledby="modalCambiarEstadoLabel" aria-hidden="true">
+            <div    class="modal fade"
+                    id="modalCambiarEstado"
+                    tabindex="-1"
+                    role="dialog"
+                    aria-labelledby="modalCambiarEstadoLabel"
+                    aria-hidden="true">
+
                 <div class="modal-dialog modal-dialog-centered" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -164,32 +166,32 @@
                             </button>
                         </div>
 
-                        <div class="modal-body">
-                            <p id="mensajeCambiarEstado" class="mb-0"></p>
-                        </div>
+                        <form id="formCambiarEstado" method="POST" data-url-base="{{ url('tipos-cliente') }}">
 
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                                Cancelar
-                            </button>
+                            @csrf
+                            @method('PATCH')
 
-                            <form id="formCambiarEstado" method="POST">
-                                @csrf
-                                @method('PATCH')
+                            <div class="modal-body">
+                                <p id="mensajeCambiarEstado" class="mb-0"></p>
+                            </div>
 
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                    Cancelar
+                                </button>
                                 <button type="submit" id="botonConfirmarEstado" class="btn">
                                     Confirmar
                                 </button>
-                            </form>
-                        </div>
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
         </div>
 
         @if ($tiposCliente->hasPages())
-            <div class="card-footer">
-                {{ $tiposCliente->links() }}
+            <div class="card-footer clearfix">
+                {{ $tiposCliente->links('vendor.pagination.bootstrap-5') }}
             </div>
         @endif
     </div>

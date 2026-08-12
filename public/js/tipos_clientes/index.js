@@ -23,9 +23,12 @@ $('#modalCambiarEstado').on(
             '#botonConfirmarEstado'
         );
 
+        const urlBase = form.data('url-base');
+
         form.attr(
             'action',
-            "{{ url('tipos - cliente') }}/"
+            urlBase
+            + '/'
             + id
         + '/cambiar-estado'
         );

@@ -679,15 +679,22 @@
                    justify-content-between mb-4">
             <a href="{{ route('reservas.datos') }}" class="btn btn-default mb-2 mb-sm-0">
                 <i class="fas fa-arrow-left mr-1"></i>
-                Volver a la reserva
+                Volver
             </a>
 
             <form action="{{ route('reservas.finalizar') }}" method="POST" id="form-confirmar-reserva">
                 @csrf
 
                 <button type="submit" class="btn btn-success btn-lg" id="btn-confirmar-reserva">
-                    <i class="fas fa-check-circle mr-1"></i>
-                    Confirmar reserva
+
+                    @if ($esCotizacion)
+                        <i class="fas fa-file-invoice-dollar mr-1"></i>
+                        Generar cotización
+                    @else
+                        <i class="fas fa-check-circle mr-1"></i>
+                        Confirmar reserva
+                    @endif
+
                 </button>
             </form>
         </div>
@@ -767,38 +774,49 @@
 @stop
 
 @section('js')
-    <script>
-        document.addEventListener(
-            'DOMContentLoaded',
-            function() {
-                const formulario = document.getElementById(
-                    'form-confirmar-reserva'
-                );
+<script>
+document.addEventListener('DOMContentLoaded', function () {
 
-                const boton = document.getElementById(
-                    'btn-confirmar-reserva'
-                );
+    const formulario = document.getElementById(
+        'form-confirmar-reserva'
+    );
 
-                if (!formulario || !boton) {
-                    return;
-                }
+    const boton = document.getElementById(
+        'btn-confirmar-reserva'
+    );
 
-                formulario.addEventListener(
-                    'submit',
-                    function() {
-                        boton.disabled = true;
+    if (!formulario || !boton) {
+        return;
+    }
 
-                        boton.innerHTML = `
-                            <span
-                                class="spinner-border spinner-border-sm mr-2"
-                                role="status"
-                                aria-hidden="true"
-                            ></span>
-                            Registrando reserva...
-                        `;
-                    }
-                );
-            }
-        );
-    </script>
+    formulario.addEventListener('submit', function () {
+
+        boton.disabled = true;
+
+        @if ($esCotizacion)
+
+            boton.innerHTML = `
+                <span
+                    class="spinner-border spinner-border-sm mr-2"
+                    role="status"
+                    aria-hidden="true">
+                </span>
+                Generando cotización...
+            `;
+
+        @else
+
+            boton.innerHTML = `
+                <span
+                    class="spinner-border spinner-border-sm mr-2"
+                    role="status"
+                    aria-hidden="true">
+                </span>
+                Registrando reserva...
+            `;
+
+        @endif
+    });
+});
+</script>
 @stop

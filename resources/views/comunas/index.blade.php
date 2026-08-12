@@ -14,14 +14,24 @@
 @stop
 
 @section('content')
-
     @if (session('success'))
         <div class="alert alert-success alert-dismissible fade show">
             <i class="fas fa-check-circle"></i>
             {{ session('success') }}
 
-            <button type="button" class="close" data-dismiss="alert">
-                <span>&times;</span>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+    @endif
+
+    @if (session('error'))
+        <div class="alert alert-danger alert-dismissible fade show">
+            <i class="fas fa-exclamation-circle"></i>
+            {{ session('error') }}
+
+            <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
+                <span aria-hidden="true">&times;</span>
             </button>
         </div>
     @endif
@@ -45,6 +55,7 @@
                         </button>
 
                         <a href="{{ route('comunas.index') }}" class="btn btn-secondary">
+                            <i class="fas fa-eraser mr-1"></i>
                             Limpiar
                         </a>
                     </div>
