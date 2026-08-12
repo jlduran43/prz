@@ -7,7 +7,12 @@
 @stop
 
 @section('content')
-    <div class="card card-outline card-primary">
+    <div class="card card-primary">
+        <div class="card-header">
+            <h3 class="card-title">
+                Datos del tipo de cliente
+            </h3>
+        </div>
         <form method="POST" action="{{ route('tipos-cliente.store') }}">
             @csrf
 
@@ -16,9 +21,7 @@
             </div>
 
             <div class="card-footer">
-                <button
-                    type="submit"
-                    class="btn btn-primary">
+                <button type="submit" class="btn btn-primary">
                     <i class="fas fa-save mr-1"></i>
                     Guardar
                 </button>

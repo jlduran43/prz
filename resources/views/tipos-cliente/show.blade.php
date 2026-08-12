@@ -52,11 +52,6 @@
             </dl>
         </div>
         <div class="card-footer">
-            <a href="{{ route('tipos-cliente.edit', $tipoCliente) }}"
-                class="btn btn-warning">
-                <i class="fas fa-edit mr-1"></i>
-                Editar
-            </a>
             <a href="{{ route('tipos-cliente.index') }}" class="btn btn-secondary">
                 Volver
             </a>

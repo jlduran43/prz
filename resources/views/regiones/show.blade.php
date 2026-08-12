@@ -7,7 +7,7 @@
 @stop
 
 @section('content')
-    <div class="card card-outline card-primary">
+    <div class="card card-outline card-info">
         <div class="card-header">
             <h3 class="card-title">
                 Información de la Región

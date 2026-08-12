@@ -36,7 +36,7 @@
         </div>
     @endif
 
-    <div class="card card-outline card-primary">
+    <div class="card">
         <div class="card-header">
             <form method="GET" action="{{ route('tipos-cliente.index') }}">
                 <div class="row align-items-center">
@@ -86,7 +86,7 @@
                 <tbody>
                     @forelse ($tiposCliente as $tipoCliente)
                         <tr>
-                            <td><code>{{ $tipoCliente->codigo }}</code></td>
+                            <td><strong>{{ $tipoCliente->codigo }}</strong></td>
                             <td>{{ $tipoCliente->nombre }}</td>
                             <td>
                                 @if ($tipoCliente->tipo_estructura === 'PERSONA')

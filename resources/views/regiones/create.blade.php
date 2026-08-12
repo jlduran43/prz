@@ -5,10 +5,6 @@
 @section('content_header')
     <div class="d-flex justify-content-between align-items-center">
         <h1>Nueva región</h1>
-        <a href="{{ route('regiones.index') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i>
-            Volver
-        </a>
     </div>
 @stop
 
@@ -29,10 +25,9 @@
                     <i class="fas fa-save"></i>
                     Guardar
                 </button>
-
-                <a  href="{{ route('regiones.index') }}"
-                    class="btn btn-secondary">
-                    Cancelar
+                <a href="{{ route('regiones.index') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i>
+                    Volver
                 </a>
             </div>
         </form>
