@@ -6,10 +6,7 @@
     <div class="d-flex justify-content-between align-items-center">
         <h1>Crear servicio o experiencia</h1>
 
-        <a
-            href="{{ route('servicios-experiencias.index') }}"
-            class="btn btn-secondary"
-        >
+        <a href="{{ route('servicios-experiencias.index') }}" class="btn btn-secondary">
             <i class="fas fa-arrow-left mr-1"></i>
             Volver
         </a>
@@ -33,10 +30,7 @@
             </h3>
         </div>
 
-        <form
-            action="{{ route('servicios-experiencias.store') }}"
-            method="POST"
-        >
+        <form action="{{ route('servicios-experiencias.store') }}" method="POST" enctype="multipart/form-data">
             @csrf
 
             <div class="card-body">
@@ -44,19 +38,12 @@
             </div>
 
             <div class="card-footer">
-                <button
-                    type="submit"
-                    class="btn btn-primary"
-                    @disabled($categorias->isEmpty())
-                >
+                <button type="submit" class="btn btn-primary" @disabled($categorias->isEmpty())>
                     <i class="fas fa-save mr-1"></i>
                     Guardar
                 </button>
 
-                <a
-                    href="{{ route('servicios-experiencias.index') }}"
-                    class="btn btn-secondary"
-                >
+                <a href="{{ route('servicios-experiencias.index') }}" class="btn btn-secondary">
                     Cancelar
                 </a>
             </div>

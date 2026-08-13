@@ -42,8 +42,8 @@
             <input type="text" name="codigo" id="codigo"
                 class="form-control
                     @error('codigo') is-invalid @enderror"
-                value="{{ old('codigo', $servicio->codigo ?? '') }}"
-                maxlength="50" placeholder="Ejemplo: VISITA_GUIADA" required>
+                value="{{ old('codigo', $servicio->codigo ?? '') }}" maxlength="50" placeholder="Ejemplo: VISITA_GUIADA"
+                required>
 
             @error('codigo')
                 <span class="invalid-feedback">
@@ -90,6 +90,65 @@
     @enderror
 </div>
 
+<div class="form-group">
+    <label for="imagen">
+        <i class="fas fa-image mr-1 text-primary"></i>
+        Imagen del servicio o experiencia
+    </label>
+
+    @if (isset($servicio) && $servicio->imagen)
+        <div class="mb-3">
+            <p class="mb-2">
+                <strong>Imagen actual</strong>
+            </p>
+
+            <img src="{{ asset('storage/' . $servicio->imagen) }}" alt="{{ $servicio->nombre }}" class="img-thumbnail"
+                style="
+                    width: 220px;
+                    height: 140px;
+                    object-fit: cover;
+                ">
+        </div>
+    @endif
+
+    <div class="custom-file">
+        <input type="file" name="imagen" id="imagen"
+            class="custom-file-input @error('imagen') is-invalid @enderror" accept="image/jpeg,image/png,image/webp">
+
+        <label class="custom-file-label" for="imagen" data-browse="Seleccionar">
+            {{ isset($servicio) && $servicio->imagen ? 'Seleccionar nueva imagen...' : 'Seleccionar imagen...' }}
+        </label>
+
+        @error('imagen')
+            <div class="invalid-feedback">
+                {{ $message }}
+            </div>
+        @enderror
+    </div>
+
+    <small class="form-text text-muted">
+        Formatos permitidos: JPG, JPEG, PNG o WEBP.
+        Tamaño máximo: 4 MB.
+
+        @if (isset($servicio) && $servicio->imagen)
+            Si selecciona una nueva imagen, reemplazará la actual.
+        @endif
+    </small>
+
+    <div id="contenedorVistaPrevia" class="mt-3" style="display: none;">
+        <p class="mb-2">
+            <strong>{{ isset($servicio) ? 'Nueva imagen' : 'Vista previa' }}</strong>
+        </p>
+
+        <img id="vistaPreviaImagen" src="" alt="Vista previa" class="img-thumbnail"
+            style="
+                width: 220px;
+                height: 140px;
+                object-fit: cover;
+            ">
+    </div>
+</div>
+
 <div class="row">
     <div class="col-md-4">
         <div class="form-group">
@@ -101,8 +160,7 @@
                 <input type="number" name="duracion_minutos" id="duracion_minutos"
                     class="form-control
                         @error('duracion_minutos') is-invalid @enderror"
-                    value="{{ old('duracion_minutos', $servicio->duracion_minutos ?? '') }}"
-                    min="1">
+                    value="{{ old('duracion_minutos', $servicio->duracion_minutos ?? '') }}" min="1">
 
                 <div class="input-group-append">
                     <span class="input-group-text">
@@ -128,8 +186,7 @@
             <input type="number" name="capacidad_minima" id="capacidad_minima"
                 class="form-control
                     @error('capacidad_minima') is-invalid @enderror"
-                value="{{ old('capacidad_minima', $servicio->capacidad_minima ?? '') }}"
-                min="1">
+                value="{{ old('capacidad_minima', $servicio->capacidad_minima ?? '') }}" min="1">
 
             @error('capacidad_minima')
                 <span class="invalid-feedback">
@@ -148,8 +205,7 @@
             <input type="number" name="capacidad_maxima" id="capacidad_maxima"
                 class="form-control
                     @error('capacidad_maxima') is-invalid @enderror"
-                value="{{ old('capacidad_maxima', $servicio->capacidad_maxima ?? '') }}"
-                min="1">
+                value="{{ old('capacidad_maxima', $servicio->capacidad_maxima ?? '') }}" min="1">
 
             @error('capacidad_maxima')
                 <span class="invalid-feedback">
@@ -178,8 +234,8 @@
                 <input type="number" name="precio" id="precio"
                     class="form-control
         @error('precio') is-invalid @enderror"
-                    value="{{ old('precio', isset($servicio) ? $servicio->precio : '') }}"
-                    min="1" step="1" required>
+                    value="{{ old('precio', isset($servicio) ? $servicio->precio : '') }}" min="1"
+                    step="1" required>
 
                 @error('precio')
                     <span class="invalid-feedback">
@@ -249,3 +305,50 @@
         </div>
     </div>
 </div>
+
+@push('js')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            const inputImagen = document.getElementById('imagen');
+            const vistaPrevia = document.getElementById('vistaPreviaImagen');
+            const contenedor = document.getElementById('contenedorVistaPrevia');
+
+            if (!inputImagen) {
+                return;
+            }
+
+            inputImagen.addEventListener('change', function() {
+
+                const archivo = this.files[0];
+
+                const label = this
+                    .closest('.custom-file')
+                    .querySelector('.custom-file-label');
+
+                if (!archivo) {
+                    label.textContent = 'Seleccionar imagen...';
+
+                    vistaPrevia.src = '';
+                    contenedor.style.display = 'none';
+
+                    return;
+                }
+
+                // Mostrar nombre del archivo seleccionado
+                label.textContent = archivo.name;
+
+                // Mostrar vista previa
+                const lector = new FileReader();
+
+                lector.onload = function(e) {
+                    vistaPrevia.src = e.target.result;
+                    contenedor.style.display = 'block';
+                };
+
+                lector.readAsDataURL(archivo);
+            });
+
+        });
+    </script>
+@endpush

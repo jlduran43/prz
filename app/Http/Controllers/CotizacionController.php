@@ -96,9 +96,7 @@ class CotizacionController extends Controller
     | DETALLE
     |--------------------------------------------------------------------------
     */
-    public function show(
-        Cotizacion $cotizacion
-    ) {
+    public function show(Cotizacion $cotizacion) {
 
         $cotizacion->load([
             'tipoCliente',

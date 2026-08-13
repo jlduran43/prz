@@ -7,21 +7,13 @@
         <h1>Detalle del servicio o experiencia</h1>
 
         <div>
-            <a
-                href="{{ route(
-                    'servicios-experiencias.edit',
-                    $servicio
-                ) }}"
-                class="btn btn-warning"
-            >
+            <a href="{{ route('servicios-experiencias.edit', $servicio) }}"
+                class="btn btn-warning">
                 <i class="fas fa-edit mr-1"></i>
                 Editar
             </a>
 
-            <a
-                href="{{ route('servicios-experiencias.index') }}"
-                class="btn btn-secondary"
-            >
+            <a href="{{ route('servicios-experiencias.index') }}" class="btn btn-secondary">
                 <i class="fas fa-arrow-left mr-1"></i>
                 Volver
             </a>
@@ -51,13 +43,9 @@
 
                 <dt class="col-sm-3">Categoría</dt>
                 <dd class="col-sm-9">
-                    {{ $servicio->categoria?->nombre
-                        ?? 'Sin categoría' }}
+                    {{ $servicio->categoria?->nombre ?? 'Sin categoría' }}
 
-                    @if (
-                        $servicio->categoria
-                        && ! $servicio->categoria->activo
-                    )
+                    @if ($servicio->categoria && !$servicio->categoria->activo)
                         <span class="badge badge-warning ml-1">
                             Categoría inactiva
                         </span>
@@ -71,9 +59,27 @@
 
                 <dt class="col-sm-3">Duración</dt>
                 <dd class="col-sm-9">
-                    {{ $servicio->duracion_minutos
-                        ? $servicio->duracion_minutos . ' minutos'
-                        : 'No definida' }}
+                    {{ $servicio->duracion_minutos ? $servicio->duracion_minutos . ' minutos' : 'No definida' }}
+                </dd>
+
+                <dt class="col-sm-3">Imagen</dt>
+                <dd class="col-sm-9">
+
+                    @if ($servicio->imagen)
+                        <img src="{{ asset('storage/' . $servicio->imagen) }}" alt="{{ $servicio->nombre }}"
+                            class="img-thumbnail"
+                            style="
+                width: 300px;
+                height: 190px;
+                object-fit: cover;
+            ">
+                    @else
+                        <span class="text-muted">
+                            <i class="fas fa-image mr-1"></i>
+                            Sin imagen registrada
+                        </span>
+                    @endif
+
                 </dd>
 
                 <dt class="col-sm-3">Capacidad mínima</dt>
@@ -88,12 +94,7 @@
 
                 <dt class="col-sm-3">Precio</dt>
                 <dd class="col-sm-9">
-                    ${{ number_format(
-                        (float) $servicio->precio,
-                        0,
-                        ',',
-                        '.'
-                    ) }}
+                    ${{ number_format((float) $servicio->precio, 0, ',', '.') }}
                 </dd>
 
                 <dt class="col-sm-3">Requiere reserva</dt>
@@ -121,6 +122,7 @@
                         </span>
                     @endif
                 </dd>
+
             </dl>
         </div>
     </div>

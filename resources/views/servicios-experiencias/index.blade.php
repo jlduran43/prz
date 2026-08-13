@@ -79,8 +79,7 @@
                             Buscar
                         </button>
 
-                        <a href="{{ route('servicios-experiencias.index') }}"
-                            class="btn btn-secondary">
+                        <a href="{{ route('servicios-experiencias.index') }}" class="btn btn-secondary">
                             Limpiar
                         </a>
                     </div>
@@ -97,6 +96,7 @@
                         <th>Categoría</th>
                         <th>Tipo de cobro</th>
                         <th class="text-center">Duración</th>
+                        <th width="100">Imagen</th>
                         <th class="text-center">Capacidad</th>
                         <th class="text-right">Precio</th>
                         <th class="text-center">Estado</th>
@@ -147,6 +147,22 @@
                                 @endif
                             </td>
 
+                            <td>
+                                @if ($servicio->imagen)
+                                    <img src="{{ asset('storage/' . $servicio->imagen) }}" alt="{{ $servicio->nombre }}"
+                                        class="img-thumbnail"
+                                        style="
+                width: 70px;
+                height: 50px;
+                object-fit: cover;
+            ">
+                                @else
+                                    <span class="text-muted">
+                                        <i class="fas fa-image"></i>
+                                    </span>
+                                @endif
+                            </td>
+
                             <td class="text-center">
                                 @if ($servicio->capacidad_minima || $servicio->capacidad_maxima)
                                     {{ $servicio->capacidad_minima ?? '—' }}
@@ -174,8 +190,8 @@
                             </td>
 
                             <td class="text-center">
-                                <a href="{{ route('servicios-experiencias.show', $servicio) }}"
-                                    class="btn btn-info btn-sm" title="Ver">
+                                <a href="{{ route('servicios-experiencias.show', $servicio) }}" class="btn btn-info btn-sm"
+                                    title="Ver">
                                     <i class="fas fa-eye"></i>
                                 </a>
 

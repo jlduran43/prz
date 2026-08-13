@@ -112,7 +112,7 @@ class ServicioExperienciaController extends Controller
                     'nullable',
                     'image',
                     'mimes:jpg,jpeg,png,webp',
-                    'max:2048',
+                    'max:4096',
                 ],
 
                 'duracion_minutos' => [
@@ -233,10 +233,8 @@ class ServicioExperienciaController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(
-        Request $request,
-        ServicioExperiencia $servicioExperiencia
-    ) {
+    public function update(Request $request, ServicioExperiencia $servicioExperiencia)
+    {
         $datos = $request->validate(
             [
                 'categoria_servicio_id' => [
@@ -263,6 +261,13 @@ class ServicioExperienciaController extends Controller
                 'descripcion' => [
                     'nullable',
                     'string',
+                ],
+
+                'imagen' => [
+                    'nullable',
+                    'image',
+                    'mimes:jpg,jpeg,png,webp',
+                    'max:4096',
                 ],
 
                 'duracion_minutos' => [
@@ -311,6 +316,25 @@ class ServicioExperienciaController extends Controller
                 'El tipo de cobro seleccionado no es válido.',
             ]
         );
+
+        if ($request->hasFile('imagen')) {
+
+            if (
+                $servicioExperiencia->imagen &&
+                Storage::disk('public')->exists(
+                    $servicioExperiencia->imagen
+                )
+            ) {
+                Storage::disk('public')->delete(
+                    $servicioExperiencia->imagen
+                );
+            }
+
+            $datos['imagen'] = $request
+                ->file('imagen')
+                ->store('servicios', 'public');
+        }
+
 
         $datos['requiere_reserva'] =
             $request->boolean('requiere_reserva');

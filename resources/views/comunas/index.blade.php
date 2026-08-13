@@ -44,11 +44,8 @@
                                     <i class="fas fa-search"></i>
                                 </span>
                             </div>
-                            <input  type="text"
-                                    name="buscar"
-                                    class="form-control"
-                                    placeholder="Buscar por código, comuna o región..."
-                                    value="{{ $busqueda }}">
+                            <input type="text" name="buscar" class="form-control"
+                                placeholder="Buscar por código, comuna o región..." value="{{ $busqueda }}">
                         </div>
                     </div>
                     <div class="col-md-2">
@@ -113,8 +110,7 @@
                                         <i class="fas fa-edit"></i>
                                     </a>
                                     <button type="button"
-                                        class="btn btn-sm
-                                            {{ $comuna->activo ? 'btn-secondary' : 'btn-success' }}"
+                                        class="btn btn-sm {{ $comuna->activo ? ' btn-secondary' : 'btn-success' }}"
                                         title="{{ $comuna->activo ? 'Desactivar' : 'Activar' }}" data-toggle="modal"
                                         data-target="#modalCambiarEstadoComuna" data-id="{{ $comuna->id }}"
                                         data-nombre="{{ $comuna->nombre }}" data-activo="{{ $comuna->activo ? 1 : 0 }}">
@@ -137,38 +133,40 @@
                 </table>
                 <div class="modal fade" id="modalCambiarEstadoComuna" tabindex="-1" role="dialog"
                     aria-labelledby="modalCambiarEstadoComunaLabel" aria-hidden="true">
+
                     <div class="modal-dialog modal-dialog-centered" role="document">
                         <div class="modal-content">
+
                             <div class="modal-header">
                                 <h5 class="modal-title" id="modalCambiarEstadoComunaLabel">
-                                    Confirmar cambio de estado
+                                    Cambiar estado
                                 </h5>
 
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
-                                    <span aria-hidden="true">
-                                        &times;
-                                    </span>
+                                    <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
 
-                            <div class="modal-body">
-                                <p id="mensajeCambiarEstadoComuna" class="mb-0"></p>
-                            </div>
+                            <form id="formCambiarEstadoComuna" method="POST">
+                                @csrf
+                                @method('PATCH')
 
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
-                                    Cancelar
-                                </button>
+                                <div class="modal-body">
+                                    <p id="mensajeCambiarEstadoComuna" class="mb-0"></p>
+                                </div>
 
-                                <form id="formCambiarEstadoComuna" method="POST">
-                                    @csrf
-                                    @method('PATCH')
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                        Cancelar
+                                    </button>
 
                                     <button type="submit" id="botonConfirmarEstadoComuna" class="btn">
                                         Confirmar
                                     </button>
-                                </form>
-                            </div>
+                                </div>
+
+                            </form>
+
                         </div>
                     </div>
                 </div>
@@ -189,73 +187,5 @@
 
 @stop
 @section('js')
-    <script>
-        $('#modalCambiarEstadoComuna').on(
-            'show.bs.modal',
-            function (event) {
-                const boton = $(event.relatedTarget);
-
-                const id = boton.data('id');
-                const nombre = boton.data('nombre');
-                const activo = Number(
-                    boton.data('activo')
-                );
-
-                const modal = $(this);
-
-                const formulario = modal.find(
-                    '#formCambiarEstadoComuna'
-                );
-
-                const mensaje = modal.find(
-                    '#mensajeCambiarEstadoComuna'
-                );
-
-                const botonConfirmar = modal.find(
-                    '#botonConfirmarEstadoComuna'
-                );
-
-                formulario.attr(
-                    'action',
-                    '{{ url('comunas') }}/'
-                        + id
-                        + '/cambiar-estado'
-                );
-
-                if (activo === 1) {
-                    modal.find('.modal-title').text(
-                        'Desactivar comuna'
-                    );
-
-                    mensaje.html(
-                        '¿Deseas desactivar la comuna '
-                        + '<strong>'
-                        + nombre
-                        + '</strong>?'
-                    );
-
-                    botonConfirmar
-                        .removeClass('btn-success')
-                        .addClass('btn-danger')
-                        .text('Sí, desactivar');
-                } else {
-                    modal.find('.modal-title').text(
-                        'Activar comuna'
-                    );
-
-                    mensaje.html(
-                        '¿Deseas activar la comuna '
-                        + '<strong>'
-                        + nombre
-                        + '</strong>?'
-                    );
-
-                    botonConfirmar
-                        .removeClass('btn-danger')
-                        .addClass('btn-success')
-                        .text('Sí, activar');
-                }
-            }
-        );
-    </script>
+        <script src = "{{ asset('js/comunas/index.js') }}" ></script>
 @stop

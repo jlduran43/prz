@@ -2015,6 +2015,7 @@ class ReservaWizardController extends Controller
                     'servicios_experiencias.id',
                     'servicios_experiencias.nombre',
                     'servicios_experiencias.descripcion',
+                    'servicios_experiencias.imagen',
                     'servicios_experiencias.duracion_minutos',
                     'servicios_experiencias.capacidad_minima',
                     'servicios_experiencias.capacidad_maxima',
@@ -2035,6 +2036,9 @@ class ReservaWizardController extends Controller
 
                         'descripcion' =>
                         $servicio->descripcion,
+
+                        'imagen' =>
+                        $servicio->imagen,
 
                         'duracion_minutos' =>
                         $servicio->duracion_minutos,
@@ -2112,6 +2116,7 @@ class ReservaWizardController extends Controller
                 'id',
                 'categoria_servicio_id',
                 'nombre',
+                'imagen',
                 'duracion_minutos',
                 'capacidad_maxima',
                 'precio',
@@ -2433,7 +2438,8 @@ class ReservaWizardController extends Controller
         ];
     }
 
-    private function calcularTotalesReserva(array $datosCliente,array $datosReserva): array {
+    private function calcularTotalesReserva(array $datosCliente, array $datosReserva): array
+    {
         $codigoTipoCliente =
             $datosCliente['codigo_tipo_cliente']
             ?? $datosCliente['tipo_cliente_codigo']
