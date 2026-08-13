@@ -178,9 +178,7 @@ class ComunaController extends Controller
             ->with('success', 'Comuna eliminada correctamente.');
     }
 
-    public function cambiarEstado(
-        Comuna $comuna
-    ): RedirectResponse {
+    public function cambiarEstado(Comuna $comuna): RedirectResponse {
         $comuna->update([
             'activo' => ! $comuna->activo,
         ]);

@@ -3,16 +3,20 @@
 @section('title', 'Editar tipo de cliente')
 
 @section('content_header')
-    <h1>Editar tipo de cliente</h1>
+    <div class="d-flex justify-content-between align-items-center">
+        <h1>Editar tipo de cliente</h1>
+    </div>
 @stop
 
 @section('content')
-    <div class="card card-outline card-warning">
-        <form   method="POST"
-                action="{{ route(
-                    'tipos-cliente.update',
-                    $tipoCliente
-                ) }}">
+    <div class="card card-warning">
+        <div class="card-header">
+            <h3 class="card-title">
+                Editar {{ $tipoCliente->nombre }}
+            </h3>
+        </div>
+        <form method="POST"
+            action="{{ route('tipos-cliente.update', $tipoCliente) }}">
 
             @csrf
             @method('PUT')

@@ -8,6 +8,7 @@ use App\Http\Controllers\ReservaWizardController;
 use App\Http\Controllers\ServicioExperienciaController;
 use App\Http\Controllers\ConvenioController;
 use App\Http\Controllers\TipoClienteController;
+use App\Http\Controllers\CotizacionController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -280,3 +281,28 @@ Route::controller(ReservaWizardController::class)
             'comunasPorRegion'
         )->name('comunas-por-region');
     });
+
+/*
+|--------------------------------------------------------------------------
+| COTIZACIONES
+|--------------------------------------------------------------------------
+*/
+Route::get(
+    '/cotizaciones',
+    [CotizacionController::class, 'index']
+)->name('cotizaciones.index');
+
+Route::post(
+    '/cotizaciones/generar',
+    [ReservaWizardController::class, 'generarCotizacion']
+)->name('cotizaciones.generar');
+
+Route::get(
+    '/cotizaciones/{cotizacion}/pdf',
+    [CotizacionController::class, 'pdf']
+)->name('cotizaciones.pdf');
+
+Route::get(
+    '/cotizaciones/{cotizacion}',
+    [CotizacionController::class, 'show']
+)->name('cotizaciones.show');

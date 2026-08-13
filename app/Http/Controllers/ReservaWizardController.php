@@ -7,17 +7,21 @@ use App\Models\Comuna;
 use App\Models\ConfiguracionReserva;
 use App\Models\Convenio;
 use App\Models\HorarioDisponible;
-use Illuminate\Http\Request;
 use App\Models\Region;
 use App\Models\Reserva;
 use App\Models\ServicioExperiencia;
 use App\Models\TipoCliente;
+use App\Models\Cotizacion;
+use App\Models\CotizacionServicio;
 use App\Rules\RutChileno;
+use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 use Carbon\Carbon;
+use Throwable;
 
 class ReservaWizardController extends Controller
 {
@@ -844,6 +848,430 @@ class ReservaWizardController extends Controller
                 'total'
             )
         );
+    }
+
+    public function generarCotizacion(): RedirectResponse
+    {
+        /*
+    |--------------------------------------------------------------------------
+    | 1. VALIDAR OPERACIÓN
+    |--------------------------------------------------------------------------
+    */
+        $tipoOperacion =
+            session('reserva.tipo_operacion');
+
+        if ($tipoOperacion !== 'COTIZACION') {
+
+            return redirect()
+                ->route('reservas.operacion')
+                ->with(
+                    'error',
+                    'La operación actual no corresponde a una cotización.'
+                );
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | 2. RECUPERAR WIZARD
+    |--------------------------------------------------------------------------
+    */
+        $datosCliente =
+            session('reserva.cliente');
+
+        $datosReserva =
+            session('reserva.datos');
+
+        if (
+            empty($datosCliente)
+            || empty($datosReserva)
+        ) {
+
+            return redirect()
+                ->route('reservas.cliente')
+                ->with(
+                    'error',
+                    'La información de la cotización está incompleta.'
+                );
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | 3. VALIDAR SERVICIOS
+    |--------------------------------------------------------------------------
+    */
+        $selecciones = array_values(
+            $datosReserva['servicios'] ?? []
+        );
+
+        if (
+            count($selecciones) < 1
+            || count($selecciones) > 2
+        ) {
+
+            return redirect()
+                ->route('reservas.datos')
+                ->withErrors([
+                    'servicios' =>
+                    'Debes seleccionar entre uno y dos servicios.',
+                ]);
+        }
+
+        try {
+
+            /*
+        |--------------------------------------------------------------------------
+        | 4. RECALCULAR TODO EN EL SERVIDOR
+        |--------------------------------------------------------------------------
+        |
+        | No utilizamos valores enviados por JavaScript.
+        |
+        */
+            $calculo =
+                $this->calcularTotalesReserva(
+                    $datosCliente,
+                    $datosReserva
+                );
+
+            /*
+        |--------------------------------------------------------------------------
+        | 5. TIPO CLIENTE
+        |--------------------------------------------------------------------------
+        */
+            $codigoTipoCliente =
+                $datosCliente['codigo_tipo_cliente']
+                ?? $datosCliente['tipo_cliente_codigo']
+                ?? null;
+
+            $esEstablecimiento =
+                $codigoTipoCliente
+                === 'ESTABLECIMIENTO_EDUCACIONAL';
+
+            /*
+        |--------------------------------------------------------------------------
+        | 6. REVALIDAR CONVENIO
+        |--------------------------------------------------------------------------
+        */
+            $convenio = null;
+
+            $convenioSesion =
+                session('reserva.convenio');
+
+            if (
+                $esEstablecimiento
+                && $convenioSesion
+                && !empty($convenioSesion['codigo'])
+            ) {
+
+                $convenio =
+                    $this->obtenerConvenioValido(
+                        $convenioSesion['codigo'],
+                        $datosCliente
+                    );
+            }
+
+            /*
+        |--------------------------------------------------------------------------
+        | 7. RESUMEN FINAL
+        |--------------------------------------------------------------------------
+        */
+            $resumen =
+                $this->calcularResumen(
+                    (float) $calculo['subtotal'],
+
+                    $convenio
+                        ? [
+                            'porcentaje_descuento' =>
+                            (float)
+                            $convenio
+                                ->porcentaje_descuento,
+                        ]
+                        : null
+                );
+
+            /*
+        |--------------------------------------------------------------------------
+        | 8. GUARDAR COTIZACIÓN
+        |--------------------------------------------------------------------------
+        */
+            $cotizacion =
+                DB::transaction(
+                    function () use (
+                        $datosCliente,
+                        $datosReserva,
+                        $calculo,
+                        $resumen,
+                        $convenio
+                    ) {
+
+                        /*
+                    |--------------------------------------------------------------------------
+                    | CABECERA
+                    |--------------------------------------------------------------------------
+                    */
+                        $cotizacion =
+                            Cotizacion::query()
+                            ->create([
+
+                                /*
+                                 * El folio se genera después,
+                                 * cuando ya conocemos el ID.
+                                 */
+                                'folio' =>
+                                null,
+
+                                /*
+                                 * Esto nos deja preparada
+                                 * la futura URL pública segura.
+                                 */
+                                'token_acceso' =>
+                                Str::random(64),
+
+                                /*
+                                |--------------------------------------------------------------------------
+                                | CLIENTE
+                                |--------------------------------------------------------------------------
+                                */
+                                'tipo_cliente_id' =>
+                                $datosCliente['tipo_cliente_id'],
+
+                                'nombres' =>
+                                $datosCliente['nombres'] ?? null,
+
+                                'apellidos' =>
+                                $datosCliente['apellidos'] ?? null,
+
+                                'rut_persona' =>
+                                $datosCliente['rut_persona'] ?? null,
+
+                                'nombre_entidad' =>
+                                $datosCliente['nombre_entidad'] ?? null,
+
+                                'rut_entidad' =>
+                                $datosCliente['rut_entidad'] ?? null,
+
+                                'nombre_encargado' =>
+                                $datosCliente['nombre_encargado'] ?? null,
+
+                                'rut_encargado' =>
+                                $datosCliente['rut_encargado'] ?? null,
+
+                                'email' =>
+                                $datosCliente['email'],
+
+                                'telefono' =>
+                                $datosCliente['telefono'],
+
+                                'region_id' =>
+                                $datosCliente['region_id'] ?? null,
+
+                                'comuna_id' =>
+                                $datosCliente['comuna_id'] ?? null,
+
+                                /*
+                                |--------------------------------------------------------------------------
+                                | ASISTENTES
+                                |--------------------------------------------------------------------------
+                                */
+                                'cantidad_asistentes' =>
+                                (int)
+                                $calculo['cantidad_asistentes'],
+
+                                /*
+                                |--------------------------------------------------------------------------
+                                | EDUCACIÓN
+                                |--------------------------------------------------------------------------
+                                */
+                                'cantidad_alumnos' =>
+                                $datosReserva['cantidad_alumnos'] ?? null,
+
+                                'cantidad_profesores' =>
+                                $datosReserva['cantidad_profesores'] ?? null,
+
+                                'nivel_educacional' =>
+                                $datosReserva['nivel_educacional'] ?? null,
+
+                                'curso' =>
+                                $datosReserva['curso'] ?? null,
+
+                                'objetivo_visita' =>
+                                $datosReserva['objetivo_visita'] ?? null,
+
+                                /*
+                                |--------------------------------------------------------------------------
+                                | CONVENIO
+                                |--------------------------------------------------------------------------
+                                */
+                                'convenio_id' =>
+                                $convenio?->id,
+
+                                'codigo_convenio' =>
+                                $convenio?->codigo,
+
+                                'nombre_convenio' =>
+                                $convenio?->nombre,
+
+                                'porcentaje_descuento' =>
+                                $resumen['porcentaje_descuento'],
+
+                                /*
+                                |--------------------------------------------------------------------------
+                                | TOTALES
+                                |--------------------------------------------------------------------------
+                                */
+                                'subtotal' =>
+                                $resumen['subtotal'],
+
+                                'descuento' =>
+                                $resumen['descuento'],
+
+                                'total' =>
+                                $resumen['total'],
+
+                                /*
+                                |--------------------------------------------------------------------------
+                                | ESTADO
+                                |--------------------------------------------------------------------------
+                                */
+                                'estado' =>
+                                'EMITIDA',
+
+                                'fecha_emision' =>
+                                now(),
+
+                                /*
+                                 * Lo dejamos sin fecha
+                                 * hasta definir la vigencia.
+                                 */
+                                'fecha_vencimiento' =>
+                                null,
+                            ]);
+
+                        /*
+                    |--------------------------------------------------------------------------
+                    | GENERAR FOLIO
+                    |--------------------------------------------------------------------------
+                    |
+                    | ID 1   -> COT-000001
+                    | ID 25  -> COT-000025
+                    | ID 123 -> COT-000123
+                    |
+                    */
+                        $folio =
+                            'COT-'
+                            . str_pad(
+                                (string)
+                                $cotizacion->id,
+                                6,
+                                '0',
+                                STR_PAD_LEFT
+                            );
+
+                        $cotizacion->update([
+                            'folio' => $folio,
+                        ]);
+
+                        /*
+                    |--------------------------------------------------------------------------
+                    | SERVICIOS
+                    |--------------------------------------------------------------------------
+                    */
+                        foreach (
+                            $calculo['servicios']
+                            as $indice => $detalle
+                        ) {
+
+                            $servicio =
+                                $detalle['servicio'];
+
+                            CotizacionServicio::query()
+                                ->create([
+
+                                    'cotizacion_id' =>
+                                    $cotizacion->id,
+
+                                    'servicio_experiencia_id' =>
+                                    $servicio->id,
+
+                                    /*
+                                 * Fotografía del nombre.
+                                 */
+                                    'nombre_servicio' =>
+                                    $servicio->nombre,
+
+                                    'precio_unitario' =>
+                                    $detalle['precio'],
+
+                                    'tipo_cobro' =>
+                                    $servicio->tipo_cobro,
+
+                                    'cantidad_asistentes' =>
+                                    $detalle['cantidad_asistentes'],
+
+                                    'personas_pagadas' =>
+                                    $detalle['personas_pagadas'],
+
+                                    'entradas_liberadas' =>
+                                    $detalle['entradas_liberadas'],
+
+                                    'subtotal' =>
+                                    $detalle['subtotal'],
+
+                                    'orden' =>
+                                    $indice + 1,
+                                ]);
+                        }
+
+                        return $cotizacion;
+                    },
+                    3
+                );
+        } catch (ValidationException $exception) {
+
+            return redirect()
+                ->route(
+                    'reservas.confirmacion'
+                )
+                ->withErrors(
+                    $exception->errors()
+                );
+        } catch (Throwable $exception) {
+
+            report($exception);
+
+            return redirect()
+                ->route(
+                    'reservas.confirmacion'
+                )
+                ->with(
+                    'error',
+                    'No fue posible generar la cotización. Intenta nuevamente.'
+                );
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | 9. LIMPIAR WIZARD
+    |--------------------------------------------------------------------------
+    |
+    | La cotización ya quedó registrada.
+    |
+    */
+        session()->forget('reserva');
+
+        /*
+    |--------------------------------------------------------------------------
+    | 10. MOSTRAR RESULTADO
+    |--------------------------------------------------------------------------
+    */
+        return redirect()
+            ->route(
+                'cotizaciones.show',
+                $cotizacion
+            )
+            ->with(
+                'success',
+                "La cotización {$cotizacion->folio} fue generada correctamente."
+            );
     }
 
     public function finalizar(): RedirectResponse
@@ -2005,10 +2433,7 @@ class ReservaWizardController extends Controller
         ];
     }
 
-    private function calcularTotalesReserva(
-        array $datosCliente,
-        array $datosReserva
-    ): array {
+    private function calcularTotalesReserva(array $datosCliente,array $datosReserva): array {
         $codigoTipoCliente =
             $datosCliente['codigo_tipo_cliente']
             ?? $datosCliente['tipo_cliente_codigo']

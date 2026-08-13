@@ -54,7 +54,6 @@
                                     placeholder="Buscar por código o nombre...">
                         </div>
                     </div>
-
                     <div class="col-md-2">
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-search"></i>
@@ -71,14 +70,14 @@
         </div>
 
         <div class="card-body table-responsive p-0">
-            <table class="table table-hover table-striped">
+            <table class="table table-hover table-nowrap">
                 <thead>
                     <tr>
                         <th>Código</th>
                         <th>Nombre</th>
                         <th>Comunas</th>
                         <th>Estado</th>
-                        <th class="text-center">Acciones</th>
+                        <th class="text-right">Acciones</th>
                     </tr>
                 </thead>
 

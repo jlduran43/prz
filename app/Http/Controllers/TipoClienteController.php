@@ -111,10 +111,7 @@ class TipoClienteController extends Controller
             ->with('success', $mensaje);
     }
 
-    private function validarDatos(
-        Request $request,
-        ?TipoCliente $tipoCliente = null
-    ): array {
+    private function validarDatos(Request $request, ?TipoCliente $tipoCliente = null): array {
         return $request->validate(
             [
                 'codigo' => [

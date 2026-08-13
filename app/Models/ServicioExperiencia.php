@@ -17,6 +17,7 @@ class ServicioExperiencia extends Model
         'codigo',
         'nombre',
         'descripcion',
+        'imagen',
         'duracion_minutos',
         'capacidad_minima',
         'capacidad_maxima',

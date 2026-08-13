@@ -173,9 +173,7 @@ class RegionController extends Controller
             ->with('success', 'La región fue eliminada correctamente.');
     }
 
-    public function cambiarEstado(
-        Region $region
-    ): RedirectResponse {
+    public function cambiarEstado(Region $region): RedirectResponse {
         $region->update([
             'activo' => ! $region->activo,
         ]);

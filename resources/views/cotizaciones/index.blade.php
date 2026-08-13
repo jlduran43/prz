@@ -1,0 +1,253 @@
+@extends('adminlte::page')
+
+@section('title', 'Cotizaciones')
+
+@section('content_header')
+    <div class="d-flex justify-content-between align-items-center">
+
+        <h1 class="m-0">
+            Cotizaciones
+        </h1>
+
+        <a
+            href="{{ route('reservas.operacion') }}"
+            class="btn btn-primary"
+        >
+            <i class="fas fa-plus mr-1"></i>
+            Nueva cotización
+        </a>
+
+    </div>
+@stop
+
+
+@section('content')
+
+    @if (session('success'))
+        <div class="alert alert-success alert-dismissible fade show">
+
+            <i class="fas fa-check-circle mr-1"></i>
+
+            {{ session('success') }}
+
+            <button
+                type="button"
+                class="close"
+                data-dismiss="alert"
+            >
+                <span>&times;</span>
+            </button>
+
+        </div>
+    @endif
+
+
+    <div class="card">
+
+        <div class="card-header">
+
+            <form
+                method="GET"
+                action="{{ route('cotizaciones.index') }}"
+            >
+
+                <div class="row align-items-center">
+
+                    <div class="col-md-9">
+
+                        <div class="input-group">
+
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                            </div>
+
+                            <input
+                                type="text"
+                                name="buscar"
+                                class="form-control"
+                                value="{{ $buscar }}"
+                                placeholder="Buscar por folio, cliente o correo..."
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="col-md-3 mt-2 mt-md-0">
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                        >
+                            <i class="fas fa-search mr-1"></i>
+                            Buscar
+                        </button>
+
+                        <a
+                            href="{{ route('cotizaciones.index') }}"
+                            class="btn btn-secondary ml-1"
+                        >
+                            <i class="fas fa-eraser mr-1"></i>
+                            Limpiar
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </form>
+
+        </div>
+
+
+        <div class="card-body table-responsive p-0">
+
+            <table class="table table-hover">
+
+                <thead>
+                    <tr>
+                        <th>Folio</th>
+                        <th>Cliente</th>
+                        <th>Fecha</th>
+                        <th>Asistentes</th>
+                        <th class="text-right">
+                            Total
+                        </th>
+                        <th>Estado</th>
+                        <th class="text-right">
+                            Acciones
+                        </th>
+                    </tr>
+                </thead>
+
+                <tbody>
+
+                    @forelse ($cotizaciones as $cotizacion)
+
+                        @php
+                            $nombreCliente =
+                                $cotizacion->nombre_entidad
+                                ?: trim(
+                                    ($cotizacion->nombres ?? '')
+                                    . ' '
+                                    . ($cotizacion->apellidos ?? '')
+                                );
+                        @endphp
+
+                        <tr>
+
+                            <td>
+                                <strong>
+                                    {{ $cotizacion->folio }}
+                                </strong>
+                            </td>
+
+                            <td>
+                                {{ $nombreCliente ?: '-' }}
+
+                                <div class="small text-muted">
+                                    {{ $cotizacion->email }}
+                                </div>
+                            </td>
+
+                            <td>
+                                {{
+                                    $cotizacion
+                                        ->fecha_emision
+                                        ->format('d/m/Y H:i')
+                                }}
+                            </td>
+
+                            <td>
+                                {{ $cotizacion->cantidad_asistentes }}
+                            </td>
+
+                            <td class="text-right">
+                                <strong>
+                                    ${{
+                                        number_format(
+                                            $cotizacion->total,
+                                            0,
+                                            ',',
+                                            '.'
+                                        )
+                                    }}
+                                </strong>
+                            </td>
+
+                            <td>
+
+                                @switch($cotizacion->estado)
+
+                                    @case('EMITIDA')
+                                        <span class="badge badge-info">
+                                            Emitida
+                                        </span>
+                                        @break
+
+                                    @case('CONVERTIDA_RESERVA')
+                                        <span class="badge badge-success">
+                                            Convertida en reserva
+                                        </span>
+                                        @break
+
+                                    @case('ANULADA')
+                                        <span class="badge badge-secondary">
+                                            Anulada
+                                        </span>
+                                        @break
+
+                                @endswitch
+
+                            </td>
+
+                            <td class="text-right">
+
+                                <a
+                                    href="{{
+                                        route(
+                                            'cotizaciones.show',
+                                            $cotizacion
+                                        )
+                                    }}"
+                                    class="btn btn-info btn-sm"
+                                    title="Ver cotización"
+                                >
+                                    <i class="fas fa-eye"></i>
+                                </a>
+
+                            </td>
+
+                        </tr>
+
+                    @empty
+
+                        <tr>
+                            <td
+                                colspan="7"
+                                class="text-center py-4 text-muted"
+                            >
+                                No hay cotizaciones registradas.
+                            </td>
+                        </tr>
+
+                    @endforelse
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+
+        @if ($cotizaciones->hasPages())
+            <div class="card-footer">
+                {{ $cotizaciones->links() }}
+            </div>
+        @endif
+
+    </div>
+@stop

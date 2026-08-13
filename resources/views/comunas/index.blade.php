@@ -37,18 +37,24 @@
     @endif
 
     <div class="card">
-
         <div class="card-header">
-
             <form action="{{ route('comunas.index') }}" method="GET">
-                <div class="row">
-
-                    <div class="col-md-4">
-                        <input type="text" name="buscar" class="form-control"
-                            placeholder="Buscar por código, comuna o región..." value="{{ $busqueda }}">
+                <div class="row align-items-center">
+                    <div class="col-md-10">
+                        <div class="input-group">
+                            <div class="input-group-prepend">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                            </div>
+                            <input  type="text"
+                                    name="buscar"
+                                    class="form-control"
+                                    placeholder="Buscar por código, comuna o región..."
+                                    value="{{ $busqueda }}">
+                        </div>
                     </div>
-
-                    <div class="col-md-auto">
+                    <div class="col-md-2">
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-search"></i>
                             Buscar
@@ -89,7 +95,7 @@
                             <tr>
 
                                 <td>
-                                    {{ $comuna->codigo }}
+                                    <strong>{{ $comuna->codigo }}</strong>
                                 </td>
 
                                 <td>

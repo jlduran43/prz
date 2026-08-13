@@ -53,23 +53,21 @@
                     </div>
 
                     <div class="col-md-2">
-                        <div class="d-flex">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-search"></i>
-                                Buscar
-                            </button>
-                            <a href="{{ route('tipos-cliente.index') }}" class="btn btn-secondary ml-1">
-                                <i class="fas fa-eraser mr-1"></i>
-                                Limpiar
-                            </a>
-                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i>
+                            Buscar
+                        </button>
+                        <a href="{{ route('tipos-cliente.index') }}" class="btn btn-secondary ml-1">
+                            <i class="fas fa-eraser mr-1"></i>
+                            Limpiar
+                        </a>
                     </div>
                 </div>
             </form>
         </div>
 
         <div class="card-body table-responsive p-0">
-            <table class="table table-hover text-nowrap">
+            <table class="table table-hover">
                 <thead>
                     <tr>
                         <th>Código</th>
@@ -107,7 +105,7 @@
                                     </span>
                                 @endif
                             </td>
-                            <td class="text-right">
+                            <td class="text-right text-nowrap">
                                 <a href="{{ route('tipos-cliente.show', $tipoCliente) }}" class="btn btn-info btn-sm"
                                     title="Ver">
                                     <i class="fas fa-eye"></i>
@@ -138,19 +136,15 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center py-4">
+                            <td colspan="5" class="text-center py-4">
                                 No hay tipos de cliente registrados.
                             </td>
                         </tr>
                     @endforelse
                 </tbody>
             </table>
-            <div    class="modal fade"
-                    id="modalCambiarEstado"
-                    tabindex="-1"
-                    role="dialog"
-                    aria-labelledby="modalCambiarEstadoLabel"
-                    aria-hidden="true">
+            <div class="modal fade" id="modalCambiarEstado" tabindex="-1" role="dialog"
+                aria-labelledby="modalCambiarEstadoLabel" aria-hidden="true">
 
                 <div class="modal-dialog modal-dialog-centered" role="document">
                     <div class="modal-content">

@@ -6,6 +6,7 @@ use App\Models\CategoriaServicio;
 use App\Models\ServicioExperiencia;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 
 class ServicioExperienciaController extends Controller
 {
@@ -107,6 +108,13 @@ class ServicioExperienciaController extends Controller
                     'string',
                 ],
 
+                'imagen' => [
+                    'nullable',
+                    'image',
+                    'mimes:jpg,jpeg,png,webp',
+                    'max:2048',
+                ],
+
                 'duracion_minutos' => [
                     'nullable',
                     'integer',
@@ -148,11 +156,24 @@ class ServicioExperienciaController extends Controller
             [
                 'tipo_cobro.required' =>
                 'Debes seleccionar el tipo de cobro.',
-
                 'tipo_cobro.in' =>
                 'El tipo de cobro seleccionado no es válido.',
+
+                'imagen.image' => 'El archivo seleccionado debe ser una imagen.',
+                'imagen.mimes' => 'La imagen debe ser JPG, JPEG, PNG o WebP.',
+                'imagen.max' => 'La imagen no puede superar los 2 MB.',
             ]
         );
+
+        if ($request->hasFile('imagen')) {
+
+            $datos['imagen'] = $request
+                ->file('imagen')
+                ->store(
+                    'servicios',
+                    'public'
+                );
+        }
 
         $datos['requiere_reserva'] =
             $request->boolean('requiere_reserva');
