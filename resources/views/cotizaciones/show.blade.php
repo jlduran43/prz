@@ -1,9 +1,6 @@
 @extends('adminlte::page')
 
-@section(
-    'title',
-    'Cotización ' . $cotizacion->folio
-)
+@section('title', 'Cotización ' . $cotizacion->folio)
 
 
 @section('content_header')
@@ -24,7 +21,6 @@
 @section('content')
 
     @if (session('success'))
-
         <div
             class="
                 alert
@@ -32,24 +28,17 @@
                 alert-dismissible
                 fade
                 show
-            "
-        >
+            ">
 
             <i class="fas fa-check-circle mr-2"></i>
 
             {{ session('success') }}
 
-            <button
-                type="button"
-                class="close"
-                data-dismiss="alert"
-                aria-label="Cerrar"
-            >
+            <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
                 <span>&times;</span>
             </button>
 
         </div>
-
     @endif
 
 
@@ -75,19 +64,11 @@
 
                 Emitida el
 
-                {{
-                    $cotizacion
-                        ->fecha_emision
-                        ->format('d/m/Y')
-                }}
+                {{ $cotizacion->fecha_emision->format('d/m/Y') }}
 
                 a las
 
-                {{
-                    $cotizacion
-                        ->fecha_emision
-                        ->format('H:i')
-                }}
+                {{ $cotizacion->fecha_emision->format('H:i') }}
 
             </div>
 
@@ -136,29 +117,17 @@
                         </dt>
 
                         <dd class="col-sm-7">
-                            {{
-                                $cotizacion
-                                    ->tipoCliente
-                                    ->nombre
-                                ?? '-'
-                            }}
+                            {{ $cotizacion->tipoCliente->nombre ?? '-' }}
                         </dd>
 
 
                         @if ($cotizacion->rut_persona)
-
                             <dt class="col-sm-5">
                                 Nombre
                             </dt>
 
                             <dd class="col-sm-7">
-                                {{
-                                    trim(
-                                        $cotizacion->nombres
-                                        . ' '
-                                        . $cotizacion->apellidos
-                                    )
-                                }}
+                                {{ trim($cotizacion->nombres . ' ' . $cotizacion->apellidos) }}
                             </dd>
 
                             <dt class="col-sm-5">
@@ -168,18 +137,13 @@
                             <dd class="col-sm-7">
                                 {{ $cotizacion->rut_persona }}
                             </dd>
-
                         @else
-
                             <dt class="col-sm-5">
                                 Entidad
                             </dt>
 
                             <dd class="col-sm-7">
-                                {{
-                                    $cotizacion->nombre_entidad
-                                    ?? '-'
-                                }}
+                                {{ $cotizacion->nombre_entidad ?? '-' }}
                             </dd>
 
                             <dt class="col-sm-5">
@@ -187,10 +151,7 @@
                             </dt>
 
                             <dd class="col-sm-7">
-                                {{
-                                    $cotizacion->rut_entidad
-                                    ?? '-'
-                                }}
+                                {{ $cotizacion->rut_entidad ?? '-' }}
                             </dd>
 
                             <dt class="col-sm-5">
@@ -198,12 +159,8 @@
                             </dt>
 
                             <dd class="col-sm-7">
-                                {{
-                                    $cotizacion->nombre_encargado
-                                    ?? '-'
-                                }}
+                                {{ $cotizacion->nombre_encargado ?? '-' }}
                             </dd>
-
                         @endif
 
 
@@ -230,12 +187,7 @@
                         </dt>
 
                         <dd class="col-sm-7">
-                            {{
-                                $cotizacion
-                                    ->region
-                                    ->nombre
-                                ?? '-'
-                            }}
+                            {{ $cotizacion->region->nombre ?? '-' }}
                         </dd>
 
 
@@ -244,12 +196,7 @@
                         </dt>
 
                         <dd class="col-sm-7">
-                            {{
-                                $cotizacion
-                                    ->comuna
-                                    ->nombre
-                                ?? '-'
-                            }}
+                            {{ $cotizacion->comuna->nombre ?? '-' }}
                         </dd>
 
                     </dl>
@@ -289,18 +236,14 @@
                             d-flex
                             justify-content-between
                             pb-3
-                        "
-                    >
+                        ">
 
                         <span>
                             Cantidad de asistentes
                         </span>
 
                         <strong>
-                            {{
-                                $cotizacion
-                                    ->cantidad_asistentes
-                            }}
+                            {{ $cotizacion->cantidad_asistentes }}
                         </strong>
 
                     </div>
@@ -312,29 +255,20 @@
                             justify-content-between
                             py-3
                             border-top
-                        "
-                    >
+                        ">
 
                         <span>
                             Subtotal
                         </span>
 
                         <strong>
-                            ${{
-                                number_format(
-                                    $cotizacion->subtotal,
-                                    0,
-                                    ',',
-                                    '.'
-                                )
-                            }}
+                            ${{ number_format($cotizacion->subtotal, 0, ',', '.') }}
                         </strong>
 
                     </div>
 
 
                     @if ($cotizacion->descuento > 0)
-
                         <div class="border-top pt-3">
 
                             <div
@@ -343,8 +277,7 @@
                                     alert-success
                                     py-2
                                     mb-3
-                                "
-                            >
+                                ">
 
                                 <div class="font-weight-bold">
 
@@ -355,10 +288,7 @@
                                 </div>
 
                                 <div class="mt-1">
-                                    {{
-                                        $cotizacion
-                                            ->nombre_convenio
-                                    }}
+                                    {{ $cotizacion->nombre_convenio }}
                                 </div>
 
                                 <small>
@@ -366,21 +296,12 @@
                                     Código:
 
                                     <strong>
-                                        {{
-                                            $cotizacion
-                                                ->codigo_convenio
-                                        }}
+                                        {{ $cotizacion->codigo_convenio }}
                                     </strong>
 
                                     ·
 
-                                    {{
-                                        number_format(
-                                            $cotizacion
-                                                ->porcentaje_descuento,
-                                            0
-                                        )
-                                    }}%
+                                    {{ number_format($cotizacion->porcentaje_descuento, 0) }}%
 
                                 </small>
 
@@ -392,8 +313,7 @@
                                     d-flex
                                     justify-content-between
                                     pb-3
-                                "
-                            >
+                                ">
 
                                 <span>
                                     Descuento
@@ -401,21 +321,13 @@
 
                                 <strong class="text-success">
 
-                                    -${{
-                                        number_format(
-                                            $cotizacion->descuento,
-                                            0,
-                                            ',',
-                                            '.'
-                                        )
-                                    }}
+                                    -${{ number_format($cotizacion->descuento, 0, ',', '.') }}
 
                                 </strong>
 
                             </div>
 
                         </div>
-
                     @endif
 
 
@@ -426,8 +338,7 @@
                                 d-flex
                                 justify-content-between
                                 align-items-center
-                            "
-                        >
+                            ">
 
                             <span class="h5 mb-0">
                                 Total estimado
@@ -438,17 +349,9 @@
                                     h3
                                     mb-0
                                     text-primary
-                                "
-                            >
+                                ">
 
-                                ${{
-                                    number_format(
-                                        $cotizacion->total,
-                                        0,
-                                        ',',
-                                        '.'
-                                    )
-                                }}
+                                ${{ number_format($cotizacion->total, 0, ',', '.') }}
 
                             </strong>
 
@@ -523,20 +426,13 @@
 
                 <tbody>
 
-                    @foreach (
-                        $cotizacion->servicios
-                        as $detalle
-                    )
-
+                    @foreach ($cotizacion->servicios as $detalle)
                         <tr>
 
                             <td>
 
                                 <strong>
-                                    {{
-                                        $detalle
-                                            ->nombre_servicio
-                                    }}
+                                    {{ $detalle->nombre_servicio }}
                                 </strong>
 
                             </td>
@@ -544,47 +440,24 @@
 
                             <td>
 
-                                {{
-                                    $detalle->tipo_cobro
-                                    === 'POR_PERSONA'
-                                        ? 'Por persona'
-                                        : 'Por grupo'
-                                }}
+                                {{ $detalle->tipo_cobro === 'POR_PERSONA' ? 'Por persona' : 'Por grupo' }}
 
                             </td>
 
 
                             <td class="text-right">
 
-                                ${{
-                                    number_format(
-                                        $detalle
-                                            ->precio_unitario,
-                                        0,
-                                        ',',
-                                        '.'
-                                    )
-                                }}
+                                ${{ number_format($detalle->precio_unitario, 0, ',', '.') }}
 
                             </td>
 
 
                             <td class="text-center">
 
-                                @if (
-                                    $detalle->tipo_cobro
-                                    === 'POR_PERSONA'
-                                )
-
-                                    {{
-                                        $detalle
-                                            ->personas_pagadas
-                                    }}
-
+                                @if ($detalle->tipo_cobro === 'POR_PERSONA')
+                                    {{ $detalle->personas_pagadas }}
                                 @else
-
                                     -
-
                                 @endif
 
                             </td>
@@ -592,31 +465,19 @@
 
                             <td class="text-center">
 
-                                @if (
-                                    $detalle
-                                        ->entradas_liberadas
-                                    > 0
-                                )
-
+                                @if ($detalle->entradas_liberadas > 0)
                                     <span
                                         class="
                                             badge
                                             badge-success
                                             p-2
-                                        "
-                                    >
+                                        ">
 
-                                        {{
-                                            $detalle
-                                                ->entradas_liberadas
-                                        }}
+                                        {{ $detalle->entradas_liberadas }}
 
                                     </span>
-
                                 @else
-
                                     -
-
                                 @endif
 
                             </td>
@@ -626,21 +487,13 @@
 
                                 <strong>
 
-                                    ${{
-                                        number_format(
-                                            $detalle->subtotal,
-                                            0,
-                                            ',',
-                                            '.'
-                                        )
-                                    }}
+                                    ${{ number_format($detalle->subtotal, 0, ',', '.') }}
 
                                 </strong>
 
                             </td>
 
                         </tr>
-
                     @endforeach
 
                 </tbody>
@@ -663,13 +516,9 @@
             flex-md-row
             justify-content-between
             mb-4
-        "
-    >
+        ">
 
-        <a
-            href="{{ route('cotizaciones.index') }}"
-            class="btn btn-secondary mb-2 mb-md-0"
-        >
+        <a href="{{ route('cotizaciones.index') }}" class="btn btn-secondary mb-2 mb-md-0">
 
             <i class="fas fa-arrow-left mr-1"></i>
 
@@ -681,27 +530,15 @@
         <div>
 
             {{-- Próxima etapa --}}
-            <button
-                type="button"
-                class="btn btn-danger mr-1"
-                disabled
-                title="Se implementará en la siguiente etapa"
-            >
-
+            <a href="{{ route('cotizaciones.pdf', $cotizacion) }}" class="btn btn-danger mr-1"
+                title="Descargar cotización en PDF">
                 <i class="fas fa-file-pdf mr-1"></i>
-
                 Descargar PDF
-
-            </button>
+            </a>
 
 
             {{-- Próxima etapa --}}
-            <button
-                type="button"
-                class="btn btn-info"
-                disabled
-                title="Se implementará en la siguiente etapa"
-            >
+            <button type="button" class="btn btn-info" disabled title="Se implementará en la siguiente etapa">
 
                 <i class="fas fa-envelope mr-1"></i>
 

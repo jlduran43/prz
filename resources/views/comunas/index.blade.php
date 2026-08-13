@@ -5,7 +5,6 @@
 @section('content_header')
     <div class="d-flex justify-content-between align-items-center">
         <h1>Comunas</h1>
-
         <a href="{{ route('comunas.create') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i>
             Nueva comuna
@@ -24,7 +23,6 @@
             </button>
         </div>
     @endif
-
     @if (session('error'))
         <div class="alert alert-danger alert-dismissible fade show">
             <i class="fas fa-exclamation-circle"></i>
@@ -35,7 +33,6 @@
             </button>
         </div>
     @endif
-
     <div class="card">
         <div class="card-header">
             <form action="{{ route('comunas.index') }}" method="GET">
@@ -65,18 +62,12 @@
                             Limpiar
                         </a>
                     </div>
-
                 </div>
             </form>
-
         </div>
-
         <div class="card-body p-0">
-
             <div class="table-responsive">
-
                 <table class="table table-hover table-striped mb-0">
-
                     <thead>
                         <tr>
                             <th width="120">Código</th>
@@ -88,26 +79,19 @@
                             </th>
                         </tr>
                     </thead>
-
                     <tbody>
-
                         @forelse($comunas as $comuna)
                             <tr>
-
                                 <td>
                                     <strong>{{ $comuna->codigo }}</strong>
                                 </td>
-
                                 <td>
                                     {{ $comuna->nombre }}
                                 </td>
-
                                 <td>
                                     {{ $comuna->region->nombre }}
                                 </td>
-
                                 <td>
-
                                     @if ($comuna->activo)
                                         <span class="badge badge-success">
                                             Activo
@@ -117,11 +101,8 @@
                                             Inactivo
                                         </span>
                                     @endif
-
                                 </td>
-
                                 <td class="text-center">
-
                                     <a href="{{ route('comunas.show', $comuna) }}" class="btn btn-info btn-sm"
                                         title="Ver">
                                         <i class="fas fa-eye"></i>
@@ -131,7 +112,6 @@
                                         title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
-
                                     <button type="button"
                                         class="btn btn-sm
                                             {{ $comuna->activo ? 'btn-secondary' : 'btn-success' }}"
@@ -143,27 +123,17 @@
                                             {{ $comuna->activo ? 'fa-ban' : 'fa-check' }}">
                                         </i>
                                     </button>
-
                                 </td>
-
                             </tr>
-
                         @empty
-
                             <tr>
-
                                 <td colspan="5" class="text-center py-4">
                                     <i class="fas fa-info-circle"></i>
-
                                     No existen comunas registradas.
-
                                 </td>
-
                             </tr>
                         @endforelse
-
                     </tbody>
-
                 </table>
                 <div class="modal fade" id="modalCambiarEstadoComuna" tabindex="-1" role="dialog"
                     aria-labelledby="modalCambiarEstadoComunaLabel" aria-hidden="true">

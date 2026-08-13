@@ -299,7 +299,7 @@ Route::post(
 
 Route::get(
     '/cotizaciones/{cotizacion}/pdf',
-    [CotizacionController::class, 'pdf']
+    [CotizacionController::class, 'descargarPdf']
 )->name('cotizaciones.pdf');
 
 Route::get(

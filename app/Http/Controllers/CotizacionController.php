@@ -113,17 +113,22 @@ class CotizacionController extends Controller
         );
     }
 
-    public function pdf(Cotizacion $cotizacion)
+    public function descargarPdf(Cotizacion $cotizacion)
     {
+        /*
+     * Cargamos las mismas relaciones necesarias
+     * para mostrar la cotización.
+     */
         $cotizacion->load([
-            'cliente',
+            'tipoCliente',
             'servicios',
         ]);
 
-        $pdf = Pdf::loadView(
-            'cotizaciones.pdf',
-            compact('cotizacion')
-        );
+        $pdf = Pdf::loadView('cotizaciones.pdf', [
+            'cotizacion' => $cotizacion,
+        ]);
+
+        $pdf->setPaper('a4', 'portrait');
 
         return $pdf->download(
             $cotizacion->folio . '.pdf'
