@@ -74,20 +74,22 @@
             <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th>Código</th>
-                        <th>Nombre</th>
-                        <th>Tipo de estructura</th>
-                        <th>Estado</th>
-                        <th class="text-right">Acciones</th>
+                        <th style="width: 25%;">Código</th>
+                        <th style="width: 35%;">Nombre</th>
+                        <th style="width: 15%;">Tipo de estructura</th>
+                        <th style="width: 10%;">Estado</th>
+                        <th style="width: 15%;" class="text-center">Acciones</th>
                     </tr>
                 </thead>
 
                 <tbody>
                     @forelse ($tiposCliente as $tipoCliente)
                         <tr>
-                            <td><strong>{{ $tipoCliente->codigo }}</strong></td>
-                            <td>{{ $tipoCliente->nombre }}</td>
-                            <td>
+                            <td class="align-middle font-weight-bold">
+                                {{ $tipoCliente->codigo }}
+                            </td>
+                            <td class="align-middle">{{ $tipoCliente->nombre }}</td>
+                            <td class="align-middle">
                                 @if ($tipoCliente->tipo_estructura === 'PERSONA')
                                     <span class="badge badge-info">
                                         Persona
@@ -98,7 +100,7 @@
                                     </span>
                                 @endif
                             </td>
-                            <td>
+                            <td class="align-middle">
                                 @if ($tipoCliente->activo)
                                     <span class="badge badge-success">
                                         Activo
@@ -109,7 +111,7 @@
                                     </span>
                                 @endif
                             </td>
-                            <td class="text-right text-nowrap">
+                            <td class="align-middle">
                                 <a href="{{ route('tipos-cliente.show', $tipoCliente) }}" class="btn btn-info btn-sm"
                                     title="Ver">
                                     <i class="fas fa-eye"></i>
@@ -194,6 +196,14 @@
         @endif
     </div>
 @stop
+
+@section('css')
+    <style>
+        .table thead th {
+            border-bottom: 0 !important;
+        }
+    </style>
+@stop    
 
 @section('js')
     <script src="{{ asset('js/tipos_clientes/index.js') }}"></script>
