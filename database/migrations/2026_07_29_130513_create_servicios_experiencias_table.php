@@ -21,6 +21,7 @@ return new class extends Migration
             $table->string('codigo', 50)->unique();
             $table->string('nombre', 150);
             $table->text('descripcion')->nullable();
+            $table->string('imagen')->nullable();
 
             $table->unsignedInteger('duracion_minutos')->nullable();
             $table->unsignedInteger('capacidad_minima')->nullable();

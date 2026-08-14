@@ -3,8 +3,8 @@
 @section('title', 'Tipos de cliente')
 
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1>Tipos de cliente</h1>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+        <h1 class="mb-2 mb-md-0">Tipos de cliente</h1>
 
         <a href="{{ route('tipos-cliente.create') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i>
@@ -40,27 +40,31 @@
         <div class="card-header">
             <form method="GET" action="{{ route('tipos-cliente.index') }}">
                 <div class="row align-items-center">
-                    <div class="col-md-10">
+                    {{-- Buscador --}}
+                    <div class="col-12 col-lg-9 mb-2 mb-lg-0">
                         <div class="input-group">
                             <div class="input-group-prepend">
                                 <span class="input-group-text">
                                     <i class="fas fa-search"></i>
                                 </span>
                             </div>
+
                             <input type="text" name="buscar" class="form-control" value="{{ $buscar }}"
                                 placeholder="Buscar por código o nombre...">
                         </div>
                     </div>
-
-                    <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-search"></i>
-                            Buscar
-                        </button>
-                        <a href="{{ route('tipos-cliente.index') }}" class="btn btn-secondary ml-1">
-                            <i class="fas fa-eraser mr-1"></i>
-                            Limpiar
-                        </a>
+                    {{-- Botones --}}
+                    <div class="col-12 col-lg-3">
+                        <div class="d-flex flex-column flex-sm-row justify-content-lg-end">
+                            <button type="submit" class="btn btn-primary mb-2 mb-sm-0 mr-sm-2">
+                                <i class="fas fa-search mr-1"></i>
+                                Buscar
+                            </button>
+                            <a href="{{ route('tipos-cliente.index') }}" class="btn btn-secondary">
+                                <i class="fas fa-eraser mr-1"></i>
+                                Limpiar
+                            </a>
+                        </div>
                     </div>
                 </div>
             </form>
