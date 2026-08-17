@@ -129,13 +129,15 @@ class ReservaWizardController extends Controller
 
         $codigoTipoCliente = $tipoCliente->codigo;
 
+        $tipoEstructura = $tipoCliente->tipo_estructura;
+
         /*
     |--------------------------------------------------------------------------
     | 3. Persona natural
     |--------------------------------------------------------------------------
     */
 
-        if ($codigoTipoCliente === 'PERSONA') {
+        if ($tipoEstructura === 'PERSONA') {
 
             $datosPersona = $request->validate([
                 'nombres' => [
@@ -170,13 +172,7 @@ class ReservaWizardController extends Controller
     | 4. Establecimiento educacional
     |--------------------------------------------------------------------------
     */
-        $tiposOrganizacion = [
-            'ESTABLECIMIENTO_EDUCACIONAL',
-            'TOUR_OPERADOR_AGENCIA_VIAJES',
-            'GRUPO_ADULTOS_MAYORES',
-        ];
-
-        if (in_array($codigoTipoCliente, $tiposOrganizacion, true)) {
+        if (in_array($tipoEstructura, ['ESTABLECIMIENTO', 'ORGANIZACION'], true)) {
 
             $datosEntidad = $request->validate([
                 'nombre_entidad' => [
@@ -210,62 +206,16 @@ class ReservaWizardController extends Controller
                 $datosEntidad
             );
         }
-
-
-        /*
-    |--------------------------------------------------------------------------
-    | 5. Tour operador / Agencia de viajes
-    |--------------------------------------------------------------------------
-    */
-
-        if (
-            $codigoTipoCliente ===
-            'TOUR_OPERADOR_AGENCIA_VIAJES'
-        ) {
-
-            $datosEntidad = $request->validate([
-                'nombre_entidad' => [
-                    'required',
-                    'string',
-                    'max:150',
-                ],
-
-                'rut_entidad' => [
-                    'required',
-                    'string',
-                    'max:20',
-                    new RutChileno(),
-                ],
-
-                'nombre_encargado' => [
-                    'required',
-                    'string',
-                    'max:150',
-                ],
-
-                'rut_encargado' => [
-                    'nullable',
-                    'string',
-                    'max:20',
-                ],
-            ]);
-
-            $datos = array_merge(
-                $datos,
-                $datosEntidad
-            );
-        }
-
-
         /*
     |--------------------------------------------------------------------------
     | 6. Guardar código del tipo
     |--------------------------------------------------------------------------
     */
-
         $datos['codigo_tipo_cliente'] =
             $codigoTipoCliente;
 
+        $datos['tipo_estructura'] =
+            $tipoEstructura;
 
         /*
     |--------------------------------------------------------------------------
@@ -337,7 +287,7 @@ class ReservaWizardController extends Controller
             $datosCliente['codigo_tipo_cliente']
             ?? ($datosCliente['tipo_cliente_codigo'] ?? null);
 
-        $esEstablecimiento =
+        $esEstablecimientoEducacional =
             $codigoTipoCliente === 'ESTABLECIMIENTO_EDUCACIONAL';
 
         $esCotizacion =
@@ -400,7 +350,7 @@ class ReservaWizardController extends Controller
     |--------------------------------------------------------------------------
     */
 
-        if ($esEstablecimiento) {
+        if ($esEstablecimientoEducacional) {
 
             $reglas['cantidad_alumnos'] = [
                 'required',
@@ -544,7 +494,7 @@ class ReservaWizardController extends Controller
     |
     */
 
-        if ($esEstablecimiento) {
+        if ($esEstablecimientoEducacional) {
 
             $cantidadAlumnos =
                 (int) $datos['cantidad_alumnos'];
@@ -677,6 +627,10 @@ class ReservaWizardController extends Controller
             ?? $cliente['tipo_cliente_codigo']
             ?? null;
 
+        $tipoEstructura =
+            $cliente['tipo_estructura']
+            ?? null;
+
         $tipoCliente = null;
 
         if ($codigoTipoCliente) {
@@ -736,14 +690,14 @@ class ReservaWizardController extends Controller
     | El convenio solamente corresponde a establecimientos educacionales.
     |
     */
-        $esEstablecimiento =
+        $esEstablecimientoEducacional =
             $codigoTipoCliente === 'ESTABLECIMIENTO_EDUCACIONAL';
 
         $convenio = null;
         $porcentajeDescuento = 0;
         $descuentoTotal = 0;
 
-        if ($esEstablecimiento) {
+        if ($esEstablecimientoEducacional) {
 
             /*
          * Primero buscamos el convenio que ya haya quedado
@@ -942,7 +896,7 @@ class ReservaWizardController extends Controller
                 ?? $datosCliente['tipo_cliente_codigo']
                 ?? null;
 
-            $esEstablecimiento =
+            $esEstablecimientoEducacional =
                 $codigoTipoCliente
                 === 'ESTABLECIMIENTO_EDUCACIONAL';
 
@@ -957,7 +911,7 @@ class ReservaWizardController extends Controller
                 session('reserva.convenio');
 
             if (
-                $esEstablecimiento
+                $esEstablecimientoEducacional
                 && $convenioSesion
                 && !empty($convenioSesion['codigo'])
             ) {
@@ -2465,7 +2419,7 @@ class ReservaWizardController extends Controller
     */
         $esPersonaNatural = $codigoTipoCliente === 'PERSONA';
 
-        $esEstablecimiento = $codigoTipoCliente === 'ESTABLECIMIENTO_EDUCACIONAL';
+        $esEstablecimientoEducacional = $codigoTipoCliente === 'ESTABLECIMIENTO_EDUCACIONAL';
 
         /*
             |--------------------------------------------------------------------------
@@ -2485,12 +2439,12 @@ class ReservaWizardController extends Controller
 
         $entradasLiberadas = 0;
 
-        if (!$esPersonaNatural && $cantidadAsistentes >= 11) {
-            $entradasLiberadas = 1;
+        if ($esEstablecimientoEducacional && $cantidadAsistentes >= 26) {
+            $entradasLiberadas = 2;
         }
 
-        if ($esEstablecimiento && $cantidadAsistentes >= 26) {
-            $entradasLiberadas = 2;
+        if (!$esPersonaNatural && $cantidadAsistentes >= 11) {
+            $entradasLiberadas = 1;
         }
 
         $personasPagadas = max(

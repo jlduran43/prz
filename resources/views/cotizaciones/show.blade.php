@@ -19,6 +19,15 @@
 
 
 @section('content')
+    @php
+        $tipoEstructura = $cotizacion->tipoCliente->tipo_estructura ?? null;
+
+        $esPersona = $tipoEstructura === 'PERSONA';
+
+        $esEstablecimiento = $tipoEstructura === 'ESTABLECIMIENTO';
+
+        $esOrganizacion = $tipoEstructura === 'ORGANIZACION';
+    @endphp
 
     @if (session('success'))
         <div
@@ -121,7 +130,7 @@
                         </dd>
 
 
-                        @if ($cotizacion->rut_persona)
+                        @if ($esPersona)
                             <dt class="col-sm-5">
                                 Nombre
                             </dt>
@@ -137,7 +146,7 @@
                             <dd class="col-sm-7">
                                 {{ $cotizacion->rut_persona }}
                             </dd>
-                        @else
+                        @elseif ($esEstablecimiento || $esOrganizacion)
                             <dt class="col-sm-5">
                                 Entidad
                             </dt>

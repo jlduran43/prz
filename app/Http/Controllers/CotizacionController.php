@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cotizacion;
+use App\Models\ConfiguracionCotizacion;
 use Illuminate\Http\Request;
 use Barryvdh\DomPDF\Facade\Pdf;
 
@@ -96,7 +97,8 @@ class CotizacionController extends Controller
     | DETALLE
     |--------------------------------------------------------------------------
     */
-    public function show(Cotizacion $cotizacion) {
+    public function show(Cotizacion $cotizacion)
+    {
 
         $cotizacion->load([
             'tipoCliente',
@@ -113,18 +115,22 @@ class CotizacionController extends Controller
 
     public function descargarPdf(Cotizacion $cotizacion)
     {
-        /*
-     * Cargamos las mismas relaciones necesarias
-     * para mostrar la cotización.
-     */
+        $configuracion = ConfiguracionCotizacion::first();
+
         $cotizacion->load([
             'tipoCliente',
+            'region',
+            'comuna',
             'servicios',
         ]);
 
-        $pdf = Pdf::loadView('cotizaciones.pdf', [
-            'cotizacion' => $cotizacion,
-        ]);
+        $pdf = Pdf::loadView(
+            'cotizaciones.pdf',
+            [
+                'cotizacion' => $cotizacion,
+                'configuracion' => $configuracion,
+            ]
+        );
 
         $pdf->setPaper('a4', 'portrait');
 

@@ -745,28 +745,23 @@
                 const codigo =
                     opcionSeleccionada?.dataset.codigo ?? '';
 
+                const estructura =
+                    opcionSeleccionada?.dataset.estructura ?? '';
+
                 const esPersona =
-                    codigo === 'PERSONA';
+                    estructura === 'PERSONA';
 
                 const esEstablecimiento =
-                    codigo ===
-                    'ESTABLECIMIENTO_EDUCACIONAL';
-
-                const esTourOperador =
-                    codigo ===
-                    'TOUR_OPERADOR_AGENCIA_VIAJES';
-
-                const esGrupoAdultosMayores =
-                    codigo ===
-                    'GRUPO_ADULTOS_MAYORES';
+                    estructura === 'ESTABLECIMIENTO';
 
                 const esOrganizacion =
-                    esEstablecimiento ||
-                    esTourOperador ||
-                    esGrupoAdultosMayores;
+                    estructura === 'ORGANIZACION';
+
+                const usaDatosEntidad =
+                    esEstablecimiento || esOrganizacion;
 
                 camposPersona.hidden = !esPersona;
-                camposEntidad.hidden = !esOrganizacion;
+                camposEntidad.hidden = !usaDatosEntidad;
 
                 camposPersonaRequeridos.forEach(
                     function(campo) {
@@ -777,13 +772,13 @@
 
                 camposEntidadRequeridos.forEach(
                     function(campo) {
-                        campo.required = esOrganizacion;
-                        campo.disabled = !esOrganizacion;
+                        campo.required = usaDatosEntidad;
+                        campo.disabled = !usaDatosEntidad;
                     }
                 );
 
                 rutEncargado.required = false;
-                rutEncargado.disabled = !esOrganizacion;
+                rutEncargado.disabled = !usaDatosEntidad;
 
                 if (!esPersona) {
                     limpiarEstadoRut(
@@ -793,7 +788,7 @@
                     );
                 }
 
-                if (!esOrganizacion) {
+                if (!usaDatosEntidad) {
                     limpiarEstadoRut(
                         document.getElementById(
                             'rut_entidad'
@@ -821,7 +816,7 @@
                     return;
                 }
 
-                if (esTourOperador) {
+                if (codigo === 'TOUR_OPERADOR_AGENCIA_VIAJES') {
                     tituloDatosEntidad.textContent =
                         'Datos del tour operador o agencia de viajes';
 
@@ -839,7 +834,7 @@
                     return;
                 }
 
-                if (esGrupoAdultosMayores) {
+                if (codigo === 'GRUPO_ADULTOS_MAYORES') {
                     tituloDatosEntidad.textContent =
                         'Datos del grupo de adultos mayores';
 
@@ -857,19 +852,27 @@
                     return;
                 }
 
-                tituloDatosEntidad.textContent =
-                    'Datos de la organización';
+                /*
+        |--------------------------------------------------------------------------
+        | ORGANIZACIÓN GENÉRICA
+        |--------------------------------------------------------------------------
+        */
 
-                labelNombreEntidad.innerHTML =
-                    'Nombre de la organización ' +
-                    '<span class="text-danger">*</span>';
+                if (esOrganizacion) {
+                    tituloDatosEntidad.textContent =
+                        'Datos de la organización';
 
-                labelRutEntidad.innerHTML =
-                    'RUT de la organización ' +
-                    '<span class="text-danger">*</span>';
+                    labelNombreEntidad.innerHTML =
+                        'Nombre de la organización ' +
+                        '<span class="text-danger">*</span>';
 
-                nombreEntidad.placeholder =
-                    'Ingrese el nombre';
+                    labelRutEntidad.innerHTML =
+                        'RUT de la organización ' +
+                        '<span class="text-danger">*</span>';
+
+                    nombreEntidad.placeholder =
+                        'Ingrese el nombre';
+                }
             }
 
             async function cargarComunas() {

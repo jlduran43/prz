@@ -13,26 +13,38 @@ class TipoClienteSeeder extends Seeder
             [
                 'codigo' => 'PERSONA',
                 'nombre' => 'Persona natural',
-                'estructura_datos' => 'PERSONA',
+                'tipo_estructura' => 'PERSONA',
                 'activo' => false,
             ],
+
             [
                 'codigo' => 'ESTABLECIMIENTO_EDUCACIONAL',
                 'nombre' => 'Establecimiento educacional',
-                'estructura_datos' => 'ORGANIZACION',
+                'tipo_estructura' => 'ESTABLECIMIENTO',
                 'activo' => true,
             ],
+
             [
                 'codigo' => 'TOUR_OPERADOR_AGENCIA_VIAJES',
                 'nombre' => 'Tour operador / Agencia de viajes',
-                'estructura_datos' => 'ORGANIZACION',
+                'tipo_estructura' => 'ORGANIZACION',
+                'activo' => true,
+            ],
+
+            [
+                'codigo' => 'GRUPO_ADULTOS_MAYORES',
+                'nombre' => 'Grupo de adultos mayores',
+                'tipo_estructura' => 'ORGANIZACION',
                 'activo' => true,
             ],
         ];
 
         foreach ($tipos as $tipo) {
+
             TipoCliente::query()->updateOrCreate(
-                ['codigo' => $tipo['codigo']],
+                [
+                    'codigo' => $tipo['codigo'],
+                ],
                 $tipo
             );
         }

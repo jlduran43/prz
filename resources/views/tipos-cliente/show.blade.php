@@ -25,7 +25,11 @@
                         <span class="badge badge-info">
                             Persona
                         </span>
-                    @else
+                    @elseif ($tipoCliente->tipo_estructura === 'ESTABLECIMIENTO')
+                        <span class="badge badge-warning">
+                            Establecimiento
+                        </span>
+                    @elseif ($tipoCliente->tipo_estructura === 'ORGANIZACION')
                         <span class="badge badge-primary">
                             Organización
                         </span>

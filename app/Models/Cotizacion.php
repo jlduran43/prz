@@ -52,6 +52,8 @@ class Cotizacion extends Model
 
         'fecha_emision',
         'fecha_vencimiento',
+        'condiciones_snapshot',
+        'vigencia_hasta',
     ];
 
     protected function casts(): array
@@ -79,6 +81,9 @@ class Cotizacion extends Model
 
             'fecha_vencimiento' =>
             'date',
+
+            'vigencia_hasta' => 'date',
+            'condiciones_snapshot' => 'array',
         ];
     }
 

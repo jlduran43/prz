@@ -9,6 +9,7 @@ use App\Http\Controllers\ServicioExperienciaController;
 use App\Http\Controllers\ConvenioController;
 use App\Http\Controllers\TipoClienteController;
 use App\Http\Controllers\CotizacionController;
+use App\Http\Controllers\ConfiguracionCotizacionController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -306,3 +307,26 @@ Route::get(
     '/cotizaciones/{cotizacion}',
     [CotizacionController::class, 'show']
 )->name('cotizaciones.show');
+
+Route::resource(
+    'configuraciones-cotizacion',
+    ConfiguracionCotizacionController::class
+)
+    ->except([
+        'show',
+        'destroy',
+    ])
+    ->parameters([
+        'configuraciones-cotizacion' =>
+            'configuracion',
+    ]);
+
+Route::patch(
+    'configuraciones-cotizacion/{configuracion}/activar',
+    [
+        ConfiguracionCotizacionController::class,
+        'activar',
+    ]
+)->name(
+    'configuraciones-cotizacion.activar'
+);

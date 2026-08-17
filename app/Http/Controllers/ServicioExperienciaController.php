@@ -233,8 +233,10 @@ class ServicioExperienciaController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, ServicioExperiencia $servicioExperiencia)
-    {
+    public function update(
+        Request $request,
+        ServicioExperiencia $servicio
+    ) {
         $datos = $request->validate(
             [
                 'categoria_servicio_id' => [
@@ -246,10 +248,11 @@ class ServicioExperienciaController extends Controller
                     'required',
                     'string',
                     'max:50',
+
                     Rule::unique(
                         'servicios_experiencias',
                         'codigo'
-                    )->ignore($servicioExperiencia->id),
+                    )->ignore($servicio->id),
                 ],
 
                 'nombre' => [
@@ -297,6 +300,7 @@ class ServicioExperienciaController extends Controller
 
                 'tipo_cobro' => [
                     'required',
+
                     Rule::in([
                         'POR_PERSONA',
                         'POR_GRUPO',
@@ -309,37 +313,66 @@ class ServicioExperienciaController extends Controller
                 ],
             ],
             [
+                'categoria_servicio_id.required' =>
+                'Debes seleccionar una categoría.',
+
+                'codigo.required' =>
+                'El código es obligatorio.',
+
+                'codigo.unique' =>
+                'El código ya se encuentra registrado.',
+
+                'nombre.required' =>
+                'El nombre es obligatorio.',
+
+                'precio.required' =>
+                'El precio es obligatorio.',
+
+                'precio.numeric' =>
+                'El precio debe ser un número.',
+
                 'tipo_cobro.required' =>
                 'Debes seleccionar el tipo de cobro.',
 
                 'tipo_cobro.in' =>
                 'El tipo de cobro seleccionado no es válido.',
+
+                'imagen.image' =>
+                'El archivo seleccionado debe ser una imagen.',
+
+                'imagen.mimes' =>
+                'La imagen debe ser JPG, JPEG, PNG o WebP.',
+
+                'imagen.max' =>
+                'La imagen no puede superar los 4 MB.',
             ]
         );
 
         if ($request->hasFile('imagen')) {
 
             if (
-                $servicioExperiencia->imagen &&
+                $servicio->imagen &&
                 Storage::disk('public')->exists(
-                    $servicioExperiencia->imagen
+                    $servicio->imagen
                 )
             ) {
                 Storage::disk('public')->delete(
-                    $servicioExperiencia->imagen
+                    $servicio->imagen
                 );
             }
 
             $datos['imagen'] = $request
                 ->file('imagen')
-                ->store('servicios', 'public');
+                ->store(
+                    'servicios',
+                    'public'
+                );
         }
-
 
         $datos['requiere_reserva'] =
             $request->boolean('requiere_reserva');
 
-        $servicioExperiencia->update($datos);
+        $servicio->update($datos);
 
         return redirect()
             ->route('servicios-experiencias.index')
@@ -348,7 +381,6 @@ class ServicioExperienciaController extends Controller
                 'El servicio fue actualizado correctamente.'
             );
     }
-
     /**
      * Remove the specified resource from storage.
      */

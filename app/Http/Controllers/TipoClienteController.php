@@ -139,6 +139,7 @@ class TipoClienteController extends Controller
                     'required',
                     Rule::in([
                         'PERSONA',
+                        'ESTABLECIMIENTO',
                         'ORGANIZACION',
                     ]),
                 ],

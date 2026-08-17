@@ -17,6 +17,19 @@
 @stop
 
 @section('content')
+    @php
+        $tipoEstructura = $cliente['tipo_estructura'] ?? null;
+
+        $codigoTipoCliente = $cliente['codigo_tipo_cliente'] ?? null;
+
+        $esPersona = $tipoEstructura === 'PERSONA';
+
+        $esEstablecimiento = $tipoEstructura === 'ESTABLECIMIENTO';
+
+        $esOrganizacion = $tipoEstructura === 'ORGANIZACION';
+
+        $esEstablecimientoEducacional = $codigoTipoCliente === 'ESTABLECIMIENTO_EDUCACIONAL';
+    @endphp
     <div class="container-fluid">
 
         {{-- Mensajes de error --}}
@@ -117,7 +130,7 @@
                                 {{ $tipoCliente->nombre ?? 'No disponible' }}
                             </dd>
 
-                            @if (($cliente['codigo_tipo_cliente'] ?? null) === 'PERSONA')
+                            @if ($esPersona)
                                 <dt class="col-sm-5">
                                     Nombres
                                 </dt>
@@ -141,7 +154,7 @@
                                 <dd class="col-sm-7">
                                     {{ $cliente['rut_persona'] ?? '-' }}
                                 </dd>
-                            @else
+                            @elseif ($esEstablecimiento || $esOrganizacion)
                                 <dt class="col-sm-5">
                                     Nombre entidad
                                 </dt>
@@ -352,7 +365,7 @@
                             {{-- ESTABLECIMIENTO EDUCACIONAL --}}
                             {{-- ============================================ --}}
 
-                            @if (($cliente['codigo_tipo_cliente'] ?? null) === 'ESTABLECIMIENTO_EDUCACIONAL')
+                            @if ($esEstablecimientoEducacional)
 
                                 <dt class="col-sm-6">
                                     Cantidad de alumnos
@@ -380,19 +393,19 @@
 
                                     {{ match ($reserva['nivel_educacional'] ?? null) {
                                         'PARVULARIA' => 'Educación parvularia',
-
+                                    
                                         'BASICA' => 'Educación básica',
-
+                                    
                                         'MEDIA' => 'Educación media',
-
+                                    
                                         'ESPECIAL' => 'Educación especial',
-
+                                    
                                         'SUPERIOR' => 'Educación superior',
-
+                                    
                                         'ADULTOS' => 'Educación de adultos',
-
+                                    
                                         'OTRO' => 'Otro',
-
+                                    
                                         default => '-',
                                     } }}
 
@@ -431,7 +444,7 @@
         </div>
 
         {{-- Servicios seleccionados --}}
-        <div class="card card-outline card-success">
+        <div class="card card-outline card-success mt-3">
             <div class="card-header">
                 <h3 class="card-title">
                     <i class="fas fa-concierge-bell mr-2"></i>
@@ -682,8 +695,7 @@
                 Volver
             </a>
 
-            <form
-                action="{{ $esCotizacion ? route('cotizaciones.generar') : route('reservas.finalizar') }}"
+            <form action="{{ $esCotizacion ? route('cotizaciones.generar') : route('reservas.finalizar') }}"
                 method="POST" id="form-confirmar-reserva">
                 @csrf
 
@@ -776,34 +788,34 @@
 @stop
 
 @section('js')
-<script>
-document.addEventListener(
-    'DOMContentLoaded',
-    function () {
+    <script>
+        document.addEventListener(
+            'DOMContentLoaded',
+            function() {
 
-        const formulario =
-            document.getElementById(
-                'form-finalizar'
-            );
+                const formulario =
+                    document.getElementById(
+                        'form-finalizar'
+                    );
 
-        const boton =
-            document.getElementById(
-                'btn-finalizar'
-            );
+                const boton =
+                    document.getElementById(
+                        'btn-finalizar'
+                    );
 
-        if (!formulario || !boton) {
-            return;
-        }
+                if (!formulario || !boton) {
+                    return;
+                }
 
-        formulario.addEventListener(
-            'submit',
-            function () {
+                formulario.addEventListener(
+                    'submit',
+                    function() {
 
-                boton.disabled = true;
+                        boton.disabled = true;
 
-                @if ($esCotizacion)
+                        @if ($esCotizacion)
 
-                    boton.innerHTML = `
+                            boton.innerHTML = `
                         <span
                             class="
                                 spinner-border
@@ -816,10 +828,9 @@ document.addEventListener(
 
                         Generando cotización...
                     `;
+                        @else
 
-                @else
-
-                    boton.innerHTML = `
+                            boton.innerHTML = `
                         <span
                             class="
                                 spinner-border
@@ -832,11 +843,10 @@ document.addEventListener(
 
                         Registrando reserva...
                     `;
-
-                @endif
+                        @endif
+                    }
+                );
             }
         );
-    }
-);
-</script>
+    </script>
 @stop

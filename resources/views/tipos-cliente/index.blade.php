@@ -94,7 +94,11 @@
                                     <span class="badge badge-info">
                                         Persona
                                     </span>
-                                @else
+                                @elseif ($tipoCliente->tipo_estructura === 'ESTABLECIMIENTO')
+                                    <span class="badge badge-warning">
+                                        Establecimiento
+                                    </span>
+                                @elseif ($tipoCliente->tipo_estructura === 'ORGANIZACION')
                                     <span class="badge badge-primary">
                                         Organización
                                     </span>
@@ -203,7 +207,7 @@
             border-bottom: 0 !important;
         }
     </style>
-@stop    
+@stop
 
 @section('js')
     <script src="{{ asset('js/tipos_clientes/index.js') }}"></script>

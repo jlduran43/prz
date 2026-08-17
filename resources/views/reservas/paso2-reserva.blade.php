@@ -15,7 +15,9 @@
 
         $codigoTipoCliente = $datosCliente['codigo_tipo_cliente'] ?? ($datosCliente['tipo_cliente_codigo'] ?? null);
 
-        $esEstablecimiento = $esEstablecimiento ?? $codigoTipoCliente === 'ESTABLECIMIENTO_EDUCACIONAL';
+        $tipoEstructura = $datosCliente['tipo_estructura'] ?? null;
+
+        $esEstablecimientoEducacional = $codigoTipoCliente === 'ESTABLECIMIENTO_EDUCACIONAL';
     @endphp
 
     <div>
@@ -70,6 +72,7 @@
                 border-color .2s ease,
                 box-shadow .2s ease,
                 opacity .2s ease;
+            position: relative;
         }
 
         .servicio-card:hover {
@@ -248,36 +251,42 @@
             flex: 0 0 90px;
             width: 90px;
             height: 65px;
-            z-index: 10;
+            z-index: 1;
+        }
+
+        .servicio-imagen-contenedor:hover {
+            z-index: 9999;
         }
 
         .servicio-imagen {
             width: 90px;
             height: 65px;
             object-fit: cover;
-            border: 1px solid #dee2e6;
             border-radius: 6px;
+
+            position: relative;
+            display: block;
 
             cursor: zoom-in;
 
             transition:
-                transform: .25s ease,
+                transform .25s ease,
                 box-shadow .25s ease;
 
-            transform-origin: left center;
+            transform-origin: center center;
         }
 
         /*
-                     * Al pasar el mouse se amplía.
-                     * Aumenta dentro del flujo para evitar
-                     * que el contenedor con scroll la corte.
-                     */
-        .servicio-imagen:hover {
-            transform: scale(3.2);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+                                    * Al pasar el mouse se amplía.
+                                    * Aumenta dentro del flujo para evitar
+                                    * que el contenedor con scroll la corte.
+                                */
 
-            position: relative;
-            z-index: 9999;
+        .servicio-imagen:hover {
+            transform: scale(3);
+
+            box-shadow:
+                0 8px 24px rgba(0, 0, 0, .30);
         }
 
         .servicio-sin-imagen {
@@ -452,7 +461,7 @@
 
 
             <div class="card-body">
-                @if ($esEstablecimiento)
+                @if ($esEstablecimientoEducacional)
                     <div class="alert alert-info">
                         Como el cliente es un establecimiento educacional,
                         debes indicar la composición del grupo.
@@ -692,7 +701,7 @@
 
                     </div>
 
-                    @if ($codigoTipoCliente === 'ESTABLECIMIENTO_EDUCACIONAL')
+                    @if ($esEstablecimientoEducacional)
                         {{-- Descuento --}}
                         <div class="col-md-3 mb-3">
 
@@ -772,8 +781,10 @@
             const tipoOperacion = @json($tipoOperacion);
 
             const codigoTipoCliente = @json($codigoTipoCliente);
-            const esPersonaNatural = codigoTipoCliente === 'PERSONA';
-            const esEstablecimiento = codigoTipoCliente === 'ESTABLECIMIENTO_EDUCACIONAL';
+            const tipoEstructura = @json($tipoEstructura);
+            const esPersona = codigoTipoCliente === 'PERSONA';
+            const esEstablecimientoEducacional = codigoTipoCliente === 'ESTABLECIMIENTO_EDUCACIONAL';
+            const esOrganizacion = tipoEstructura === 'ORGANIZACION';
 
             const datosAnteriores = @json(old('servicios', $datosReserva['servicios'] ?? []));
 
@@ -802,7 +813,7 @@
             const subtotalGeneralElemento = document.getElementById('subtotalGeneral');
             const descuentoConvenioElemento = document.getElementById('descuentoConvenio');
 
-            let convenioActual = esPersonaNatural ? null : @json($convenioAplicado ?? null);
+            let convenioActual = esEstablecimientoEducacional ? null : @json($convenioAplicado ?? null);
 
             function escaparHtml(valor) {
                 const div = document.createElement('div');
@@ -950,7 +961,7 @@
 
                 let porcentaje = 0;
 
-                if (!esPersonaNatural && convenioActual) {
+                if (!esPersona && convenioActual) {
 
                     porcentaje =
                         Number(
@@ -1329,25 +1340,25 @@
                 ${
                     servicio.duracion_minutos
                         ? `
-                                        <small class="text-muted">
-                                            <i class="far fa-clock mr-1"></i>
-                                            ${servicio.duracion_minutos}
-                                            minutos
-                                        </small>
-                                    `
+                                                                            <small class="text-muted">
+                                                                                <i class="far fa-clock mr-1"></i>
+                                                                                ${servicio.duracion_minutos}
+                                                                                minutos
+                                                                            </small>
+                                                                        `
                         : ''
                 }
 
                 ${
                     servicio.capacidad_maxima
                         ? `
-                                        <small class="text-muted">
-                                            <i class="fas fa-users mr-1"></i>
-                                            Máximo:
-                                            ${servicio.capacidad_maxima}
-                                            personas
-                                        </small>
-                                    `
+                                                                            <small class="text-muted">
+                                                                                <i class="fas fa-users mr-1"></i>
+                                                                                Máximo:
+                                                                                ${servicio.capacidad_maxima}
+                                                                                personas
+                                                                            </small>
+                                                                        `
                         : ''
                 }
 
@@ -1377,136 +1388,136 @@
     ${
     esCotizacion
         ? `
-                                                                                                                                                                    <div class="servicio-configuracion">
+                                                                                                                                                                                                        <div class="servicio-configuracion">
 
-                                                                                                                                                                        <div class="configuracion-header">
+                                                                                                                                                                                                            <div class="configuracion-header">
 
-                                                                                                                                                                            <h6 class="configuracion-titulo">
+                                                                                                                                                                                                                <h6 class="configuracion-titulo">
 
-                                                                                                                                                                                <i
-                                                                                                                                                                                    class="fas fa-file-invoice-dollar
-                                                                                                                                                                                           text-info mr-1">
-                                                                                                                                                                                </i>
+                                                                                                                                                                                                                    <i
+                                                                                                                                                                                                                        class="fas fa-file-invoice-dollar
+                                                                                                                                                                                                                               text-info mr-1">
+                                                                                                                                                                                                                    </i>
 
-                                                                                                                                                                                Servicio incluido en la cotización
+                                                                                                                                                                                                                    Servicio incluido en la cotización
 
-                                                                                                                                                                            </h6>
-
-
-                                                                                                                                                                            <button
-                                                                                                                                                                                type="button"
-                                                                                                                                                                                class="
-                                                                                                                                                                                    btn
-                                                                                                                                                                                    btn-sm
-                                                                                                                                                                                    btn-outline-danger
-                                                                                                                                                                                    quitar-servicio
-                                                                                                                                                                                "
-                                                                                                                                                                            >
-
-                                                                                                                                                                                <i class="fas fa-times mr-1"></i>
-
-                                                                                                                                                                                Quitar servicio
-
-                                                                                                                                                                            </button>
-
-                                                                                                                                                                        </div>
+                                                                                                                                                                                                                </h6>
 
 
-                                                                                                                                                                        <input
-                                                                                                                                                                            type="hidden"
-                                                                                                                                                                            name="servicios[${servicio.id}][servicio_id]"
-                                                                                                                                                                            value="${servicio.id}"
-                                                                                                                                                                            class="campo-servicio"
-                                                                                                                                                                            disabled
-                                                                                                                                                                        >
+                                                                                                                                                                                                                <button
+                                                                                                                                                                                                                    type="button"
+                                                                                                                                                                                                                    class="
+                                                                                                                                                                                                                        btn
+                                                                                                                                                                                                                        btn-sm
+                                                                                                                                                                                                                        btn-outline-danger
+                                                                                                                                                                                                                        quitar-servicio
+                                                                                                                                                                                                                    "
+                                                                                                                                                                                                                >
 
-                                                                                                                                                                    </div>
-                                                                                                                                                                `
+                                                                                                                                                                                                                    <i class="fas fa-times mr-1"></i>
+
+                                                                                                                                                                                                                    Quitar servicio
+
+                                                                                                                                                                                                                </button>
+
+                                                                                                                                                                                                            </div>
+
+
+                                                                                                                                                                                                            <input
+                                                                                                                                                                                                                type="hidden"
+                                                                                                                                                                                                                name="servicios[${servicio.id}][servicio_id]"
+                                                                                                                                                                                                                value="${servicio.id}"
+                                                                                                                                                                                                                class="campo-servicio"
+                                                                                                                                                                                                                disabled
+                                                                                                                                                                                                            >
+
+                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                    `
         : `
-                                                                                                                                                                    <div class="servicio-configuracion">
+                                                                                                                                                                                                        <div class="servicio-configuracion">
 
-                                                                                                                                                                        <input
-                                                                                                                                                                            type="hidden"
-                                                                                                                                                                            name="servicios[${servicio.id}][servicio_id]"
-                                                                                                                                                                            value="${servicio.id}"
-                                                                                                                                                                            class="campo-servicio"
-                                                                                                                                                                            disabled
-                                                                                                                                                                        >
-
-
-                                                                                                                                                                        <div class="configuracion-header">
-
-                                                                                                                                                                            <h6 class="configuracion-titulo">
-
-                                                                                                                                                                                <i
-                                                                                                                                                                                    class="fas fa-calendar-alt
-                                                                                                                                                                                           text-primary mr-1">
-                                                                                                                                                                                </i>
-
-                                                                                                                                                                                Configuración de la visita
-
-                                                                                                                                                                            </h6>
+                                                                                                                                                                                                            <input
+                                                                                                                                                                                                                type="hidden"
+                                                                                                                                                                                                                name="servicios[${servicio.id}][servicio_id]"
+                                                                                                                                                                                                                value="${servicio.id}"
+                                                                                                                                                                                                                class="campo-servicio"
+                                                                                                                                                                                                                disabled
+                                                                                                                                                                                                            >
 
 
-                                                                                                                                                                            <button
-                                                                                                                                                                                type="button"
-                                                                                                                                                                                class="
-                                                                                                                                                                                    btn
-                                                                                                                                                                                    btn-sm
-                                                                                                                                                                                    btn-outline-danger
-                                                                                                                                                                                    quitar-servicio
-                                                                                                                                                                                "
-                                                                                                                                                                            >
+                                                                                                                                                                                                            <div class="configuracion-header">
 
-                                                                                                                                                                                <i class="fas fa-times mr-1"></i>
+                                                                                                                                                                                                                <h6 class="configuracion-titulo">
 
-                                                                                                                                                                                Quitar servicio
+                                                                                                                                                                                                                    <i
+                                                                                                                                                                                                                        class="fas fa-calendar-alt
+                                                                                                                                                                                                                               text-primary mr-1">
+                                                                                                                                                                                                                    </i>
 
-                                                                                                                                                                            </button>
+                                                                                                                                                                                                                    Configuración de la visita
 
-                                                                                                                                                                        </div>
+                                                                                                                                                                                                                </h6>
 
 
-                                                                                                                                                                        <input
-                                                                                                                                                                            type="hidden"
-                                                                                                                                                                            name="servicios[${servicio.id}][fecha]"
-                                                                                                                                                                            class="fecha-servicio campo-servicio"
-                                                                                                                                                                            value="${fechaReservaInput?.value || ''}"
-                                                                                                                                                                            disabled
-                                                                                                                                                                        >
+                                                                                                                                                                                                                <button
+                                                                                                                                                                                                                    type="button"
+                                                                                                                                                                                                                    class="
+                                                                                                                                                                                                                        btn
+                                                                                                                                                                                                                        btn-sm
+                                                                                                                                                                                                                        btn-outline-danger
+                                                                                                                                                                                                                        quitar-servicio
+                                                                                                                                                                                                                    "
+                                                                                                                                                                                                                >
+
+                                                                                                                                                                                                                    <i class="fas fa-times mr-1"></i>
+
+                                                                                                                                                                                                                    Quitar servicio
+
+                                                                                                                                                                                                                </button>
+
+                                                                                                                                                                                                            </div>
 
 
-                                                                                                                                                                        <div
-                                                                                                                                                                            class="
-                                                                                                                                                                                mensaje-horarios
-                                                                                                                                                                                alert
-                                                                                                                                                                                alert-info
-                                                                                                                                                                                mb-3
-                                                                                                                                                                            "
-                                                                                                                                                                        >
-
-                                                                                                                                                                            <i class="fas fa-calendar-alt mr-1"></i>
-
-                                                                                                                                                                            Selecciona una fecha para
-                                                                                                                                                                            consultar los horarios.
-
-                                                                                                                                                                        </div>
+                                                                                                                                                                                                            <input
+                                                                                                                                                                                                                type="hidden"
+                                                                                                                                                                                                                name="servicios[${servicio.id}][fecha]"
+                                                                                                                                                                                                                class="fecha-servicio campo-servicio"
+                                                                                                                                                                                                                value="${fechaReservaInput?.value || ''}"
+                                                                                                                                                                                                                disabled
+                                                                                                                                                                                                            >
 
 
-                                                                                                                                                                        <div
-                                                                                                                                                                            class="row contenedor-horarios">
-                                                                                                                                                                        </div>
+                                                                                                                                                                                                            <div
+                                                                                                                                                                                                                class="
+                                                                                                                                                                                                                    mensaje-horarios
+                                                                                                                                                                                                                    alert
+                                                                                                                                                                                                                    alert-info
+                                                                                                                                                                                                                    mb-3
+                                                                                                                                                                                                                "
+                                                                                                                                                                                                            >
+
+                                                                                                                                                                                                                <i class="fas fa-calendar-alt mr-1"></i>
+
+                                                                                                                                                                                                                Selecciona una fecha para
+                                                                                                                                                                                                                consultar los horarios.
+
+                                                                                                                                                                                                            </div>
 
 
-                                                                                                                                                                        <input
-                                                                                                                                                                            type="hidden"
-                                                                                                                                                                            name="servicios[${servicio.id}][horario_id]"
-                                                                                                                                                                            class="horario-id campo-servicio"
-                                                                                                                                                                            disabled
-                                                                                                                                                                        >
+                                                                                                                                                                                                            <div
+                                                                                                                                                                                                                class="row contenedor-horarios">
+                                                                                                                                                                                                            </div>
 
-                                                                                                                                                                    </div>
-                                                                                                                                                                `
+
+                                                                                                                                                                                                            <input
+                                                                                                                                                                                                                type="hidden"
+                                                                                                                                                                                                                name="servicios[${servicio.id}][horario_id]"
+                                                                                                                                                                                                                class="horario-id campo-servicio"
+                                                                                                                                                                                                                disabled
+                                                                                                                                                                                                            >
+
+                                                                                                                                                                                                        </div>
+                                                                                                                                                                                                    `
 }`;
 
                 const checkbox = card.querySelector('.servicio-checkbox');
@@ -2120,7 +2131,7 @@
                  * Persona natural:
                  * nunca tiene entradas liberadas.
                  */
-                if (esPersonaNatural) {
+                if (esPersona) {
                     return 0;
                 }
 
@@ -2131,7 +2142,7 @@
                  * 2 entradas liberadas.
                  */
                 if (
-                    esEstablecimiento &&
+                    esEstablecimientoEducacional &&
                     personas >= 26
                 ) {
                     return 2;

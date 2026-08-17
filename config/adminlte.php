@@ -335,13 +335,6 @@ return [
             'route' => 'horarios-disponibles.index',
             'icon' => 'fas fa-fw fa-calendar-alt',
         ],
-
-        [
-            'text' => 'Convenios y descuentos',
-            'route' => 'convenios.index',
-            'icon' => 'fas fa-fw fa-percent',
-        ],
-
         [
             'text' => 'Mantenedores',
             'icon' => 'fas fa-cogs',
@@ -370,6 +363,16 @@ return [
                     'text' => 'Servicios y experiencias',
                     'route' => 'servicios-experiencias.index',
                     'icon' => 'fas fa-hiking',
+                ],
+                [
+                    'text' => 'Convenios y descuentos',
+                    'route' => 'convenios.index',
+                    'icon' => 'fas fa-fw fa-percent',
+                ],
+                [
+                    'text' => 'Condiciones cotización',
+                    'route' => 'configuraciones-cotizacion.index',
+                    'icon' => 'fas fa-file-contract',
                 ],
             ],
         ],
