@@ -27,6 +27,8 @@
         $esEstablecimiento = $tipoEstructura === 'ESTABLECIMIENTO';
 
         $esOrganizacion = $tipoEstructura === 'ORGANIZACION';
+
+        $estado = strtoupper($cotizacion->estado ?? '');
     @endphp
 
     @if (session('success'))
@@ -83,8 +85,19 @@
 
             <div class="mt-3">
 
-                <span class="badge badge-info p-2">
-                    {{ ucfirst(strtolower($cotizacion->estado)) }}
+                @php
+                    $badgeEstado = match ($estado) {
+                        'EMITIDA' => 'badge-info',
+                        'ENVIADA' => 'badge-primary',
+                        'ACEPTADA' => 'badge-success',
+                        'ANULADA' => 'badge-danger',
+                        'VENCIDA' => 'badge-secondary',
+                        default => 'badge-secondary',
+                    };
+                @endphp
+
+                <span class="badge {{ $badgeEstado }} p-2">
+                    {{ ucfirst(strtolower($estado)) }}
                 </span>
 
             </div>
@@ -513,50 +526,321 @@
 
     </div>
 
-
     {{-- ============================================ --}}
     {{-- ACCIONES --}}
     {{-- ============================================ --}}
 
     <div
         class="
-            d-flex
-            flex-column
-            flex-md-row
-            justify-content-between
-            mb-4
-        ">
+        d-flex
+        flex-column
+        flex-md-row
+        justify-content-between
+        align-items-md-center
+        mb-3
+    ">
 
-        <a href="{{ route('cotizaciones.index') }}" class="btn btn-secondary mb-2 mb-md-0">
+        {{-- IZQUIERDA --}}
+        <div class="mb-2 mb-md-0">
 
-            <i class="fas fa-arrow-left mr-1"></i>
+            @auth
+                <a href="{{ route('cotizaciones.index') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left mr-1"></i>
+                    Volver a cotizaciones
+                </a>
+            @endauth
 
-            Volver a cotizaciones
+            @guest
+                <a href="{{ route('reservas.operacion') }}" class="btn btn-secondary">
+                    <i class="fas fa-plus mr-1"></i>
+                    Nueva cotización
+                </a>
+            @endguest
 
-        </a>
+        </div>
 
 
-        <div>
+        {{-- DERECHA --}}
+        <div class="d-flex flex-wrap justify-content-md-end">
 
-            {{-- Próxima etapa --}}
-            <a href="{{ route('cotizaciones.pdf', $cotizacion) }}" class="btn btn-danger mr-1"
+            {{-- PDF: visible en EMITIDA y ANULADA --}}
+            <a href="{{ route('cotizaciones.pdf', $cotizacion) }}" class="btn btn-danger mr-1 mb-2"
                 title="Descargar cotización en PDF">
                 <i class="fas fa-file-pdf mr-1"></i>
                 Descargar PDF
             </a>
 
 
-            {{-- Próxima etapa --}}
-            <button type="button" class="btn btn-info" disabled title="Se implementará en la siguiente etapa">
+            {{-- Solo si está EMITIDA --}}
+            @if ($estado === 'EMITIDA')
+                <button type="button" class="btn btn-info mr-1 mb-2" disabled
+                    title="Se implementará en la siguiente etapa">
+                    <i class="fas fa-envelope mr-1"></i>
+                    Enviar por correo
+                </button>
 
-                <i class="fas fa-envelope mr-1"></i>
 
-                Enviar por correo
+                {{-- FUNCIONARIO --}}
+                @auth
+                    <button type="button" class="btn btn-danger mb-2" data-toggle="modal" data-target="#modalAnularAdmin">
+                        <i class="fas fa-ban mr-1"></i>
+                        Anular cotización
+                    </button>
+                @endauth
 
-            </button>
+
+                {{-- CLIENTE --}}
+                @guest
+                    <button type="button" class="btn btn-outline-danger mb-2" data-toggle="modal"
+                        data-target="#modalAnularCliente">
+                        <i class="fas fa-ban mr-1"></i>
+                        Anular cotización
+                    </button>
+                @endguest
+            @endif
 
         </div>
 
     </div>
+    @if ($estado === 'ANULADA')
 
+        <div class="alert alert-danger mb-4">
+
+            <h5 class="mb-3">
+
+                <i class="fas fa-ban mr-1"></i>
+                Cotización anulada
+
+            </h5>
+
+            @if ($cotizacion->anulada_at)
+                <p class="mb-1">
+
+                    <strong>Fecha:</strong>
+
+                    {{ $cotizacion->anulada_at->format('d/m/Y H:i') }}
+
+                </p>
+            @endif
+
+
+            <p class="mb-1">
+
+                <strong>Anulada por:</strong>
+
+                @if ($cotizacion->anulada_por_tipo === 'FUNCIONARIO')
+
+                    Funcionario
+
+                    @if ($cotizacion->anuladaPor)
+                        -
+                        {{ $cotizacion->anuladaPor->name }}
+                    @endif
+                @else
+                    Cliente
+
+                @endif
+
+            </p>
+
+
+            @if ($cotizacion->motivo_anulacion)
+                <p class="mb-0">
+
+                    <strong>Motivo:</strong>
+
+                    {{ $cotizacion->motivo_anulacion }}
+
+                </p>
+            @endif
+
+        </div>
+
+    @endif
+    {{-- ============================================ --}}
+    {{-- MODAL ANULAR - CLIENTE --}}
+    {{-- ============================================ --}}
+
+    @guest
+
+        @if ($estado === 'EMITIDA')
+            <div class="modal fade" id="modalAnularCliente" tabindex="-1" role="dialog"
+                aria-labelledby="modalAnularClienteLabel" aria-hidden="true">
+
+                <div class="modal-dialog" role="document">
+
+                    <div class="modal-content">
+
+                        <form method="POST" action="{{ route('cotizaciones.anular', $cotizacion) }}">
+
+                            @csrf
+                            @method('PATCH')
+
+
+                            {{-- CABECERA --}}
+                            <div class="modal-header">
+
+                                <h5 class="modal-title" id="modalAnularClienteLabel">
+                                    <i class="fas fa-ban text-danger mr-1"></i>
+
+                                    Anular mi cotización
+                                </h5>
+
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                                    <span aria-hidden="true">
+                                        &times;
+                                    </span>
+                                </button>
+
+                            </div>
+
+
+                            {{-- CONTENIDO --}}
+                            <div class="modal-body">
+
+                                <div class="alert alert-danger">
+
+                                    ¿Deseas anular la cotización
+
+                                    <strong>
+                                        {{ $cotizacion->folio }}
+                                    </strong>?
+
+                                </div>
+
+
+                                <div class="form-group mb-0">
+
+                                    <label for="motivo_anulacion_cliente">
+                                        Motivo de anulación
+                                    </label>
+
+                                    <textarea id="motivo_anulacion_cliente" name="motivo_anulacion" class="form-control" rows="4"
+                                        maxlength="1000" placeholder="Indica el motivo por el cual deseas anular la cotización..." required>{{ old('motivo_anulacion') }}</textarea>
+
+                                </div>
+
+                            </div>
+
+
+                            {{-- BOTONES --}}
+                            <div class="modal-footer">
+
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                    Volver
+                                </button>
+
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-ban mr-1"></i>
+
+                                    Confirmar anulación
+                                </button>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+        @endif
+
+    @endguest
+    {{-- ============================================ --}}
+    {{-- MODAL ANULAR - FUNCIONARIO --}}
+    {{-- ============================================ --}}
+
+    @auth
+
+        @if ($estado === 'EMITIDA')
+            <div class="modal fade" id="modalAnularAdmin" tabindex="-1" role="dialog"
+                aria-labelledby="modalAnularAdminLabel" aria-hidden="true">
+
+                <div class="modal-dialog" role="document">
+
+                    <div class="modal-content">
+
+                        <form method="POST" action="{{ route('admin.cotizaciones.anular', $cotizacion) }}">
+
+                            @csrf
+                            @method('PATCH')
+
+
+                            {{-- CABECERA --}}
+                            <div class="modal-header">
+
+                                <h5 class="modal-title" id="modalAnularAdminLabel">
+                                    <i class="fas fa-ban text-danger mr-1"></i>
+
+                                    Anular cotización
+                                </h5>
+
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                                    <span aria-hidden="true">
+                                        &times;
+                                    </span>
+                                </button>
+
+                            </div>
+
+
+                            {{-- CONTENIDO --}}
+                            <div class="modal-body">
+
+                                <div class="alert alert-danger">
+
+                                    Esta acción cambiará la cotización
+
+                                    <strong>
+                                        {{ $cotizacion->folio }}
+                                    </strong>
+
+                                    al estado
+
+                                    <strong>ANULADA</strong>.
+
+                                </div>
+
+
+                                <div class="form-group mb-0">
+
+                                    <label for="motivo_anulacion_admin">
+                                        Motivo de anulación
+                                    </label>
+
+                                    <textarea id="motivo_anulacion_admin" name="motivo_anulacion" class="form-control" rows="4" maxlength="1000"
+                                        placeholder="Indique el motivo de la anulación..." required>{{ old('motivo_anulacion') }}</textarea>
+
+                                </div>
+
+                            </div>
+
+
+                            {{-- BOTONES --}}
+                            <div class="modal-footer">
+
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                                    Cancelar
+                                </button>
+
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="fas fa-ban mr-1"></i>
+
+                                    Confirmar anulación
+                                </button>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                </div>
+
+            </div>
+        @endif
+
+    @endauth
 @stop

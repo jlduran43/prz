@@ -9,10 +9,7 @@
             Cotizaciones
         </h1>
 
-        <a
-            href="{{ route('reservas.operacion') }}"
-            class="btn btn-primary"
-        >
+        <a href="{{ route('reservas.operacion') }}" class="btn btn-primary">
             <i class="fas fa-plus mr-1"></i>
             Nueva cotización
         </a>
@@ -30,11 +27,7 @@
 
             {{ session('success') }}
 
-            <button
-                type="button"
-                class="close"
-                data-dismiss="alert"
-            >
+            <button type="button" class="close" data-dismiss="alert">
                 <span>&times;</span>
             </button>
 
@@ -46,10 +39,7 @@
 
         <div class="card-header">
 
-            <form
-                method="GET"
-                action="{{ route('cotizaciones.index') }}"
-            >
+            <form method="GET" action="{{ route('cotizaciones.index') }}">
 
                 <div class="row align-items-center">
 
@@ -63,13 +53,8 @@
                                 </span>
                             </div>
 
-                            <input
-                                type="text"
-                                name="buscar"
-                                class="form-control"
-                                value="{{ $buscar }}"
-                                placeholder="Buscar por folio, cliente o correo..."
-                            >
+                            <input type="text" name="buscar" class="form-control" value="{{ $buscar }}"
+                                placeholder="Buscar por folio, cliente o correo...">
 
                         </div>
 
@@ -78,18 +63,12 @@
 
                     <div class="col-md-3 mt-2 mt-md-0">
 
-                        <button
-                            type="submit"
-                            class="btn btn-primary"
-                        >
+                        <button type="submit" class="btn btn-primary">
                             <i class="fas fa-search mr-1"></i>
                             Buscar
                         </button>
 
-                        <a
-                            href="{{ route('cotizaciones.index') }}"
-                            class="btn btn-secondary ml-1"
-                        >
+                        <a href="{{ route('cotizaciones.index') }}" class="btn btn-secondary ml-1">
                             <i class="fas fa-eraser mr-1"></i>
                             Limpiar
                         </a>
@@ -129,12 +108,8 @@
 
                         @php
                             $nombreCliente =
-                                $cotizacion->nombre_entidad
-                                ?: trim(
-                                    ($cotizacion->nombres ?? '')
-                                    . ' '
-                                    . ($cotizacion->apellidos ?? '')
-                                );
+                                $cotizacion->nombre_entidad ?:
+                                trim(($cotizacion->nombres ?? '') . ' ' . ($cotizacion->apellidos ?? ''));
                         @endphp
 
                         <tr>
@@ -154,11 +129,7 @@
                             </td>
 
                             <td>
-                                {{
-                                    $cotizacion
-                                        ->fecha_emision
-                                        ->format('d/m/Y H:i')
-                                }}
+                                {{ $cotizacion->fecha_emision->format('d/m/Y H:i') }}
                             </td>
 
                             <td>
@@ -167,55 +138,44 @@
 
                             <td class="text-right">
                                 <strong>
-                                    ${{
-                                        number_format(
-                                            $cotizacion->total,
-                                            0,
-                                            ',',
-                                            '.'
-                                        )
-                                    }}
+                                    ${{ number_format($cotizacion->total, 0, ',', '.') }}
                                 </strong>
                             </td>
 
                             <td>
 
-                                @switch($cotizacion->estado)
+                                @php
+                                    $estado = strtoupper($cotizacion->estado ?? '');
 
-                                    @case('EMITIDA')
-                                        <span class="badge badge-info">
-                                            Emitida
-                                        </span>
-                                        @break
+                                    $badgeEstado = match ($estado) {
+                                        'EMITIDA' => 'badge-info',
+                                        'ENVIADA' => 'badge-primary',
+                                        'ACEPTADA' => 'badge-success',
+                                        'ANULADA' => 'badge-danger',
+                                        'VENCIDA' => 'badge-secondary',
+                                        default => 'badge-light',
+                                    };
 
-                                    @case('CONVERTIDA_RESERVA')
-                                        <span class="badge badge-success">
-                                            Convertida en reserva
-                                        </span>
-                                        @break
+                                    $textoEstado = match ($estado) {
+                                        'EMITIDA' => 'Emitida',
+                                        'ENVIADA' => 'Enviada',
+                                        'ACEPTADA' => 'Aceptada',
+                                        'ANULADA' => 'Anulada',
+                                        'VENCIDA' => 'Vencida',
+                                        default => ucfirst(strtolower($estado)),
+                                    };
+                                @endphp
 
-                                    @case('ANULADA')
-                                        <span class="badge badge-secondary">
-                                            Anulada
-                                        </span>
-                                        @break
-
-                                @endswitch
+                                <span class="badge {{ $badgeEstado }}">
+                                    {{ $textoEstado }}
+                                </span>
 
                             </td>
 
                             <td class="text-right">
 
-                                <a
-                                    href="{{
-                                        route(
-                                            'cotizaciones.show',
-                                            $cotizacion
-                                        )
-                                    }}"
-                                    class="btn btn-info btn-sm"
-                                    title="Ver cotización"
-                                >
+                                <a href="{{ route('admin.cotizaciones.show', $cotizacion) }}"
+                                    class="btn btn-info btn-sm" title="Ver cotización">
                                     <i class="fas fa-eye"></i>
                                 </a>
 
@@ -226,14 +186,10 @@
                     @empty
 
                         <tr>
-                            <td
-                                colspan="7"
-                                class="text-center py-4 text-muted"
-                            >
+                            <td colspan="7" class="text-center py-4 text-muted">
                                 No hay cotizaciones registradas.
                             </td>
                         </tr>
-
                     @endforelse
 
                 </tbody>

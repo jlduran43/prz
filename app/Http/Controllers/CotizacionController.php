@@ -138,4 +138,93 @@ class CotizacionController extends Controller
             $cotizacion->folio . '.pdf'
         );
     }
+
+    public function showPublico(Cotizacion $cotizacion)
+    {
+        return view(
+            'cotizaciones.show',
+            compact('cotizacion')
+        );
+    }
+
+    public function anularAdmin(Request $request, Cotizacion $cotizacion)
+    {
+        if ($cotizacion->estado !== 'EMITIDA') {
+
+            return back()->with(
+                'error',
+                'Solo se pueden anular cotizaciones emitidas.'
+            );
+        }
+
+        $request->validate([
+            'motivo_anulacion' => [
+                'required',
+                'string',
+                'max:1000',
+            ],
+        ], [
+            'motivo_anulacion.required' =>
+            'Debe ingresar el motivo de la anulación.',
+        ]);
+
+        $cotizacion->update([
+            'estado' => 'ANULADA',
+            'anulada_at' => now(),
+            'anulada_por_tipo' => 'FUNCIONARIO',
+            'anulada_por_user_id' => auth()->id(),
+            'motivo_anulacion' =>
+            $request->motivo_anulacion,
+        ]);
+
+        return redirect()
+            ->route(
+                'admin.cotizaciones.show',
+                $cotizacion
+            )
+            ->with(
+                'success',
+                'La cotización fue anulada correctamente.'
+            );
+    }
+
+    public function anularPublico(Request $request, Cotizacion $cotizacion) {
+        if ($cotizacion->estado !== 'EMITIDA') {
+
+            return back()->with(
+                'error',
+                'Esta cotización ya no puede ser anulada.'
+            );
+        }
+
+        $request->validate([
+            'motivo_anulacion' => [
+                'required',
+                'string',
+                'max:1000',
+            ],
+        ], [
+            'motivo_anulacion.required' =>
+            'Debe indicar el motivo de la anulación.',
+        ]);
+
+        $cotizacion->update([
+            'estado' => 'ANULADA',
+            'anulada_at' => now(),
+            'anulada_por_tipo' => 'CLIENTE',
+            'anulada_por_user_id' => null,
+            'motivo_anulacion' =>
+            $request->motivo_anulacion,
+        ]);
+
+        return redirect()
+            ->route(
+                'cotizaciones.resultado',
+                $cotizacion
+            )
+            ->with(
+                'success',
+                'La cotización fue anulada correctamente.'
+            );
+    }
 }

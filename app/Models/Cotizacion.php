@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -54,6 +55,11 @@ class Cotizacion extends Model
         'fecha_vencimiento',
         'condiciones_snapshot',
         'vigencia_hasta',
+
+        'anulada_at',
+        'anulada_por_tipo',
+        'anulada_por_user_id',
+        'motivo_anulacion',
     ];
 
     protected function casts(): array
@@ -84,6 +90,8 @@ class Cotizacion extends Model
 
             'vigencia_hasta' => 'date',
             'condiciones_snapshot' => 'array',
+
+            'anulada_at' => 'datetime',
         ];
     }
 
@@ -121,4 +129,16 @@ class Cotizacion extends Model
             Convenio::class
         );
     }
+
+    public function anuladaPor()
+    {
+        return $this->belongsTo(
+            User::class,
+            'anulada_por_user_id'
+        );
+    }
+
+    protected $casts = [
+        'anulada_at' => 'datetime',
+    ];
 }

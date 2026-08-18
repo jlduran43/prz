@@ -305,6 +305,7 @@ return [
             'text' => 'Inicio',
             'route' => 'dashboard',
             'icon' => 'fas fa-home',
+            'can' => 'acceso-admin',
         ],
 
         [
@@ -331,13 +332,22 @@ return [
         ],
 
         [
+            'text' => 'Cotizaciones',
+            'route' => 'cotizaciones.index',
+            'icon' => 'fas fa-file-invoice-dollar',
+            'can' => 'acceso-admin',
+        ],
+
+        [
             'text' => 'Horarios de atención',
             'route' => 'horarios-disponibles.index',
             'icon' => 'fas fa-fw fa-calendar-alt',
+            'can' => 'acceso-admin',
         ],
         [
             'text' => 'Mantenedores',
             'icon' => 'fas fa-cogs',
+            'can' => 'acceso-admin',
             'submenu' => [
                 [
                     'text' => 'Tipos de cliente',

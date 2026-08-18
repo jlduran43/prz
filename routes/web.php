@@ -11,186 +11,214 @@ use App\Http\Controllers\TipoClienteController;
 use App\Http\Controllers\CotizacionController;
 use App\Http\Controllers\ConfiguracionCotizacionController;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Auth\LoginController;
 
-/*
+Route::middleware('guest')->group(function () {
+
+    Route::get('/login', [
+        LoginController::class,
+        'showLoginForm'
+    ])->name('login');
+
+    Route::post('/login', [
+        LoginController::class,
+        'login'
+    ])->name('login.attempt');
+});
+
+Route::post('/logout', [
+    LoginController::class,
+    'logout'
+])
+    ->middleware('auth')
+    ->name('logout');
+
+Route::middleware('auth')->group(function () {
+
+    // TODAS LAS RUTAS DEL PANEL ADMINISTRATIVO
+
+    Route::view('/dashboard', 'dashboard')
+        ->name('dashboard');
+
+    Route::resource(
+        'convenios',
+        ConvenioController::class
+    );
+
+    Route::controller(TipoClienteController::class)
+        ->prefix('tipos-cliente')
+        ->name('tipos-cliente.')
+        ->group(function () {
+            Route::patch(
+                '{tipoCliente}/cambiar-estado',
+                'cambiarEstado'
+            )->name('cambiar-estado');
+        });
+
+    Route::resource(
+        'tipos-cliente',
+        TipoClienteController::class
+    )
+        ->parameters([
+            'tipos-cliente' => 'tipoCliente',
+        ])
+        ->except('destroy');
+
+    Route::controller(RegionController::class)
+        ->prefix('regiones')
+        ->name('regiones.')
+        ->group(function () {
+            Route::patch(
+                '{region}/cambiar-estado',
+                'cambiarEstado'
+            )->name('cambiar-estado');
+        });
+
+    Route::resource(
+        'regiones',
+        RegionController::class
+    )
+        ->parameters([
+            'regiones' => 'region',
+        ])
+        ->except('destroy');
+    Route::controller(ComunaController::class)
+        ->prefix('comunas')
+        ->name('comunas.')
+        ->group(function () {
+            Route::patch(
+                '{comuna}/cambiar-estado',
+                'cambiarEstado'
+            )->name('cambiar-estado');
+        });
+
+    Route::resource(
+        'comunas',
+        ComunaController::class
+    )
+        ->parameters([
+            'comunas' => 'comuna',
+        ])
+        ->except('destroy');
+
+    Route::controller(CategoriaServicioController::class)
+        ->prefix('categorias-servicio')
+        ->name('categorias-servicio.')
+        ->group(function () {
+            Route::patch(
+                '{categoria}/activar',
+                'activar'
+            )->name('activar');
+        });
+
+    Route::resource(
+        'categorias-servicio',
+        CategoriaServicioController::class
+    )
+        ->parameters([
+            'categorias-servicio' => 'categoria',
+        ]);
+    Route::controller(HorarioDisponibleController::class)
+        ->prefix('horarios-disponibles')
+        ->name('horarios-disponibles.')
+        ->group(function () {
+
+            Route::get(
+                'generar',
+                'generar'
+            )->name('generar');
+
+            Route::post(
+                'recurrentes',
+                'guardarRecurrentes'
+            )->name('recurrentes.guardar');
+
+            Route::patch(
+                '{horario}/activar',
+                'activar'
+            )->name('activar');
+        });
+
+    Route::resource(
+        'horarios-disponibles',
+        HorarioDisponibleController::class
+    )
+        ->parameters([
+            'horarios-disponibles' => 'horario',
+        ]);
+
+    Route::controller(ServicioExperienciaController::class)
+        ->prefix('servicios-experiencias')
+        ->name('servicios-experiencias.')
+        ->group(function () {
+            Route::patch(
+                '{servicio}/activar',
+                'activar'
+            )->name('activar');
+        });
+
+    Route::resource(
+        'servicios-experiencias',
+        ServicioExperienciaController::class
+    )
+        ->parameters([
+            'servicios-experiencias' => 'servicio',
+        ]);
+
+    /*
 |--------------------------------------------------------------------------
-| Dashboard
+| Cotizaciones - Administración
 |--------------------------------------------------------------------------
 */
 
-Route::view('/dashboard', 'dashboard')
-    ->name('dashboard');
+    Route::get(
+        '/cotizaciones',
+        [CotizacionController::class, 'index']
+    )->name('cotizaciones.index');
 
-Route::resource(
-    'convenios',
-    ConvenioController::class
-);
-
-/*
+    Route::get(
+        '/cotizaciones/{cotizacion}',
+        [CotizacionController::class, 'show']
+    )->name('cotizaciones.show');
+    /*
 |--------------------------------------------------------------------------
-| Tipos de cliente
-|--------------------------------------------------------------------------
-*/
-
-Route::controller(TipoClienteController::class)
-    ->prefix('tipos-cliente')
-    ->name('tipos-cliente.')
-    ->group(function () {
-        Route::patch(
-            '{tipoCliente}/cambiar-estado',
-            'cambiarEstado'
-        )->name('cambiar-estado');
-    });
-
-Route::resource(
-    'tipos-cliente',
-    TipoClienteController::class
-)
-    ->parameters([
-        'tipos-cliente' => 'tipoCliente',
-    ])
-    ->except('destroy');
-
-/*
-|--------------------------------------------------------------------------
-| Regiones
+| Configuración de cotizaciones
 |--------------------------------------------------------------------------
 */
 
-Route::controller(RegionController::class)
-    ->prefix('regiones')
-    ->name('regiones.')
-    ->group(function () {
-        Route::patch(
-            '{region}/cambiar-estado',
-            'cambiarEstado'
-        )->name('cambiar-estado');
-    });
+    Route::resource(
+        'configuraciones-cotizacion',
+        ConfiguracionCotizacionController::class
+    )
+        ->except([
+            'show',
+            'destroy',
+        ])
+        ->parameters([
+            'configuraciones-cotizacion' => 'configuracion',
+        ]);
 
-Route::resource(
-    'regiones',
-    RegionController::class
-)
-    ->parameters([
-        'regiones' => 'region',
-    ])
-    ->except('destroy');
+    Route::patch(
+        'configuraciones-cotizacion/{configuracion}/activar',
+        [
+            ConfiguracionCotizacionController::class,
+            'activar',
+        ]
+    )->name(
+        'configuraciones-cotizacion.activar'
+    );
 
-/*
-|--------------------------------------------------------------------------
-| Comunas
-|--------------------------------------------------------------------------
-*/
+    Route::get(
+        '/admin/cotizaciones/{cotizacion}',
+        [CotizacionController::class, 'show']
+    )->name('admin.cotizaciones.show');
 
-Route::controller(ComunaController::class)
-    ->prefix('comunas')
-    ->name('comunas.')
-    ->group(function () {
-        Route::patch(
-            '{comuna}/cambiar-estado',
-            'cambiarEstado'
-        )->name('cambiar-estado');
-    });
+    Route::patch(
+        '/admin/cotizaciones/{cotizacion}/anular',
+        [CotizacionController::class, 'anularAdmin']
+    )->name('admin.cotizaciones.anular');
+});
 
-Route::resource(
-    'comunas',
-    ComunaController::class
-)
-    ->parameters([
-        'comunas' => 'comuna',
-    ])
-    ->except('destroy');
-
-/*
-|--------------------------------------------------------------------------
-| Categorías de servicio
-|--------------------------------------------------------------------------
-*/
-
-Route::controller(CategoriaServicioController::class)
-    ->prefix('categorias-servicio')
-    ->name('categorias-servicio.')
-    ->group(function () {
-        Route::patch(
-            '{categoria}/activar',
-            'activar'
-        )->name('activar');
-    });
-
-Route::resource(
-    'categorias-servicio',
-    CategoriaServicioController::class
-)
-    ->parameters([
-        'categorias-servicio' => 'categoria',
-    ]);
-
-/*
-|--------------------------------------------------------------------------
-| Horarios disponibles
-|--------------------------------------------------------------------------
-*/
-
-Route::controller(HorarioDisponibleController::class)
-    ->prefix('horarios-disponibles')
-    ->name('horarios-disponibles.')
-    ->group(function () {
-        /*
-         * Deben declararse antes del resource para que "generar"
-         * no sea interpretado como el identificador de un horario.
-         */
-        Route::get(
-            'generar',
-            'generar'
-        )->name('generar');
-
-        Route::post(
-            'recurrentes',
-            'guardarRecurrentes'
-        )->name('recurrentes.guardar');
-
-        Route::patch(
-            '{horario}/activar',
-            'activar'
-        )->name('activar');
-    });
-
-Route::resource(
-    'horarios-disponibles',
-    HorarioDisponibleController::class
-)
-    ->parameters([
-        'horarios-disponibles' => 'horario',
-    ]);
-
-/*
-|--------------------------------------------------------------------------
-| Servicios y experiencias
-|--------------------------------------------------------------------------
-*/
-
-Route::controller(ServicioExperienciaController::class)
-    ->prefix('servicios-experiencias')
-    ->name('servicios-experiencias.')
-    ->group(function () {
-        Route::patch(
-            '{servicio}/activar',
-            'activar'
-        )->name('activar');
-    });
-
-Route::resource(
-    'servicios-experiencias',
-    ServicioExperienciaController::class
-)
-    ->parameters([
-        'servicios-experiencias' => 'servicio',
-    ]);
-
-Route::post(
-    '/reservas/validar-convenio',
-    [ReservaWizardController::class, 'validarConvenio']
-)->name('reservas.validar-convenio');
 
 /*
 |--------------------------------------------------------------------------
@@ -241,6 +269,11 @@ Route::controller(ReservaWizardController::class)
         )->name('datos');
 
         Route::post(
+            '/validar-convenio',
+            'validarConvenio',
+        )->name('validar-convenio');
+
+        Route::post(
             'crear/datos-reserva',
             'guardarReserva'
         )->name('datos.guardar');
@@ -288,11 +321,6 @@ Route::controller(ReservaWizardController::class)
 | COTIZACIONES
 |--------------------------------------------------------------------------
 */
-Route::get(
-    '/cotizaciones',
-    [CotizacionController::class, 'index']
-)->name('cotizaciones.index');
-
 Route::post(
     '/cotizaciones/generar',
     [ReservaWizardController::class, 'generarCotizacion']
@@ -304,29 +332,11 @@ Route::get(
 )->name('cotizaciones.pdf');
 
 Route::get(
-    '/cotizaciones/{cotizacion}',
-    [CotizacionController::class, 'show']
-)->name('cotizaciones.show');
-
-Route::resource(
-    'configuraciones-cotizacion',
-    ConfiguracionCotizacionController::class
-)
-    ->except([
-        'show',
-        'destroy',
-    ])
-    ->parameters([
-        'configuraciones-cotizacion' =>
-            'configuracion',
-    ]);
+    '/cotizaciones/{cotizacion}/resultado',
+    [CotizacionController::class, 'showPublico']
+)->name('cotizaciones.resultado');
 
 Route::patch(
-    'configuraciones-cotizacion/{configuracion}/activar',
-    [
-        ConfiguracionCotizacionController::class,
-        'activar',
-    ]
-)->name(
-    'configuraciones-cotizacion.activar'
-);
+    '/cotizaciones/{cotizacion}/anular',
+    [CotizacionController::class, 'anularPublico']
+)->name('cotizaciones.anular');

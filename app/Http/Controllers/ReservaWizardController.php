@@ -1219,7 +1219,7 @@ class ReservaWizardController extends Controller
     */
         return redirect()
             ->route(
-                'cotizaciones.show',
+                'cotizaciones.resultado',
                 $cotizacion
             )
             ->with(
