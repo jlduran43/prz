@@ -139,8 +139,21 @@ class CotizacionController extends Controller
         );
     }
 
-    public function showPublico(Cotizacion $cotizacion)
+    public function showPublico(Cotizacion $cotizacion, string $token)
     {
+        if (
+            !$cotizacion->token_acceso ||
+            !hash_equals(
+                $cotizacion->token_acceso,
+                $token
+            )
+        ) {
+            abort(
+                403,
+                'No tienes autorización para acceder a esta cotización.'
+            );
+        }
+
         return view(
             'cotizaciones.show',
             compact('cotizacion')
@@ -188,7 +201,33 @@ class CotizacionController extends Controller
             );
     }
 
-    public function anularPublico(Request $request, Cotizacion $cotizacion) {
+    public function anularPublico(Request $request, Cotizacion $cotizacion, string $token)
+    {
+        /*
+            |--------------------------------------------------------------------------
+            | Validar token
+            |--------------------------------------------------------------------------
+        */
+
+        if (
+            !$cotizacion->token_acceso ||
+            !hash_equals(
+                $cotizacion->token_acceso,
+                $token
+            )
+        ) {
+            abort(
+                403,
+                'No tienes autorización para modificar esta cotización.'
+            );
+        }
+
+        /*
+            |--------------------------------------------------------------------------
+            | Validar estado
+            |--------------------------------------------------------------------------
+        */
+
         if ($cotizacion->estado !== 'EMITIDA') {
 
             return back()->with(
@@ -196,6 +235,12 @@ class CotizacionController extends Controller
                 'Esta cotización ya no puede ser anulada.'
             );
         }
+
+        /*
+            |--------------------------------------------------------------------------
+            | Validar motivo
+            |--------------------------------------------------------------------------
+        */
 
         $request->validate([
             'motivo_anulacion' => [
@@ -208,6 +253,12 @@ class CotizacionController extends Controller
             'Debe indicar el motivo de la anulación.',
         ]);
 
+        /*
+            |--------------------------------------------------------------------------
+            | Anular
+            |--------------------------------------------------------------------------
+        */
+
         $cotizacion->update([
             'estado' => 'ANULADA',
             'anulada_at' => now(),
@@ -217,6 +268,12 @@ class CotizacionController extends Controller
             $request->motivo_anulacion,
         ]);
 
+        /*
+            |--------------------------------------------------------------------------
+            | Volver a la cotización
+            |--------------------------------------------------------------------------
+        */
+
         return redirect()
             ->route(
                 'cotizaciones.resultado',
@@ -225,6 +282,131 @@ class CotizacionController extends Controller
             ->with(
                 'success',
                 'La cotización fue anulada correctamente.'
+            );
+    }
+
+    public function descargarPdfPublico(Cotizacion $cotizacion, string $token)
+    {
+        if (
+            !$cotizacion->token_acceso ||
+            !hash_equals(
+                $cotizacion->token_acceso,
+                $token
+            )
+        ) {
+            abort(
+                403,
+                'No tienes autorización para descargar esta cotización.'
+            );
+        }
+
+        return $this->descargarPdf($cotizacion);
+    }
+
+    public function convertirEnReserva(
+        Cotizacion $cotizacion,
+        string $token
+    ) {
+        /*
+    |--------------------------------------------------------------------------
+    | Validar token
+    |--------------------------------------------------------------------------
+    */
+
+        if (
+            !$cotizacion->token_acceso ||
+            !hash_equals(
+                $cotizacion->token_acceso,
+                $token
+            )
+        ) {
+            abort(
+                403,
+                'No tienes autorización para acceder a esta cotización.'
+            );
+        }
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | Solo se puede convertir una cotización EMITIDA
+    |--------------------------------------------------------------------------
+    */
+
+        if (
+            strtoupper($cotizacion->estado) !== 'EMITIDA'
+        ) {
+            return redirect()
+                ->route(
+                    'cotizaciones.resultado',
+                    [
+                        'cotizacion' => $cotizacion,
+                        'token' => $cotizacion->token_acceso,
+                    ]
+                )
+                ->with(
+                    'error',
+                    'Esta cotización ya no puede convertirse en reserva.'
+                );
+        }
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | Evitar crear una segunda reserva
+    |--------------------------------------------------------------------------
+    */
+
+        if ($cotizacion->reserva()->exists()) {
+
+            return redirect()
+                ->route(
+                    'cotizaciones.resultado',
+                    [
+                        'cotizacion' => $cotizacion,
+                        'token' => $cotizacion->token_acceso,
+                    ]
+                )
+                ->with(
+                    'error',
+                    'Esta cotización ya tiene una reserva asociada.'
+                );
+        }
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | Preparar conversión
+    |--------------------------------------------------------------------------
+    |
+    | IMPORTANTE:
+    | Todavía NO cambiamos el estado a ACEPTADA.
+    |
+    */
+
+        session([
+            'conversion_cotizacion_id' =>
+            $cotizacion->id,
+
+            'conversion_cotizacion_token' =>
+            $cotizacion->token_acceso,
+
+            'reserva.tipo_operacion' =>
+            'RESERVA',
+        ]);
+
+
+        /*
+            |--------------------------------------------------------------------------
+            | Continuar con el wizard
+            |--------------------------------------------------------------------------
+        */
+
+        return redirect()
+            ->route('reservas.cliente')
+            ->with(
+                'success',
+                'Revisa los datos de la cotización para continuar con la reserva.'
             );
     }
 }

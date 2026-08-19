@@ -35,6 +35,18 @@ class ReservaWizardController extends Controller
         ]);
     }
 
+    public function nuevaOperacion()
+    {
+        session()->forget([
+            'reserva',
+            'conversion_cotizacion_id',
+            'conversion_cotizacion_token',
+        ]);
+
+        return redirect()
+            ->route('reservas.operacion');
+    }
+
     public function guardarOperacion(Request $request)
     {
         $datos = $request->validate([
@@ -55,28 +67,234 @@ class ReservaWizardController extends Controller
 
     public function cliente()
     {
+        /*
+    |--------------------------------------------------------------------------
+    | 1. Debe existir un tipo de operación
+    |--------------------------------------------------------------------------
+    */
 
         if (! session()->has('reserva.tipo_operacion')) {
             return redirect()
                 ->route('reservas.operacion');
         }
 
+
+        /*
+    |--------------------------------------------------------------------------
+    | 2. Datos que ya existan en sesión
+    |--------------------------------------------------------------------------
+    */
+
+        $datosCliente = session(
+            'reserva.cliente',
+            []
+        );
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | 3. ¿La reserva viene desde una cotización?
+    |--------------------------------------------------------------------------
+    */
+
+        $cotizacionId = session(
+            'conversion_cotizacion_id'
+        );
+
+        $cotizacionToken = session(
+            'conversion_cotizacion_token'
+        );
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | 4. Precargar cliente desde la cotización
+    |--------------------------------------------------------------------------
+    |
+    | Solo lo hacemos si todavía no existen datos de cliente en sesión.
+    | De esta forma, si el usuario vuelve desde el Paso 2 al Paso 1,
+    | no sobrescribimos lo que haya modificado.
+    |
+    */
+
+        if (
+            $cotizacionId
+            && empty($datosCliente)
+        ) {
+
+            $cotizacion = Cotizacion::query()
+                ->with('tipoCliente')
+                ->find($cotizacionId);
+
+
+            /*
+        |--------------------------------------------------------------------------
+        | 5. Verificar que la cotización siga siendo válida
+        |--------------------------------------------------------------------------
+        */
+
+            if (
+                ! $cotizacion
+                || ! $cotizacionToken
+                || ! $cotizacion->token_acceso
+                || ! hash_equals(
+                    $cotizacion->token_acceso,
+                    $cotizacionToken
+                )
+            ) {
+
+                session()->forget([
+                    'conversion_cotizacion_id',
+                    'conversion_cotizacion_token',
+                    'reserva',
+                ]);
+
+                return redirect()
+                    ->route('reservas.operacion')
+                    ->with(
+                        'error',
+                        'No fue posible recuperar la cotización.'
+                    );
+            }
+
+
+            /*
+        |--------------------------------------------------------------------------
+        | 6. Solo una cotización EMITIDA puede iniciar la reserva
+        |--------------------------------------------------------------------------
+        */
+
+            if (
+                strtoupper($cotizacion->estado)
+                !== 'EMITIDA'
+            ) {
+
+                session()->forget([
+                    'conversion_cotizacion_id',
+                    'conversion_cotizacion_token',
+                    'reserva',
+                ]);
+
+                return redirect()
+                    ->route('reservas.operacion')
+                    ->with(
+                        'error',
+                        'Esta cotización ya no está disponible para reservar.'
+                    );
+            }
+
+
+            /*
+        |--------------------------------------------------------------------------
+        | 7. Copiar datos de cotización a la sesión del wizard
+        |--------------------------------------------------------------------------
+        */
+
+            $datosCliente = [
+
+                'tipo_cliente_id' =>
+                $cotizacion->tipo_cliente_id,
+
+                'nombres' =>
+                $cotizacion->nombres,
+
+                'apellidos' =>
+                $cotizacion->apellidos,
+
+                'rut_persona' =>
+                $cotizacion->rut_persona,
+
+                'nombre_entidad' =>
+                $cotizacion->nombre_entidad,
+
+                'rut_entidad' =>
+                $cotizacion->rut_entidad,
+
+                'nombre_encargado' =>
+                $cotizacion->nombre_encargado,
+
+                'rut_encargado' =>
+                $cotizacion->rut_encargado,
+
+                'email' =>
+                $cotizacion->email,
+
+                'telefono' =>
+                $cotizacion->telefono,
+
+                'region_id' =>
+                $cotizacion->region_id,
+
+                'comuna_id' =>
+                $cotizacion->comuna_id,
+
+                'codigo_tipo_cliente' =>
+                $cotizacion->tipoCliente?->codigo,
+
+                'tipo_estructura' =>
+                $cotizacion->tipoCliente
+                    ?->tipo_estructura,
+            ];
+
+
+            /*
+        |--------------------------------------------------------------------------
+        | 8. Guardar la precarga
+        |--------------------------------------------------------------------------
+        */
+
+            session([
+                'reserva.cliente' =>
+                $datosCliente,
+            ]);
+        }
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | 9. Tipos de cliente
+    |--------------------------------------------------------------------------
+    */
+
         $tiposCliente = TipoCliente::query()
             ->where('activo', true)
             ->orderBy('nombre')
             ->get();
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | 10. Regiones
+    |--------------------------------------------------------------------------
+    */
 
         $regiones = Region::query()
             ->where('activo', true)
             ->orderBy('nombre')
             ->get();
 
-        return view('reservas.paso1-cliente', [
-            'paso' => 1,
-            'tiposCliente' => $tiposCliente,
-            'regiones' => $regiones,
-            'datosCliente' => session('reserva.cliente', []),
-        ]);
+
+        /*
+    |--------------------------------------------------------------------------
+    | 11. Mostrar Paso 1
+    |--------------------------------------------------------------------------
+    */
+
+        return view(
+            'reservas.paso1-cliente',
+            [
+                'paso' => 1,
+
+                'tiposCliente' =>
+                $tiposCliente,
+
+                'regiones' =>
+                $regiones,
+
+                'datosCliente' =>
+                $datosCliente,
+            ]
+        );
     }
 
     public function guardarCliente(Request $request)
@@ -262,10 +480,10 @@ class ReservaWizardController extends Controller
     public function guardarReserva(Request $request)
     {
         /*
-    |--------------------------------------------------------------------------
-    | 1. Obtener modalidad y cliente desde sesión
-    |--------------------------------------------------------------------------
-    */
+            |--------------------------------------------------------------------------
+            | 1. Obtener modalidad y cliente desde sesión
+            |--------------------------------------------------------------------------
+        */
 
         $tipoOperacion = session('reserva.tipo_operacion');
 
@@ -298,10 +516,10 @@ class ReservaWizardController extends Controller
 
 
         /*
-    |--------------------------------------------------------------------------
-    | 2. Reglas comunes
-    |--------------------------------------------------------------------------
-    */
+            |--------------------------------------------------------------------------
+            | 2. Reglas comunes
+            |--------------------------------------------------------------------------
+        */
 
         $reglas = [
 
@@ -345,10 +563,10 @@ class ReservaWizardController extends Controller
 
 
         /*
-    |--------------------------------------------------------------------------
-    | 3. Datos específicos para establecimiento educacional
-    |--------------------------------------------------------------------------
-    */
+            |--------------------------------------------------------------------------
+            | 3. Datos específicos para establecimiento educacional
+            |--------------------------------------------------------------------------
+        */
 
         if ($esEstablecimientoEducacional) {
 
@@ -387,10 +605,10 @@ class ReservaWizardController extends Controller
 
 
         /*
-    |--------------------------------------------------------------------------
-    | 4. Solo una RESERVA necesita fecha y horario
-    |--------------------------------------------------------------------------
-    */
+            |--------------------------------------------------------------------------
+            | 4. Solo una RESERVA necesita fecha y horario
+            |--------------------------------------------------------------------------
+        */
 
         if ($esReserva) {
 
@@ -415,10 +633,10 @@ class ReservaWizardController extends Controller
 
 
         /*
-    |--------------------------------------------------------------------------
-    | 5. Mensajes personalizados
-    |--------------------------------------------------------------------------
-    */
+            |--------------------------------------------------------------------------
+            | 5. Mensajes personalizados
+            |--------------------------------------------------------------------------
+        */
 
         $mensajes = [
 
@@ -473,10 +691,10 @@ class ReservaWizardController extends Controller
 
 
         /*
-    |--------------------------------------------------------------------------
-    | 6. Validar
-    |--------------------------------------------------------------------------
-    */
+            |--------------------------------------------------------------------------
+            | 6. Validar
+            |--------------------------------------------------------------------------
+        */
 
         $datos = $request->validate(
             $reglas,
@@ -485,14 +703,14 @@ class ReservaWizardController extends Controller
 
 
         /*
-    |--------------------------------------------------------------------------
-    | 7. Recalcular asistentes para establecimientos
-    |--------------------------------------------------------------------------
-    |
-    | No confiamos únicamente en el hidden cantidad_asistentes.
-    | Lo calculamos nuevamente desde Laravel.
-    |
-    */
+            |--------------------------------------------------------------------------
+            | 7. Recalcular asistentes para establecimientos
+            |--------------------------------------------------------------------------
+            |
+            | No confiamos únicamente en el hidden cantidad_asistentes.
+            | Lo calculamos nuevamente desde Laravel.
+            |
+        */
 
         if ($esEstablecimientoEducacional) {
 
@@ -508,10 +726,10 @@ class ReservaWizardController extends Controller
 
 
         /*
-    |--------------------------------------------------------------------------
-    | 8. Limpiar servicios según modalidad
-    |--------------------------------------------------------------------------
-    */
+            |--------------------------------------------------------------------------
+            | 8. Limpiar servicios según modalidad
+            |--------------------------------------------------------------------------
+        */
 
         $serviciosLimpios = [];
 
@@ -555,10 +773,10 @@ class ReservaWizardController extends Controller
 
 
         /*
-    |--------------------------------------------------------------------------
-    | 9. En cotización no guardar fecha
-    |--------------------------------------------------------------------------
-    */
+            |--------------------------------------------------------------------------
+            | 9. En cotización no guardar fecha
+            |--------------------------------------------------------------------------
+        */
 
         if ($esCotizacion) {
 
@@ -569,10 +787,10 @@ class ReservaWizardController extends Controller
 
 
         /*
-    |--------------------------------------------------------------------------
-    | 10. Guardar Paso 2 en sesión
-    |--------------------------------------------------------------------------
-    */
+            |--------------------------------------------------------------------------
+            | 10. Guardar Paso 2 en sesión
+            |--------------------------------------------------------------------------
+        */
 
         session([
             'reserva.datos' => $datos,
@@ -580,10 +798,10 @@ class ReservaWizardController extends Controller
 
 
         /*
-    |--------------------------------------------------------------------------
-    | 11. Continuar a confirmación
-    |--------------------------------------------------------------------------
-    */
+            |--------------------------------------------------------------------------
+            | 11. Continuar a confirmación
+            |--------------------------------------------------------------------------
+        */
 
         return redirect()
             ->route('reservas.confirmacion');
@@ -602,26 +820,29 @@ class ReservaWizardController extends Controller
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | TIPO DE OPERACIÓN
-    |--------------------------------------------------------------------------
-    */
+            |--------------------------------------------------------------------------
+            | TIPO DE OPERACIÓN
+            |--------------------------------------------------------------------------
+            */
+
         $esCotizacion = $tipoOperacion === 'COTIZACION';
         $esReserva = $tipoOperacion === 'RESERVA';
 
         /*
-    |--------------------------------------------------------------------------
-    | ALIAS QUE YA UTILIZA EL BLADE
-    |--------------------------------------------------------------------------
-    */
+            |--------------------------------------------------------------------------
+            | ALIAS QUE YA UTILIZA EL BLADE
+            |--------------------------------------------------------------------------
+        */
+
         $cliente = $datosCliente;
         $reserva = $datosReserva;
 
         /*
-    |--------------------------------------------------------------------------
-    | TIPO DE CLIENTE
-    |--------------------------------------------------------------------------
-    */
+            |--------------------------------------------------------------------------
+            | TIPO DE CLIENTE
+            |--------------------------------------------------------------------------
+        */
+
         $codigoTipoCliente =
             $cliente['codigo_tipo_cliente']
             ?? $cliente['tipo_cliente_codigo']
@@ -640,11 +861,13 @@ class ReservaWizardController extends Controller
             )->first();
         }
 
+
         /*
-    |--------------------------------------------------------------------------
-    | REGIÓN Y COMUNA
-    |--------------------------------------------------------------------------
-    */
+            |--------------------------------------------------------------------------
+            | REGIÓN Y COMUNA
+            |--------------------------------------------------------------------------
+        */
+
         $regionNombre = '-';
         $comunaNombre = '-';
 
@@ -665,10 +888,11 @@ class ReservaWizardController extends Controller
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | CÁLCULO DE SERVICIOS / ENTRADAS LIBERADAS
-    |--------------------------------------------------------------------------
-    */
+            |--------------------------------------------------------------------------
+            | CÁLCULO DE SERVICIOS / ENTRADAS LIBERADAS
+            |--------------------------------------------------------------------------
+        */
+
         $calculo = $this->calcularTotalesReserva(
             $datosCliente,
             $datosReserva
@@ -683,13 +907,14 @@ class ReservaWizardController extends Controller
         $personasPagadas = $calculo['personas_pagadas'];
 
         /*
-    |--------------------------------------------------------------------------
-    | CONVENIO
-    |--------------------------------------------------------------------------
-    |
-    | El convenio solamente corresponde a establecimientos educacionales.
-    |
-    */
+            |--------------------------------------------------------------------------
+            | CONVENIO
+            |--------------------------------------------------------------------------
+            |
+            | El convenio solamente corresponde a establecimientos educacionales.
+            |
+        */
+
         $esEstablecimientoEducacional =
             $codigoTipoCliente === 'ESTABLECIMIENTO_EDUCACIONAL';
 
@@ -700,9 +925,10 @@ class ReservaWizardController extends Controller
         if ($esEstablecimientoEducacional) {
 
             /*
-         * Primero buscamos el convenio que ya haya quedado
-         * guardado durante el paso anterior.
-         */
+                * Primero buscamos el convenio que ya haya quedado
+                * guardado durante el paso anterior.
+            */
+
             $convenio =
                 session('reserva.convenio')
                 ?? ($datosReserva['convenio'] ?? null);
@@ -710,9 +936,10 @@ class ReservaWizardController extends Controller
             if ($convenio) {
 
                 /*
-             * Compatible tanto si convenio es un modelo
-             * como si es un array.
-             */
+                    * Compatible tanto si convenio es un modelo
+                    * como si es un array.
+                */
+
                 $porcentajeDescuento = (float) data_get(
                     $convenio,
                     'porcentaje_descuento',
@@ -731,10 +958,11 @@ class ReservaWizardController extends Controller
         }
 
         /*
-    |--------------------------------------------------------------------------
-    | TOTAL FINAL
-    |--------------------------------------------------------------------------
-    */
+            |--------------------------------------------------------------------------
+            | TOTAL FINAL
+            |--------------------------------------------------------------------------
+        */
+
         $total = max(
             0,
             $subtotalGeneral - $descuentoTotal
@@ -743,10 +971,11 @@ class ReservaWizardController extends Controller
         $totalGeneral = $total;
 
         /*
-    |--------------------------------------------------------------------------
-    | GUARDAR CÁLCULO
-    |--------------------------------------------------------------------------
-    */
+            |--------------------------------------------------------------------------
+            | GUARDAR CÁLCULO
+            |--------------------------------------------------------------------------
+        */
+
         session([
             'reserva.calculo' => [
                 ...$calculo,
@@ -765,10 +994,11 @@ class ReservaWizardController extends Controller
         ]);
 
         /*
-    |--------------------------------------------------------------------------
-    | VISTA
-    |--------------------------------------------------------------------------
-    */
+            |--------------------------------------------------------------------------
+            | VISTA
+            |--------------------------------------------------------------------------
+        */
+
         return view(
             'reservas.paso3-confirmacion',
             compact(
@@ -807,10 +1037,10 @@ class ReservaWizardController extends Controller
     public function generarCotizacion(): RedirectResponse
     {
         /*
-    |--------------------------------------------------------------------------
-    | 1. VALIDAR OPERACIÓN
-    |--------------------------------------------------------------------------
-    */
+            |--------------------------------------------------------------------------
+            | 1. VALIDAR OPERACIÓN
+            |--------------------------------------------------------------------------
+        */
         $tipoOperacion =
             session('reserva.tipo_operacion');
 
@@ -1220,7 +1450,10 @@ class ReservaWizardController extends Controller
         return redirect()
             ->route(
                 'cotizaciones.resultado',
-                $cotizacion
+                [
+                    'cotizacion' => $cotizacion,
+                    'token' => $cotizacion->token_acceso,
+                ]
             )
             ->with(
                 'success',
@@ -1666,7 +1899,9 @@ class ReservaWizardController extends Controller
 
                     'total' => $resumen['total'],
 
-                    'estado' => 'PENDIENTE',
+                    'cotizacion_id' => session('conversion_cotizacion_id'),
+
+                    'estado' => 'SOLICITUD',
                 ]);
 
                 /*
@@ -1712,6 +1947,7 @@ class ReservaWizardController extends Controller
                 return $reserva;
             }, 3);
         } catch (ValidationException $exception) {
+
             return redirect()
                 ->route('reservas.datos')
                 ->withErrors(
@@ -1720,7 +1956,32 @@ class ReservaWizardController extends Controller
                 ->withInput();
         }
 
-        session()->forget('reserva');
+        $cotizacionId = session('conversion_cotizacion_id');
+
+        if ($cotizacionId) {
+
+            $cotizacion = Cotizacion::find($cotizacionId);
+
+            if ($cotizacion) {
+
+                $cotizacion = Cotizacion::find(
+                    $cotizacionId
+                );
+
+                if ($cotizacion) {
+
+                    $cotizacion->update([
+                        'estado' => 'ACEPTADA',
+                    ]);
+                }
+            }
+        }
+
+        session()->forget([
+            'reserva',
+            'conversion_cotizacion_id',
+            'conversion_cotizacion_token',
+        ]);
 
         return redirect()
             ->route('reservas.cliente')
@@ -1745,16 +2006,213 @@ class ReservaWizardController extends Controller
 
     public function reserva()
     {
+        /*
+    |--------------------------------------------------------------------------
+    | 1. Debe existir cliente
+    |--------------------------------------------------------------------------
+    */
+
         if (! session()->has('reserva.cliente')) {
-            return redirect()->route('reservas.cliente');
+            return redirect()
+                ->route('reservas.cliente');
         }
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | 2. Debe existir modalidad
+    |--------------------------------------------------------------------------
+    */
 
         if (! session()->has('reserva.tipo_operacion')) {
             return redirect()
                 ->route('reservas.operacion');
         }
 
-        $tipoOperacion = session('reserva.tipo_operacion');
+
+        $tipoOperacion = session(
+            'reserva.tipo_operacion'
+        );
+
+        $datosReserva = session(
+            'reserva.datos',
+            []
+        );
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | 3. ¿Estamos convirtiendo una cotización?
+    |--------------------------------------------------------------------------
+    */
+
+        $cotizacionId = session(
+            'conversion_cotizacion_id'
+        );
+
+        $cotizacionToken = session(
+            'conversion_cotizacion_token'
+        );
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | 4. Precargar Paso 2 desde cotización
+    |--------------------------------------------------------------------------
+    |
+    | Solo precargamos si todavía NO existen datos del Paso 2.
+    |
+    */
+
+        if (
+            $cotizacionId
+            && empty($datosReserva)
+        ) {
+
+            $cotizacion = Cotizacion::query()
+                ->with([
+                    'servicios',
+                ])
+                ->find($cotizacionId);
+
+
+            /*
+        |--------------------------------------------------------------------------
+        | Validar cotización y token
+        |--------------------------------------------------------------------------
+        */
+
+            if (
+                ! $cotizacion
+                || ! $cotizacionToken
+                || ! $cotizacion->token_acceso
+                || ! hash_equals(
+                    $cotizacion->token_acceso,
+                    $cotizacionToken
+                )
+            ) {
+
+                session()->forget([
+                    'conversion_cotizacion_id',
+                    'conversion_cotizacion_token',
+                    'reserva',
+                ]);
+
+                return redirect()
+                    ->route('reservas.operacion')
+                    ->with(
+                        'error',
+                        'No fue posible recuperar la cotización.'
+                    );
+            }
+
+
+            /*
+        |--------------------------------------------------------------------------
+        | Solo EMITIDA
+        |--------------------------------------------------------------------------
+        */
+
+            if (
+                strtoupper($cotizacion->estado)
+                !== 'EMITIDA'
+            ) {
+
+                session()->forget([
+                    'conversion_cotizacion_id',
+                    'conversion_cotizacion_token',
+                    'reserva',
+                ]);
+
+                return redirect()
+                    ->route('reservas.operacion')
+                    ->with(
+                        'error',
+                        'Esta cotización ya no puede convertirse en reserva.'
+                    );
+            }
+
+
+            /*
+        |--------------------------------------------------------------------------
+        | Recuperar servicios cotizados
+        |--------------------------------------------------------------------------
+        */
+
+            $serviciosCotizados = [];
+
+            foreach ($cotizacion->servicios as $detalle) {
+
+                $servicioId =
+                    $detalle->servicio_experiencia_id
+                    ?? $detalle->servicio_id
+                    ?? null;
+
+                if (! $servicioId) {
+                    continue;
+                }
+
+                $serviciosCotizados[] = [
+                    'servicio_id' =>
+                    (int) $servicioId,
+                ];
+            }
+
+
+            /*
+        |--------------------------------------------------------------------------
+        | Preparar datos del Paso 2
+        |--------------------------------------------------------------------------
+        |
+        | NO agregamos fecha ni horario.
+        | Deben seleccionarse nuevamente porque una cotización
+        | no bloquea disponibilidad.
+        |
+        */
+
+            $datosReserva = [
+
+                'cantidad_asistentes' =>
+                (int) $cotizacion->cantidad_asistentes,
+
+                'cantidad_alumnos' =>
+                $cotizacion->cantidad_alumnos ?? null,
+
+                'cantidad_profesores' =>
+                $cotizacion->cantidad_profesores ?? null,
+
+                'nivel_educacional' =>
+                $cotizacion->nivel_educacional ?? null,
+
+                'curso' =>
+                $cotizacion->curso ?? null,
+
+                'objetivo_visita' =>
+                $cotizacion->objetivo_visita ?? null,
+
+                'servicios' =>
+                $serviciosCotizados,
+            ];
+
+
+            /*
+        |--------------------------------------------------------------------------
+        | Guardar precarga
+        |--------------------------------------------------------------------------
+        */
+
+            session([
+                'reserva.datos' =>
+                $datosReserva,
+            ]);
+        }
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | 5. Categorías y servicios activos
+    |--------------------------------------------------------------------------
+    */
 
         $categoriasServicio = CategoriaServicio::query()
             ->where('activo', true)
@@ -1771,14 +2229,34 @@ class ReservaWizardController extends Controller
             ->orderBy('nombre')
             ->get();
 
-        return view('reservas.paso2-reserva', [
-            'paso' => 2,
-            'datosCliente' => session('reserva.cliente'),
-            'datosReserva' => session('reserva.datos', []),
-            'categoriasServicio' => $categoriasServicio,
-            'tipoOperacion' => $tipoOperacion,
-            'convenioAplicado' => session('reserva.convenio'),
-        ]);
+
+        /*
+    |--------------------------------------------------------------------------
+    | 6. Mostrar Paso 2
+    |--------------------------------------------------------------------------
+    */
+
+        return view(
+            'reservas.paso2-reserva',
+            [
+                'paso' => 2,
+
+                'datosCliente' =>
+                session('reserva.cliente'),
+
+                'datosReserva' =>
+                $datosReserva,
+
+                'categoriasServicio' =>
+                $categoriasServicio,
+
+                'tipoOperacion' =>
+                $tipoOperacion,
+
+                'convenioAplicado' =>
+                session('reserva.convenio'),
+            ]
+        );
     }
 
     public function consultarHorarios(Request $request)
@@ -2406,17 +2884,18 @@ class ReservaWizardController extends Controller
         );
 
         /*
-    |--------------------------------------------------------------------------
-    | REGLA DE ENTRADAS LIBERADAS
-    |--------------------------------------------------------------------------
-    |
-    | Persona natural:
-    | - No tiene entrada liberada.
-    |
-    | Otros tipos:
-    | - Desde 11 asistentes: 1 entrada liberada.
-    |
-    */
+            |--------------------------------------------------------------------------
+            | REGLA DE ENTRADAS LIBERADAS
+            |--------------------------------------------------------------------------
+            |
+            | Persona natural:
+            | - No tiene entrada liberada.
+            |
+            | Otros tipos:
+            | - Desde 11 asistentes: 1 entrada liberada.
+            |
+        */
+
         $esPersonaNatural = $codigoTipoCliente === 'PERSONA';
 
         $esEstablecimientoEducacional = $codigoTipoCliente === 'ESTABLECIMIENTO_EDUCACIONAL';
@@ -2440,10 +2919,10 @@ class ReservaWizardController extends Controller
         $entradasLiberadas = 0;
 
         if ($esEstablecimientoEducacional && $cantidadAsistentes >= 26) {
-            $entradasLiberadas = 2;
-        }
 
-        if (!$esPersonaNatural && $cantidadAsistentes >= 11) {
+            $entradasLiberadas = 2;
+        } elseif (!$esPersonaNatural && $cantidadAsistentes >= 11) {
+
             $entradasLiberadas = 1;
         }
 
@@ -2473,13 +2952,22 @@ class ReservaWizardController extends Controller
                 continue;
             }
 
+            $horario = null;
+
+            if (!empty($item['horario_id'])) {
+                $horario = \App\Models\HorarioDisponible::find(
+                    $item['horario_id']
+                );
+            }
+
             $precio = (float) $servicio->precio;
 
             /*
-        |--------------------------------------------------------------------------
-        | CALCULAR SUBTOTAL
-        |--------------------------------------------------------------------------
-        */
+                |--------------------------------------------------------------------------
+                | CALCULAR SUBTOTAL
+                |--------------------------------------------------------------------------
+            */
+
             if ($servicio->tipo_cobro === 'POR_PERSONA') {
 
                 $subtotalServicio =
@@ -2492,15 +2980,19 @@ class ReservaWizardController extends Controller
             $subtotalGeneral += $subtotalServicio;
 
             /*
-        |--------------------------------------------------------------------------
-        | ESTRUCTURA COMPATIBLE CON TU BLADE ACTUAL
-        |--------------------------------------------------------------------------
-        */
+                |--------------------------------------------------------------------------
+                | ESTRUCTURA COMPATIBLE CON TU BLADE ACTUAL
+                |--------------------------------------------------------------------------
+            */
+
             $detallesServicios[] = [
                 'servicio' => $servicio,
 
                 'fecha' => $item['fecha'] ?? null,
+
                 'horario_id' => $item['horario_id'] ?? null,
+
+                'horario' => $horario,
 
                 'cantidad_asistentes' => $cantidadAsistentes,
                 'personas_pagadas' => $personasPagadas,

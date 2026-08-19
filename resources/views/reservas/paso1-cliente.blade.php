@@ -36,6 +36,20 @@
 
         </div>
     @endif
+    @if (session('conversion_cotizacion_id'))
+        <div class="alert alert-success py-2">
+
+            <i class="fas fa-calendar-check mr-1"></i>
+
+            <strong>
+                Reserva desde cotización:
+            </strong>
+
+            Los datos del cliente fueron cargados
+            automáticamente desde la cotización.
+
+        </div>
+    @endif
     @include('reservas.partials._wizard', ['paso' => 1])
 
     <form method="POST" action="{{ route('reservas.cliente.guardar') }}">
@@ -853,10 +867,10 @@
                 }
 
                 /*
-        |--------------------------------------------------------------------------
-        | ORGANIZACIÓN GENÉRICA
-        |--------------------------------------------------------------------------
-        */
+            |--------------------------------------------------------------------------
+            | ORGANIZACIÓN GENÉRICA
+            |--------------------------------------------------------------------------
+            */
 
                 if (esOrganizacion) {
                     tituloDatosEntidad.textContent =

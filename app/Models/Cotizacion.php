@@ -60,6 +60,7 @@ class Cotizacion extends Model
         'anulada_por_tipo',
         'anulada_por_user_id',
         'motivo_anulacion',
+        'token_acceso'
     ];
 
     protected function casts(): array
@@ -136,6 +137,11 @@ class Cotizacion extends Model
             User::class,
             'anulada_por_user_id'
         );
+    }
+
+    public function reserva()
+    {
+        return $this->hasOne(Reserva::class);
     }
 
     protected $casts = [

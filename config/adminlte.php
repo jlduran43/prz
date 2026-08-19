@@ -314,7 +314,7 @@ return [
             'submenu' => [
                 [
                     'text' => 'Nueva reserva',
-                    'route' => 'reservas.operacion',
+                    'route' => 'reservas.nueva',
                     'active' => [
                         'reservas/crear/cliente*',
                         'reservas/crear/datos-reserva*',

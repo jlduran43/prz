@@ -217,6 +217,11 @@ Route::middleware('auth')->group(function () {
         '/admin/cotizaciones/{cotizacion}/anular',
         [CotizacionController::class, 'anularAdmin']
     )->name('admin.cotizaciones.anular');
+
+    Route::get(
+        '/admin/cotizaciones/{cotizacion}/pdf',
+        [CotizacionController::class, 'descargarPdf']
+    )->name('admin.cotizaciones.pdf');
 });
 
 
@@ -327,16 +332,26 @@ Route::post(
 )->name('cotizaciones.generar');
 
 Route::get(
-    '/cotizaciones/{cotizacion}/pdf',
-    [CotizacionController::class, 'descargarPdf']
-)->name('cotizaciones.pdf');
-
-Route::get(
-    '/cotizaciones/{cotizacion}/resultado',
+    '/cotizaciones/{cotizacion}/resultado/{token}',
     [CotizacionController::class, 'showPublico']
 )->name('cotizaciones.resultado');
 
 Route::patch(
-    '/cotizaciones/{cotizacion}/anular',
+    '/cotizaciones/{cotizacion}/anular/{token}',
     [CotizacionController::class, 'anularPublico']
 )->name('cotizaciones.anular');
+
+Route::get(
+    '/cotizaciones/{cotizacion}/pdf/{token}',
+    [CotizacionController::class, 'descargarPdfPublico']
+)->name('cotizaciones.pdf.publico');
+
+Route::post(
+    '/cotizaciones/{cotizacion}/convertir/{token}',
+    [CotizacionController::class, 'convertirEnReserva']
+)->name('cotizaciones.convertir');
+
+Route::get(
+    '/reservas/nueva',
+    [ReservaWizardController::class, 'nuevaOperacion']
+)->name('reservas.nueva');

@@ -36,6 +36,7 @@ class Reserva extends Model
         'estado',
         'observaciones',
         'objetivo_visita',
+        'cotizacion_id',
     ];
 
     protected $casts = [
@@ -84,5 +85,10 @@ class Reserva extends Model
     public function serviciosReserva(): HasMany
     {
         return $this->hasMany(ReservaServicio::class);
+    }
+
+    public function cotizacion()
+    {
+        return $this->belongsTo(Cotizacion::class);
     }
 }

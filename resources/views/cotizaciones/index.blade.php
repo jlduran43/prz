@@ -9,7 +9,7 @@
             Cotizaciones
         </h1>
 
-        <a href="{{ route('reservas.operacion') }}" class="btn btn-primary">
+        <a href="{{ route('reservas.nueva') }}" class="btn btn-primary">
             <i class="fas fa-plus mr-1"></i>
             Nueva cotización
         </a>

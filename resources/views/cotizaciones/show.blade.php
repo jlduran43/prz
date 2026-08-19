@@ -551,7 +551,7 @@
             @endauth
 
             @guest
-                <a href="{{ route('reservas.operacion') }}" class="btn btn-secondary">
+                <a href="{{ route('reservas.nueva') }}" class="btn btn-secondary">
                     <i class="fas fa-plus mr-1"></i>
                     Nueva cotización
                 </a>
@@ -564,11 +564,28 @@
         <div class="d-flex flex-wrap justify-content-md-end">
 
             {{-- PDF: visible en EMITIDA y ANULADA --}}
-            <a href="{{ route('cotizaciones.pdf', $cotizacion) }}" class="btn btn-danger mr-1 mb-2"
-                title="Descargar cotización en PDF">
-                <i class="fas fa-file-pdf mr-1"></i>
-                Descargar PDF
-            </a>
+            @auth
+
+                <a href="{{ route('admin.cotizaciones.pdf', $cotizacion) }}" class="btn btn-danger mr-1 mb-2"
+                    title="Descargar cotización en PDF">
+                    <i class="fas fa-file-pdf mr-1"></i>
+                    Descargar PDF
+                </a>
+
+            @endauth
+
+            @guest
+
+                <a href="{{ route('cotizaciones.pdf.publico', [
+                    'cotizacion' => $cotizacion,
+                    'token' => $cotizacion->token_acceso,
+                ]) }}"
+                    class="btn btn-danger mr-1 mb-2" title="Descargar cotización en PDF">
+                    <i class="fas fa-file-pdf mr-1"></i>
+                    Descargar PDF
+                </a>
+
+            @endguest
 
 
             {{-- Solo si está EMITIDA --}}
@@ -578,6 +595,25 @@
                     <i class="fas fa-envelope mr-1"></i>
                     Enviar por correo
                 </button>
+
+                {{-- CONVERTIR EN RESERVA - CLIENTE --}}
+                @guest
+                    <form method="POST"
+                        action="{{ route('cotizaciones.convertir', [
+                            'cotizacion' => $cotizacion,
+                            'token' => $cotizacion->token_acceso,
+                        ]) }}"
+                        class="d-inline">
+
+                        @csrf
+
+                        <button type="submit" class="btn btn-success mr-1 mb-2">
+                            <i class="fas fa-calendar-check mr-1"></i>
+                            Convertir en reserva
+                        </button>
+
+                    </form>
+                @endguest
 
 
                 {{-- FUNCIONARIO --}}
@@ -671,7 +707,11 @@
 
                     <div class="modal-content">
 
-                        <form method="POST" action="{{ route('cotizaciones.anular', $cotizacion) }}">
+                        <form method="POST"
+                            action="{{ route('cotizaciones.anular', [
+                                'cotizacion' => $cotizacion,
+                                'token' => $cotizacion->token_acceso,
+                            ]) }}">
 
                             @csrf
                             @method('PATCH')
