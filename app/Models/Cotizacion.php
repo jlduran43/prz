@@ -60,7 +60,10 @@ class Cotizacion extends Model
         'anulada_por_tipo',
         'anulada_por_user_id',
         'motivo_anulacion',
-        'token_acceso'
+        'token_acceso',
+
+        'correo_enviado_at',
+        'correo_error',
     ];
 
     protected function casts(): array
@@ -146,5 +149,6 @@ class Cotizacion extends Model
 
     protected $casts = [
         'anulada_at' => 'datetime',
+        'correo_enviado_at' => 'datetime',
     ];
 }

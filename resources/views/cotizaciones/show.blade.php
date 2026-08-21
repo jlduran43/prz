@@ -590,11 +590,14 @@
 
             {{-- Solo si está EMITIDA --}}
             @if ($estado === 'EMITIDA')
-                <button type="button" class="btn btn-info mr-1 mb-2" disabled
-                    title="Se implementará en la siguiente etapa">
-                    <i class="fas fa-envelope mr-1"></i>
-                    Enviar por correo
-                </button>
+                <form action="{{ route('cotizaciones.reenviar-correo', $cotizacion) }}" method="POST" class="d-inline">
+                    @csrf
+
+                    <button type="submit" class="btn btn-info mr-1 mb-2">
+                        <i class="fas fa-envelope mr-1"></i>
+                        Reenviar correo
+                    </button>
+                </form>
 
                 {{-- CONVERTIR EN RESERVA - CLIENTE --}}
                 @guest
@@ -618,7 +621,7 @@
 
                 {{-- FUNCIONARIO --}}
                 @auth
-                    <button type="button" class="btn btn-danger mb-2" data-toggle="modal" data-target="#modalAnularAdmin">
+                    <button type="button" class="btn btn-danger mb-2" data-toggle="modal" data-target="#modalAnularAdmin" >
                         <i class="fas fa-ban mr-1"></i>
                         Anular cotización
                     </button>
@@ -627,7 +630,7 @@
 
                 {{-- CLIENTE --}}
                 @guest
-                    <button type="button" class="btn btn-outline-danger mb-2" data-toggle="modal"
+                    <button type="button" class="btn btn-danger mb-2" data-toggle="modal"
                         data-target="#modalAnularCliente">
                         <i class="fas fa-ban mr-1"></i>
                         Anular cotización

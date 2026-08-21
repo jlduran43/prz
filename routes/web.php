@@ -346,7 +346,7 @@ Route::get(
     [CotizacionController::class, 'descargarPdfPublico']
 )->name('cotizaciones.pdf.publico');
 
-Route::post(
+Route::get(
     '/cotizaciones/{cotizacion}/convertir/{token}',
     [CotizacionController::class, 'convertirEnReserva']
 )->name('cotizaciones.convertir');
@@ -355,3 +355,20 @@ Route::get(
     '/reservas/nueva',
     [ReservaWizardController::class, 'nuevaOperacion']
 )->name('reservas.nueva');
+
+Route::get(
+    '/cotizacion/{cotizacion}/convertir-reserva',
+    [CotizacionController::class, 'convertirDesdeCorreo']
+)
+    ->middleware('signed')
+    ->name('cotizaciones.publica.convertir');
+    
+Route::post(
+    '/admin/cotizaciones/{cotizacion}/reenviar-correo',
+    [CotizacionController::class, 'reenviarCorreo']
+)->name('cotizaciones.reenviar-correo');
+
+Route::get(
+    '/reservas/{reserva}/resultado',
+    [ReservaWizardController::class, 'resultado']
+)->name('reservas.resultado');

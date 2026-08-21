@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\CotizacionGeneradaMail;
 use App\Models\CategoriaServicio;
 use App\Models\Comuna;
 use App\Models\ConfiguracionReserva;
@@ -17,11 +18,15 @@ use App\Rules\RutChileno;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 use Carbon\Carbon;
 use Throwable;
+
+
 
 class ReservaWizardController extends Controller
 {
@@ -1433,6 +1438,86 @@ class ReservaWizardController extends Controller
         }
 
         /*
+|--------------------------------------------------------------------------
+| 9. ENVIAR COTIZACIÓN POR CORREO
+|--------------------------------------------------------------------------
+|
+| La cotización ya está guardada.
+| Si el correo falla, NO se elimina ni se revierte la cotización.
+|
+*/
+
+        $correoEnviado = false;
+
+        try {
+
+            /*
+    |--------------------------------------------------------------------------
+    | URL SEGURA PARA CONVERTIR EN RESERVA
+    |--------------------------------------------------------------------------
+    */
+
+            $urlConvertir = action(
+                [
+                    \App\Http\Controllers\CotizacionController::class,
+                    'convertirEnReserva',
+                ],
+                [
+                    'cotizacion' => $cotizacion->id,
+                    'token' => $cotizacion->token_acceso,
+                ]
+            );
+
+            /*
+    |--------------------------------------------------------------------------
+    | ENVIAR CORREO
+    |--------------------------------------------------------------------------
+    */
+
+            Mail::to($cotizacion->email)
+                ->send(
+                    new CotizacionGeneradaMail(
+                        $cotizacion,
+                        $urlConvertir
+                    )
+                );
+
+            /*
+    |--------------------------------------------------------------------------
+    | REGISTRAR ENVÍO EXITOSO
+    |--------------------------------------------------------------------------
+    */
+
+            $cotizacion->update([
+                'correo_enviado_at' => now(),
+                'correo_error' => null,
+            ]);
+
+            $correoEnviado = true;
+        } catch (Throwable $exception) {
+
+            /*
+    |--------------------------------------------------------------------------
+    | EL CORREO FALLÓ, PERO LA COTIZACIÓN SIGUE EXISTIENDO
+    |--------------------------------------------------------------------------
+    */
+
+            $cotizacion->update([
+                'correo_error' => $exception->getMessage(),
+            ]);
+
+            Log::error(
+                'No fue posible enviar la cotización por correo.',
+                [
+                    'cotizacion_id' => $cotizacion->id,
+                    'folio' => $cotizacion->folio,
+                    'correo' => $cotizacion->email,
+                    'error' => $exception->getMessage(),
+                ]
+            );
+        }
+
+        /*
     |--------------------------------------------------------------------------
     | 9. LIMPIAR WIZARD
     |--------------------------------------------------------------------------
@@ -1447,6 +1532,23 @@ class ReservaWizardController extends Controller
     | 10. MOSTRAR RESULTADO
     |--------------------------------------------------------------------------
     */
+        if ($correoEnviado) {
+
+            return redirect()
+                ->route(
+                    'cotizaciones.resultado',
+                    [
+                        'cotizacion' => $cotizacion,
+                        'token' => $cotizacion->token_acceso,
+                    ]
+                )
+                ->with(
+                    'success',
+                    "La cotización {$cotizacion->folio} fue generada correctamente "
+                        . "y enviada a {$cotizacion->email}."
+                );
+        }
+
         return redirect()
             ->route(
                 'cotizaciones.resultado',
@@ -1456,8 +1558,9 @@ class ReservaWizardController extends Controller
                 ]
             )
             ->with(
-                'success',
-                "La cotización {$cotizacion->folio} fue generada correctamente."
+                'warning',
+                "La cotización {$cotizacion->folio} fue generada correctamente, "
+                    . "pero no fue posible enviar el correo."
             );
     }
 
@@ -1901,7 +2004,7 @@ class ReservaWizardController extends Controller
 
                     'cotizacion_id' => session('conversion_cotizacion_id'),
 
-                    'estado' => 'SOLICITUD',
+                    'estado' => 'PENDIENTE_PAGO',
                 ]);
 
                 /*
@@ -1926,20 +2029,11 @@ class ReservaWizardController extends Controller
                     $reserva->servicios()->attach(
                         $servicio->id,
                         [
-                            'horario_disponible_id' =>
-                            (int) $seleccion['horario_id'],
-
-                            'fecha' =>
-                            $seleccion['fecha'],
-
-                            'precio_unitario' =>
-                            $precioUnitario,
-
-                            'cantidad_personas' =>
-                            $cantidadPersonas,
-
-                            'subtotal' =>
-                            $subtotalServicio,
+                            'horario_disponible_id' => (int) $seleccion['horario_id'],
+                            'fecha' => $seleccion['fecha'],
+                            'precio' => $precioUnitario,
+                            'cantidad_personas' => $cantidadPersonas,
+                            'subtotal' => $subtotalServicio,
                         ]
                     );
                 }
@@ -1971,7 +2065,7 @@ class ReservaWizardController extends Controller
                 if ($cotizacion) {
 
                     $cotizacion->update([
-                        'estado' => 'ACEPTADA',
+                        'estado' => 'CONVERTIDA_RESERVA',
                     ]);
                 }
             }
@@ -1984,10 +2078,13 @@ class ReservaWizardController extends Controller
         ]);
 
         return redirect()
-            ->route('reservas.cliente')
+            ->route(
+                'reservas.resultado',
+                $reserva
+            )
             ->with(
                 'success',
-                "La reserva N.º {$reserva->id} fue registrada correctamente."
+                "La solicitud de reserva N.º {$reserva->id} fue registrada correctamente."
             );
     }
 
@@ -3016,5 +3113,53 @@ class ReservaWizardController extends Controller
 
             'servicios' => $detallesServicios,
         ];
+    }
+
+    public function resultado(Reserva $reserva)
+    {
+        /*
+            |--------------------------------------------------------------------------
+            | Cargar relaciones
+            |--------------------------------------------------------------------------
+        */
+
+        $reserva->load([
+            'tipoCliente',
+            'region',
+            'comuna',
+            'servicios',
+        ]);
+
+        /*
+            |--------------------------------------------------------------------------
+            | Recuperar horarios utilizados
+            |--------------------------------------------------------------------------
+        */
+
+        $horarioIds = $reserva
+            ->servicios
+            ->pluck('pivot.horario_disponible_id')
+            ->filter()
+            ->unique()
+            ->values();
+
+        $horarios = HorarioDisponible::query()
+            ->whereIn('id', $horarioIds)
+            ->get()
+            ->keyBy('id');
+
+        /*
+            |--------------------------------------------------------------------------
+            | Vista
+            |--------------------------------------------------------------------------
+        */
+
+        return view(
+            'reservas.resultado',
+            compact(
+                'reserva',
+                'horarios'
+            )
+        );
     }
 }

@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cotizacion;
+use App\Mail\CotizacionGeneradaMail;
 use App\Models\ConfiguracionCotizacion;
-use Illuminate\Http\Request;
+use App\Models\Cotizacion;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
+use Throwable;
 
 class CotizacionController extends Controller
 {
@@ -408,5 +412,105 @@ class CotizacionController extends Controller
                 'success',
                 'Revisa los datos de la cotización para continuar con la reserva.'
             );
+    }
+
+    public function reenviarCorreo(Cotizacion $cotizacion)
+    {
+        try {
+
+            /*
+        |--------------------------------------------------------------------------
+        | Validar que pueda reenviarse
+        |--------------------------------------------------------------------------
+        */
+
+            if ($cotizacion->estado !== 'EMITIDA') {
+                return back()->with(
+                    'error',
+                    'Solo se puede reenviar una cotización que se encuentre emitida.'
+                );
+            }
+
+            if (empty($cotizacion->email)) {
+                return back()->with(
+                    'error',
+                    'La cotización no tiene un correo electrónico registrado.'
+                );
+            }
+
+            if (empty($cotizacion->token_acceso)) {
+                return back()->with(
+                    'error',
+                    'La cotización no tiene un token de acceso válido.'
+                );
+            }
+
+            /*
+        |--------------------------------------------------------------------------
+        | Generar nuevamente el enlace de conversión
+        |--------------------------------------------------------------------------
+        */
+
+            $urlConvertir = action(
+                [
+                    CotizacionController::class,
+                    'convertirEnReserva',
+                ],
+                [
+                    'cotizacion' => $cotizacion->id,
+                    'token' => $cotizacion->token_acceso,
+                ]
+            );
+
+            /*
+        |--------------------------------------------------------------------------
+        | Reenviar correo
+        |--------------------------------------------------------------------------
+        */
+
+            Mail::to($cotizacion->email)
+                ->send(
+                    new CotizacionGeneradaMail(
+                        $cotizacion,
+                        $urlConvertir
+                    )
+                );
+
+            /*
+        |--------------------------------------------------------------------------
+        | Registrar último envío
+        |--------------------------------------------------------------------------
+        */
+
+            $cotizacion->update([
+                'correo_enviado_at' => now(),
+                'correo_error' => null,
+            ]);
+
+            return back()->with(
+                'success',
+                "La cotización {$cotizacion->folio} fue reenviada correctamente a {$cotizacion->email}."
+            );
+        } catch (Throwable $exception) {
+
+            $cotizacion->update([
+                'correo_error' => $exception->getMessage(),
+            ]);
+
+            Log::error(
+                'Error al reenviar cotización por correo.',
+                [
+                    'cotizacion_id' => $cotizacion->id,
+                    'folio' => $cotizacion->folio,
+                    'correo' => $cotizacion->email,
+                    'error' => $exception->getMessage(),
+                ]
+            );
+
+            return back()->with(
+                'error',
+                'No fue posible reenviar la cotización por correo.'
+            );
+        }
     }
 }

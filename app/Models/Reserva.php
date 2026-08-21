@@ -75,7 +75,7 @@ class Reserva extends Model
             ->withPivot([
                 'horario_disponible_id',
                 'fecha',
-                'precio_unitario',
+                'precio',
                 'cantidad_personas',
                 'subtotal',
             ])
