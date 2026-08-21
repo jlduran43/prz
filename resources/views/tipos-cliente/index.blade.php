@@ -38,36 +38,41 @@
 
     <div class="card">
         <div class="card-header">
-            <form method="GET" action="{{ route('tipos-cliente.index') }}">
-                <div class="row align-items-center">
-                    {{-- Buscador --}}
-                    <div class="col-12 col-lg-9 mb-2 mb-lg-0">
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">
-                                    <i class="fas fa-search"></i>
-                                </span>
-                            </div>
 
-                            <input type="text" name="buscar" class="form-control" value="{{ $buscar }}"
-                                placeholder="Buscar por código o nombre...">
-                        </div>
+            <form method="GET" action="{{ route('tipos-cliente.index') }}">
+
+                <div class="buscador-fila">
+
+                    {{-- Buscador --}}
+                    <div class="buscador-input">
+
+                        <input type="text" name="buscar" class="form-control" value="{{ $buscar ?? '' }}"
+                            placeholder="Buscar por código o nombre...">
+
                     </div>
-                    {{-- Botones --}}
-                    <div class="col-12 col-lg-3">
-                        <div class="d-flex flex-column flex-sm-row justify-content-lg-end">
-                            <button type="submit" class="btn btn-primary mb-2 mb-sm-0 mr-sm-2">
-                                <i class="fas fa-search mr-1"></i>
-                                Buscar
-                            </button>
-                            <a href="{{ route('tipos-cliente.index') }}" class="btn btn-secondary">
-                                <i class="fas fa-eraser mr-1"></i>
-                                Limpiar
-                            </a>
-                        </div>
-                    </div>
+
+                    {{-- Buscar --}}
+                    <button type="submit" class="btn btn-primary btn-busqueda">
+                        <i class="fas fa-search mr-1"></i>
+
+                        <span class="texto-boton">
+                            Buscar
+                        </span>
+                    </button>
+
+                    {{-- Limpiar --}}
+                    <a href="{{ route('tipos-cliente.index') }}" class="btn btn-secondary btn-limpiar">
+                        <i class="fas fa-eraser mr-1"></i>
+
+                        <span class="texto-boton">
+                            Limpiar
+                        </span>
+                    </a>
+
                 </div>
+
             </form>
+
         </div>
 
         <div class="card-body table-responsive p-0">
@@ -76,8 +81,8 @@
                     <tr>
                         <th style="width: 25%;">Código</th>
                         <th style="width: 35%;">Nombre</th>
-                        <th style="width: 15%;">Tipo de estructura</th>
-                        <th style="width: 10%;">Estado</th>
+                        <th style="width: 15%;" class="d-none d-md-table-cell">Tipo de estructura</th>
+                        <th style="width: 10%;" class="d-none d-sm-table-cell">Estado</th>
                         <th style="width: 15%;" class="text-center">Acciones</th>
                     </tr>
                 </thead>
@@ -89,7 +94,7 @@
                                 {{ $tipoCliente->codigo }}
                             </td>
                             <td class="align-middle">{{ $tipoCliente->nombre }}</td>
-                            <td class="align-middle">
+                            <td class="align-middle d-none d-md-table-cell">
                                 @if ($tipoCliente->tipo_estructura === 'PERSONA')
                                     <span class="badge badge-info">
                                         Persona
@@ -104,7 +109,7 @@
                                     </span>
                                 @endif
                             </td>
-                            <td class="align-middle">
+                            <td class="align-middle d-none d-sm-table-cell">
                                 @if ($tipoCliente->activo)
                                     <span class="badge badge-success">
                                         Activo
@@ -115,12 +120,12 @@
                                     </span>
                                 @endif
                             </td>
-                            <td class="align-middle">
-                                <a href="{{ route('tipos-cliente.show', $tipoCliente) }}" class="btn btn-info btn-sm"
+                            <td class="align-middle text-center">
+                                <a href="{{ route('tipos-cliente.show', $tipoCliente) }}" class="btn btn-info btn-sm btn-accion"
                                     title="Ver">
                                     <i class="fas fa-eye"></i>
                                 </a>
-                                <a href="{{ route('tipos-cliente.edit', $tipoCliente) }}" class="btn btn-warning btn-sm"
+                                <a href="{{ route('tipos-cliente.edit', $tipoCliente) }}" class="btn btn-warning btn-sm btn-accion"
                                     title="Editar">
                                     <i class="fas fa-edit"></i>
                                 </a>
@@ -132,7 +137,7 @@
                                     @method('PATCH')
 
                                     <button type="button"
-                                        class="btn btn-sm
+                                        class="btn btn-sm btn-accion
                                             {{ $tipoCliente->activo ? 'btn-secondary' : 'btn-success' }}"
                                         title="{{ $tipoCliente->activo ? 'Desactivar' : 'Activar' }}" data-toggle="modal"
                                         data-target="#modalCambiarEstado" data-id="{{ $tipoCliente->id }}"
@@ -202,11 +207,8 @@
 @stop
 
 @section('css')
-    <style>
-        .table thead th {
-            border-bottom: 0 !important;
-        }
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/buscador.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/acciones_botones.css') }}">
 @stop
 
 @section('js')

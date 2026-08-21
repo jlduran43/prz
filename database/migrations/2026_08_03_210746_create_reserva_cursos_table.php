@@ -18,19 +18,10 @@ return new class extends Migration
                     ->cascadeOnDelete();
 
                 $table->string('curso', 100);
+                $table->string('nivel_educacional',30);
 
-                $table->string(
-                    'nivel_educacional',
-                    30
-                );
-
-                $table->unsignedInteger(
-                    'cantidad_alumnos'
-                );
-
-                $table->unsignedInteger(
-                    'cantidad_profesores'
-                )->default(0);
+                $table->unsignedInteger('cantidad_alumnos');
+                $table->unsignedInteger('cantidad_profesores')->default(0);
 
                 $table->timestamps();
             }

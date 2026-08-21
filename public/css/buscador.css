@@ -1,0 +1,42 @@
+.buscador-fila {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    gap: 8px;
+}
+
+.buscador-input {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.buscador-input .form-control {
+    width: 100%;
+}
+
+.btn-busqueda,
+.btn-limpiar {
+    flex: 0 0 auto;
+    white-space: nowrap;
+}
+
+/* Móvil */
+@media (max-width: 575.98px) {
+
+    .btn-busqueda,
+    .btn-limpiar {
+        width: 46px;
+        padding-left: 0;
+        padding-right: 0;
+    }
+
+    .btn-busqueda .texto-boton,
+    .btn-limpiar .texto-boton {
+        display: none;
+    }
+
+    .btn-busqueda i,
+    .btn-limpiar i {
+        margin-right: 0 !important;
+    }
+}

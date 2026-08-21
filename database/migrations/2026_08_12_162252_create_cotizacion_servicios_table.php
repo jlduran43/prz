@@ -21,13 +21,8 @@ return new class extends Migration
                     ->constrained('cotizaciones')
                     ->cascadeOnDelete()
                     ->cascadeOnUpdate();
-
-                $table->foreignId(
-                    'servicio_experiencia_id'
-                )
-                    ->constrained(
-                        'servicios_experiencias'
-                    )
+                $table->foreignId('servicio_experiencia_id')
+                    ->constrained('servicios_experiencias')
                     ->restrictOnDelete()
                     ->cascadeOnUpdate();
 
@@ -38,43 +33,18 @@ return new class extends Migration
                  * el nombre del servicio, la cotización
                  * histórica mantiene el nombre original.
                  */
-                $table->string(
-                    'nombre_servicio',
-                    150
-                );
 
-                $table->decimal(
-                    'precio_unitario',
-                    12,
-                    2
-                );
+                $table->string('nombre_servicio', 150);
+                $table->string('tipo_cobro', 30);
 
-                $table->string(
-                    'tipo_cobro',
-                    30
-                );
+                $table->decimal('precio_unitario', 12, 2);
+                $table->decimal('subtotal', 12, 2);
 
-                $table->unsignedInteger(
-                    'cantidad_asistentes'
-                );
+                $table->unsignedInteger('cantidad_asistentes');
+                $table->unsignedInteger('personas_pagadas');
+                $table->unsignedInteger('entradas_liberadas')->default(0);
 
-                $table->unsignedInteger(
-                    'personas_pagadas'
-                );
-
-                $table->unsignedInteger(
-                    'entradas_liberadas'
-                )->default(0);
-
-                $table->decimal(
-                    'subtotal',
-                    12,
-                    2
-                );
-
-                $table->unsignedTinyInteger(
-                    'orden'
-                )->default(1);
+                $table->unsignedTinyInteger('orden')->default(1);
 
                 $table->timestamps();
             }

@@ -7,7 +7,12 @@
 @stop
 
 @section('content')
-    <div class="card card-outline card-info">
+    <div class="card card-info">
+        <div class="card-header">
+            <h3 class="card-title">
+                Detalles tipo cliente {{ $tipoCliente->nombre }}
+            </h3>
+        </div>
         <div class="card-body">
             <dl class="row mb-0">
                 <dt class="col-sm-3">ID</dt>
@@ -57,6 +62,7 @@
         </div>
         <div class="card-footer">
             <a href="{{ route('tipos-cliente.index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left mr-1"></i>
                 Volver
             </a>
         </div>

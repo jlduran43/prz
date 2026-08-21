@@ -15,7 +15,6 @@ return new class extends Migration
             $table->id();
 
             $table->string('codigo', 50)->unique();
-
             $table->string('nombre', 150);
 
             $table->decimal(
@@ -25,11 +24,9 @@ return new class extends Migration
             );
 
             $table->date('fecha_inicio');
-
             $table->date('fecha_termino')->nullable();
 
-            $table->boolean('activo')
-                ->default(true);
+            $table->boolean('activo')->default(true);
 
             $table->text('observaciones')
                 ->nullable();

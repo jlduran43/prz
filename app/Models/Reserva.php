@@ -34,6 +34,7 @@ class Reserva extends Model
         'descuento',
         'total',
         'estado',
+        'pago_expira_at',
         'observaciones',
         'objetivo_visita',
         'cotizacion_id',
@@ -41,6 +42,7 @@ class Reserva extends Model
 
     protected $casts = [
         'fecha' => 'date',
+        'pago_expira_at' => 'datetime',
         'cantidad_asistentes' => 'integer',
         'cantidad_alumnos' => 'integer',
         'cantidad_profesores' => 'integer',

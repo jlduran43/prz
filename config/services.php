@@ -35,4 +35,19 @@ return [
         ],
     ],
 
+    'transbank' => [
+        'environment' => env(
+            'TRANSBANK_ENVIRONMENT',
+            'integration'
+        ),
+
+        'commerce_code' => env(
+            'TRANSBANK_COMMERCE_CODE'
+        ),
+
+        'api_key' => env(
+            'TRANSBANK_API_KEY'
+        ),
+    ],
+
 ];

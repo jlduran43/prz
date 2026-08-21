@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('servicios_experiencias', function (Blueprint $table) {
             $table->id();
+
             $table->foreignId('categoria_servicio_id')
                 ->constrained('categorias_servicio')
                 ->restrictOnDelete()
@@ -20,16 +21,16 @@ return new class extends Migration
 
             $table->string('codigo', 50)->unique();
             $table->string('nombre', 150);
-            $table->text('descripcion')->nullable();
             $table->string('imagen')->nullable();
+
+            $table->text('descripcion')->nullable();
 
             $table->unsignedInteger('duracion_minutos')->nullable();
             $table->unsignedInteger('capacidad_minima')->nullable();
             $table->unsignedInteger('capacidad_maxima')->nullable();
+            $table->unsignedInteger('max_alumnos_por_curso')->nullable();
 
             $table->unsignedTinyInteger('max_cursos_simultaneos')->default(1);
-
-            $table->unsignedInteger('max_alumnos_por_curso')->nullable();
 
             $table->decimal('precio', 12, 2)->default(0);
 
@@ -37,7 +38,6 @@ return new class extends Migration
                 'POR_PERSONA',
                 'POR_GRUPO',
             ])->default('POR_PERSONA');
-
 
             $table->boolean('requiere_reserva')->default(true);
             $table->boolean('activo')->default(true);

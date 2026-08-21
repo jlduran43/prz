@@ -21,7 +21,6 @@ return new class extends Migration
 
             $table->string('nombre_organizacion', 150);
             $table->string('rut_organizacion', 20)->unique();
-
             $table->string('nombre_encargado', 150);
             $table->string('rut_encargado', 20)->nullable();
 

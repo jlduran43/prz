@@ -17,19 +17,16 @@ return new class extends Migration
             $table->foreignId('tipo_cliente_id')
                 ->constrained('tipos_cliente')
                 ->restrictOnDelete();
-
-            $table->string('email', 150);
-            $table->string('telefono', 30);
-
             $table->foreignId('region_id')
                 ->constrained('regiones')
                 ->restrictOnDelete();
-
             $table->foreignId('comuna_id')
                 ->constrained('comunas')
                 ->restrictOnDelete();
 
-            $table->string('direccion', 200)->nullable();
+            $table->string('email', 150);
+            $table->string('telefono', 30);
+             $table->string('direccion', 200)->nullable();
 
             $table->boolean('activo')->default(true);
 

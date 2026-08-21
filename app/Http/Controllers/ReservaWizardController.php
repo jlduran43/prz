@@ -15,6 +15,7 @@ use App\Models\TipoCliente;
 use App\Models\Cotizacion;
 use App\Models\CotizacionServicio;
 use App\Rules\RutChileno;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -23,10 +24,10 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
-use Carbon\Carbon;
+use Illuminate\View\View;
 use Throwable;
-
-
+use Transbank\Webpay\Options;
+use Transbank\Webpay\WebpayPlus\Transaction;
 
 class ReservaWizardController extends Controller
 {
@@ -2005,6 +2006,8 @@ class ReservaWizardController extends Controller
                     'cotizacion_id' => session('conversion_cotizacion_id'),
 
                     'estado' => 'PENDIENTE_PAGO',
+
+                    'pago_expira_at' => now()->addMinutes(15),
                 ]);
 
                 /*
@@ -2052,25 +2055,6 @@ class ReservaWizardController extends Controller
 
         $cotizacionId = session('conversion_cotizacion_id');
 
-        if ($cotizacionId) {
-
-            $cotizacion = Cotizacion::find($cotizacionId);
-
-            if ($cotizacion) {
-
-                $cotizacion = Cotizacion::find(
-                    $cotizacionId
-                );
-
-                if ($cotizacion) {
-
-                    $cotizacion->update([
-                        'estado' => 'CONVERTIDA_RESERVA',
-                    ]);
-                }
-            }
-        }
-
         session()->forget([
             'reserva',
             'conversion_cotizacion_id',
@@ -2078,14 +2062,7 @@ class ReservaWizardController extends Controller
         ]);
 
         return redirect()
-            ->route(
-                'reservas.resultado',
-                $reserva
-            )
-            ->with(
-                'success',
-                "La solicitud de reserva N.º {$reserva->id} fue registrada correctamente."
-            );
+            ->route('reservas.pago', $reserva);
     }
 
     public function comunasPorRegion(Region $region)
@@ -2720,10 +2697,27 @@ class ReservaWizardController extends Controller
                 '>',
                 $horario->hora_inicio
             )
-            ->whereNotIn('reservas.estado', [
-                'CANCELADA',
-                'RECHAZADA',
-            ])
+            ->where(function ($query) {
+
+                $query->whereIn('reservas.estado', [
+                    'CONFIRMADA',
+                    'PAGADA',
+                ]);
+
+                $query->orWhere(function ($subquery) {
+
+                    $subquery
+                        ->where(
+                            'reservas.estado',
+                            'PENDIENTE_PAGO'
+                        )
+                        ->where(
+                            'reservas.pago_expira_at',
+                            '>',
+                            now()
+                        );
+                });
+            })
             ->sum('reserva_servicios.cantidad_personas');
     }
 
@@ -3161,5 +3155,125 @@ class ReservaWizardController extends Controller
                 'horarios'
             )
         );
+    }
+
+    public function pago(Reserva $reserva)
+    {
+        if ($reserva->estado !== 'PENDIENTE_PAGO') {
+            return redirect()
+                ->route('reservas.resultado', $reserva);
+        }
+
+        if (
+            $reserva->pago_expira_at &&
+            $reserva->pago_expira_at->isPast()
+        ) {
+            $reserva->update([
+                'estado' => 'VENCIDA_PAGO',
+            ]);
+
+            return redirect()
+                ->route('reservas.resultado', $reserva)
+                ->with(
+                    'error',
+                    'El tiempo disponible para realizar el pago ha expirado.'
+                );
+        }
+
+        return view(
+            'reservas.pago',
+            compact('reserva')
+        );
+    }
+
+    public function iniciarPagoWebpay(Reserva $reserva): View|RedirectResponse {
+        if ($reserva->estado !== 'PENDIENTE_PAGO') {
+            return redirect()
+                ->route('reservas.resultado', $reserva);
+        }
+
+        if (
+            $reserva->pago_expira_at &&
+            $reserva->pago_expira_at->isPast()
+        ) {
+            $reserva->update([
+                'estado' => 'VENCIDA_PAGO',
+            ]);
+
+            return redirect()
+                ->route('reservas.resultado', $reserva)
+                ->with(
+                    'error',
+                    'El tiempo para realizar el pago ha expirado.'
+                );
+        }
+
+        $buyOrder = 'RES-' . $reserva->id . '-' . time();
+
+        $sessionId = 'RESERVA-' . $reserva->id;
+
+        $amount = (int) round($reserva->total);
+
+        $returnUrl = route(
+            'reservas.pago.webpay.retorno',
+            $reserva
+        );
+
+        $options = new Options(
+            config('services.transbank.api_key'),
+            config('services.transbank.commerce_code'),
+            Options::ENVIRONMENT_INTEGRATION
+        );
+
+        $transaction = new Transaction($options);
+
+        try {
+            $response = $transaction->create(
+                $buyOrder,
+                $sessionId,
+                $amount,
+                $returnUrl
+            );
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return redirect()
+                ->route('reservas.pago', $reserva)
+                ->with(
+                    'error',
+                    'No fue posible iniciar el pago con Webpay.'
+                );
+        }
+
+        session([
+            'webpay.reserva_id' => $reserva->id,
+            'webpay.buy_order' => $buyOrder,
+            'webpay.token' => $response->getToken(),
+        ]);
+
+        return view(
+            'reservas.webpay-redireccion',
+            [
+                'url' => $response->getUrl(),
+                'token' => $response->getToken(),
+            ]
+        );
+    }
+
+    private function webpayTransaction(): Transaction
+    {
+        $environment =
+            config('services.transbank.environment')
+            === 'production'
+            ? Options::ENVIRONMENT_PRODUCTION
+            : Options::ENVIRONMENT_INTEGRATION;
+
+        $options = new Options(
+            config('services.transbank.api_key'),
+            config('services.transbank.commerce_code'),
+            $environment
+        );
+
+        return new Transaction($options);
     }
 }

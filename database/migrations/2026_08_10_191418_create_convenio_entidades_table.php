@@ -21,19 +21,14 @@ return new class extends Migration
                     ->constrained('convenios')
                     ->cascadeOnDelete();
 
-                $table->string(
-                    'nombre_entidad',
-                    150
-                );
+                $table->string('nombre_entidad', 150);
 
                 /*
                  * RUT para mostrar.
                  * Ejemplo: 76.123.456-7
                  */
-                $table->string(
-                    'rut_entidad',
-                    20
-                );
+
+                $table->string('rut_entidad', 20);
 
                 /*
                  * RUT sin puntos ni guion.
@@ -41,10 +36,8 @@ return new class extends Migration
                  *
                  * Lo utilizaremos para comparar.
                  */
-                $table->string(
-                    'rut_normalizado',
-                    20
-                );
+
+                $table->string('rut_normalizado', 20);
 
                 $table->boolean('activo')
                     ->default(true);

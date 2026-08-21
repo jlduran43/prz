@@ -13,20 +13,12 @@ return new class extends Migration
             function (Blueprint $table) {
                 $table->id();
 
-                $table->foreignId(
-                    'horario_disponible_id'
-                )
-                    ->constrained(
-                        'horarios_disponibles'
-                    )
+                $table
+                    ->foreignId('horario_disponible_id')
+                    ->constrained('horarios_disponibles')
                     ->cascadeOnDelete();
-
-                $table->foreignId(
-                    'servicio_experiencia_id'
-                )
-                    ->constrained(
-                        'servicios_experiencias'
-                    )
+                $table->foreignId('servicio_experiencia_id')
+                    ->constrained('servicios_experiencias')
                     ->cascadeOnDelete();
 
                 $table->timestamps();

@@ -706,7 +706,7 @@
                         Generar cotización
                     @else
                         <i class="fas fa-check-circle mr-1"></i>
-                        Confirmar reserva
+                        Continuar al pago
                     @endif
 
                 </button>
@@ -795,12 +795,12 @@
 
                 const formulario =
                     document.getElementById(
-                        'form-finalizar'
+                        'form-confirmar-reserva'
                     );
 
                 const boton =
                     document.getElementById(
-                        'btn-finalizar'
+                        'btn-confirmar-reserva'
                     );
 
                 if (!formulario || !boton) {
@@ -841,7 +841,7 @@
                             aria-hidden="true"
                         ></span>
 
-                        Registrando reserva...
+                        Redirigiendo al pago...
                     `;
                         @endif
                     }

@@ -20,12 +20,10 @@ return new class extends Migration
                     ->foreignId('reserva_id')
                     ->constrained('reservas')
                     ->cascadeOnDelete();
-
                 $table
                     ->foreignId('servicio_experiencia_id')
                     ->constrained('servicios_experiencias')
                     ->restrictOnDelete();
-
                 $table
                     ->foreignId('horario_disponible_id')
                     ->constrained('horarios_disponibles')
@@ -39,13 +37,10 @@ return new class extends Migration
 
                 $table->date('fecha')->nullable();
 
-                $table
-                    ->decimal('precio', 12, 2)
-                    ->default(0);
+                $table->decimal('precio', 12, 2)->default(0);
+                $table->decimal('subtotal', 12, 2)->default(0);
 
                 $table->timestamps();
-
-                $table->decimal('subtotal', 12, 2)->default(0);
 
                 $table->unique([
                     'reserva_id',

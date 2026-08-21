@@ -20,18 +20,19 @@ return new class extends Migration
             | IDENTIFICACIÓN
             |--------------------------------------------------------------------------
             */
+
             $table->string('folio', 20)
                 ->nullable()
                 ->unique();
 
-            $table->string('token_acceso', 64)
-                ->unique();
+            $table->string('token_acceso', 64)->unique();
 
             /*
             |--------------------------------------------------------------------------
             | TIPO DE CLIENTE
             |--------------------------------------------------------------------------
             */
+            
             $table->foreignId('tipo_cliente_id')
                 ->constrained('tipos_cliente')
                 ->restrictOnDelete()
@@ -42,6 +43,7 @@ return new class extends Migration
             | PERSONA NATURAL
             |--------------------------------------------------------------------------
             */
+            
             $table->string('nombres', 100)->nullable();
             $table->string('apellidos', 100)->nullable();
             $table->string('rut_persona', 20)->nullable();
@@ -51,9 +53,9 @@ return new class extends Migration
             | ORGANIZACIÓN
             |--------------------------------------------------------------------------
             */
+            
             $table->string('nombre_entidad', 150)->nullable();
             $table->string('rut_entidad', 20)->nullable();
-
             $table->string('nombre_encargado', 150)->nullable();
             $table->string('rut_encargado', 20)->nullable();
 
@@ -62,6 +64,7 @@ return new class extends Migration
             | CONTACTO
             |--------------------------------------------------------------------------
             */
+            
             $table->string('email', 150);
             $table->string('telefono', 30);
 
@@ -70,6 +73,7 @@ return new class extends Migration
             | UBICACIÓN
             |--------------------------------------------------------------------------
             */
+            
             $table->foreignId('region_id')
                 ->nullable()
                 ->constrained('regiones')
@@ -87,6 +91,7 @@ return new class extends Migration
             | ASISTENTES
             |--------------------------------------------------------------------------
             */
+            
             $table->unsignedInteger('cantidad_asistentes');
 
             /*
@@ -94,20 +99,14 @@ return new class extends Migration
             | DATOS EDUCACIONALES
             |--------------------------------------------------------------------------
             */
-            $table->unsignedInteger('cantidad_alumnos')
-                ->nullable();
-
-            $table->unsignedInteger('cantidad_profesores')
-                ->nullable();
-
-            $table->string('nivel_educacional', 50)
-                ->nullable();
-
-            $table->string('curso', 100)
-                ->nullable();
-
-            $table->text('objetivo_visita')
-                ->nullable();
+            
+            $table->unsignedInteger('cantidad_alumnos')->nullable();
+            $table->unsignedInteger('cantidad_profesores')->nullable();
+            
+            $table->string('nivel_educacional', 50)->nullable();
+            $table->string('curso', 100)->nullable();
+            
+            $table->text('objetivo_visita')->nullable();
 
             /*
             |--------------------------------------------------------------------------
@@ -125,11 +124,9 @@ return new class extends Migration
              * Si el convenio cambia después, la cotización conserva
              * los valores utilizados al momento de emitirla.
              */
-            $table->string('codigo_convenio', 50)
-                ->nullable();
 
-            $table->string('nombre_convenio', 150)
-                ->nullable();
+            $table->string('codigo_convenio', 50)->nullable();
+            $table->string('nombre_convenio', 150)->nullable();
 
             $table->decimal(
                 'porcentaje_descuento',
@@ -142,11 +139,9 @@ return new class extends Migration
             | TOTALES
             |--------------------------------------------------------------------------
             */
+
             $table->decimal('subtotal', 12, 2);
-
-            $table->decimal('descuento', 12, 2)
-                ->default(0);
-
+            $table->decimal('descuento', 12, 2)->default(0);
             $table->decimal('total', 12, 2);
 
             /*
@@ -154,23 +149,40 @@ return new class extends Migration
             | ESTADO
             |--------------------------------------------------------------------------
             */
+
             $table->enum('estado', [
                 'EMITIDA',
                 'CONVERTIDA_RESERVA',
                 'ANULADA',
             ])->default('EMITIDA');
 
+            $table->timestamp('correo_enviado_at')->nullable();
+            $table->timestamp('anulada_at')->nullable();
+
+            $table->text('correo_error')->nullable();
+            $table->text('motivo_anulacion')->nullable();
+
+            $table->json('condiciones_snapshot')->nullable();
+
+            $table->date('vigencia_hasta')->nullable();
+
+            $table->string('anulada_por_tipo', 20)->nullable();
+
+            $table->foreignId('anulada_por_user_id')
+                ->nullable()
+                ->constrained('users')
+                ->nullOnDelete();
+
             /*
             |--------------------------------------------------------------------------
             | FECHAS
             |--------------------------------------------------------------------------
             */
-            $table->timestamp('fecha_emision');
 
-            $table->date('fecha_vencimiento')
-                ->nullable();
-
+            $table->timestamp('fecha_emision')->useCurrent();
             $table->timestamps();
+
+            $table->date('fecha_vencimiento')->nullable();
         });
     }
 
