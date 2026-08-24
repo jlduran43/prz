@@ -216,10 +216,6 @@ Route::middleware('auth')->group(function () {
         'configuraciones-cotizacion',
         ConfiguracionCotizacionController::class
     )
-        ->except([
-            'show',
-            'destroy',
-        ])
         ->parameters([
             'configuraciones-cotizacion' => 'configuracion',
         ]);

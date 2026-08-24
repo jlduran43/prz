@@ -113,29 +113,37 @@
                             {{-- Acciones --}}
                             <td class="align-middle text-center">
                                 <div class="acciones-botones">
-                                    {{-- botones --}}
-                                    <a href="{{ route('regiones.show', $region) }}" class="btn btn-info btn-sm" btn-accion
-                                        title="Ver">
+
+                                    {{-- Ver --}}
+                                    <a href="{{ route('configuraciones-cotizacion.show', $configuracion) }}"
+                                        class="btn btn-info btn-sm btn-accion" title="Ver">
                                         <i class="fas fa-eye"></i>
                                     </a>
-                                    <a href="{{ route('regiones.edit', $region) }}"
+
+                                    {{-- Editar --}}
+                                    <a href="{{ route('configuraciones-cotizacion.edit', $configuracion) }}"
                                         class="btn btn-warning btn-sm btn-accion" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
-                                    <button type="button"
-                                        class="
-                                        btn
-                                        btn-sm btn-accion
-                                        {{ $region->activo ? 'btn-secondary' : 'btn-success' }}"
-                                        title="{{ $region->activo ? 'Desactivar' : 'Activar' }}" data-toggle="modal"
-                                        data-target="#modalCambiarEstadoRegion" data-id="{{ $region->id }}"
-                                        data-nombre="{{ $region->nombre }}" data-activo="{{ $region->activo ? 1 : 0 }}">
 
-                                        <i
-                                            class="
-                                            fas
-                                            {{ $region->activo ? 'fa-ban' : 'fa-check' }}"></i>
-                                    </button>
+                                    {{-- Desactivar / Activar --}}
+                                    @if ($configuracion->activo)
+                                        <button type="button" class="btn btn-secondary btn-sm btn-accion"
+                                            title="Desactivar" data-toggle="modal"
+                                            data-target="#modalDesactivarConfiguracion" data-id="{{ $configuracion->id }}"
+                                            data-titulo="{{ $configuracion->titulo }}">
+
+                                            <i class="fas fa-ban"></i>
+                                        </button>
+                                    @else
+                                        <button type="button" class="btn btn-success btn-sm btn-accion" title="Activar"
+                                            data-toggle="modal" data-target="#modalActivarConfiguracion"
+                                            data-id="{{ $configuracion->id }}" data-titulo="{{ $configuracion->titulo }}">
+
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    @endif
+
                                 </div>
                             </td>
                         </tr>

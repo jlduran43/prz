@@ -42,27 +42,37 @@
     <div class="card">
         {{-- Buscador --}}
         <div class="card-header">
-            <form action="{{ route('categorias-servicio.index') }}" method="GET">
-                <div class="buscador-fila">
-                    {{-- Buscador --}}
-                    <div class="buscador-input">
+            <form action="{{ route('configuraciones-cotizacion.index') }}" method="GET">
 
+                <div class="d-flex align-items-center">
+
+                    {{-- Input --}}
+                    <div class="flex-grow-1">
                         <input type="text" name="buscar" class="form-control" value="{{ $buscar ?? '' }}"
-                            placeholder="Buscar por código o nombre...">
-
+                            placeholder="Buscar por título o banco...">
                     </div>
+
                     {{-- Buscar --}}
-                    <button type="submit" class="btn btn-primary btn-busqueda">
-                        <i class="fas fa-search mr-1"></i>
+                    <button type="submit" class="btn btn-primary ml-2 btn-filtro-responsive" title="Buscar">
+                        <i class="fas fa-search"></i>
 
-                        <span class="texto-boton">Buscar</span>
+                        <span class="d-none d-md-inline ml-1">
+                            Buscar
+                        </span>
                     </button>
-                    <a href="{{ route('categorias-servicio.index') }}" class="btn btn-secondary btn-limpiar">
-                        <i class="fas fa-eraser mr-1"></i>
 
-                        <span class="texto-boton">Limpiar</span>
+                    {{-- Limpiar --}}
+                    <a href="{{ route('configuraciones-cotizacion.index') }}"
+                        class="btn btn-secondary ml-2 btn-filtro-responsive" title="Limpiar">
+                        <i class="fas fa-eraser"></i>
+
+                        <span class="d-none d-md-inline ml-1">
+                            Limpiar
+                        </span>
                     </a>
+
                 </div>
+
             </form>
         </div>
         {{-- Tabla --}}

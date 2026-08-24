@@ -58,19 +58,24 @@ class ConfiguracionCotizacionController extends Controller
             );
     }
 
-    public function edit(
-        ConfiguracionCotizacion $configuracion
-    ) {
+    public function show(ConfiguracionCotizacion $configuracion)
+    {
+        return view(
+            'configuraciones-cotizacion.show',
+            compact('configuracion')
+        );
+    }
+
+    public function edit(ConfiguracionCotizacion $configuracion)
+    {
         return view(
             'configuraciones-cotizacion.edit',
             compact('configuracion')
         );
     }
 
-    public function update(
-        Request $request,
-        ConfiguracionCotizacion $configuracion
-    ) {
+    public function update(Request $request, ConfiguracionCotizacion $configuracion)
+    {
         $datos = $this->validar($request);
 
         if ($request->boolean('activo')) {
@@ -101,35 +106,28 @@ class ConfiguracionCotizacionController extends Controller
             );
     }
 
-    public function activar(
-        ConfiguracionCotizacion $configuracion
-    ) {
-        /*
-         * Solo debe existir una configuración
-         * vigente.
-         */
-        ConfiguracionCotizacion::query()
-            ->update([
-                'activo' => false,
-            ]);
-
-        $configuracion->update([
-            'activo' => true,
-        ]);
+    public function destroy(ConfiguracionCotizacion $configuracion)
+    {
+        $configuracion->activo = false;
+        $configuracion->save();
 
         return redirect()
-            ->route(
-                'configuraciones-cotizacion.index'
-            )
-            ->with(
-                'success',
-                'La configuración fue activada correctamente.'
-            );
+            ->route('configuraciones-cotizacion.index')
+            ->with('success', 'Configuración desactivada correctamente.');
     }
 
-    private function validar(
-        Request $request
-    ): array {
+    public function activar(ConfiguracionCotizacion $configuracion)
+    {
+        $configuracion->activo = true;
+        $configuracion->save();
+
+        return redirect()
+            ->route('configuraciones-cotizacion.index')
+            ->with('success', 'Configuración activada correctamente.');
+    }
+
+    private function validar(Request $request): array
+    {
         return $request->validate(
             [
                 'titulo' => [
@@ -241,19 +239,19 @@ class ConfiguracionCotizacionController extends Controller
             ],
             [
                 'titulo.required' =>
-                    'El título es obligatorio.',
+                'El título es obligatorio.',
 
                 'dias_validez.required' =>
-                    'Debe indicar los días de validez.',
+                'Debe indicar los días de validez.',
 
                 'dias_validez.integer' =>
-                    'La validez debe ser un número entero.',
+                'La validez debe ser un número entero.',
 
                 'correo_comprobantes.email' =>
-                    'El correo de comprobantes no es válido.',
+                'El correo de comprobantes no es válido.',
 
                 'correo_reservas.email' =>
-                    'El correo de reservas no es válido.',
+                'El correo de reservas no es válido.',
             ]
         );
     }
