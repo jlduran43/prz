@@ -174,10 +174,8 @@ class HorarioDisponibleController extends Controller
         );
     }
 
-    public function update(
-        Request $request,
-        HorarioDisponible $horario
-    ) {
+    public function update(Request $request, HorarioDisponible $horario) 
+    {
         $datos = $request->validate(
             [
                 'fecha' => [

@@ -3,17 +3,25 @@
 @section('title', 'Horarios de atención')
 
 @section('content_header')
-    <div class="d-flex align-items-center">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
 
-        <a href="{{ route('horarios-disponibles.generar') }}" class="btn btn-success mr-2">
-            <i class="fas fa-calendar-plus mr-1"></i>
-            Generar horarios
-        </a>
+        <h1 class="mb-3 mb-md-0">
+            Horarios de atención
+        </h1>
 
-        <a href="{{ route('horarios-disponibles.create') }}" class="btn btn-primary">
-            <i class="fas fa-plus mr-1"></i>
-            Nuevo horario de atención
-        </a>
+        <div class="d-flex flex-column flex-sm-row">
+
+            <a href="{{ route('horarios-disponibles.generar') }}" class="btn btn-success mb-2 mb-sm-0 mr-sm-2">
+                <i class="fas fa-calendar-plus mr-1"></i>
+                Generar horarios
+            </a>
+
+            <a href="{{ route('horarios-disponibles.create') }}" class="btn btn-primary">
+                <i class="fas fa-plus mr-1"></i>
+                Nuevo horario de atención
+            </a>
+
+        </div>
 
     </div>
 @stop
@@ -64,14 +72,30 @@
                     </div>
 
                     <div class="col-md-4 mb-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-search mr-1"></i>
-                            Buscar
-                        </button>
+                        <div class="d-flex">
 
-                        <a href="{{ route('horarios-disponibles.index') }}" class="btn btn-secondary">
-                            Limpiar
-                        </a>
+                            <button type="submit" class="btn btn-primary mr-2 btn-filtro-responsive" title="Buscar">
+
+                                <i class="fas fa-search"></i>
+
+                                <span class="d-none d-md-inline ml-1">
+                                    Buscar
+                                </span>
+
+                            </button>
+
+                            <a href="{{ route('horarios-disponibles.index') }}"
+                                class="btn btn-secondary btn-filtro-responsive" title="Limpiar">
+
+                                <i class="fas fa-eraser"></i>
+
+                                <span class="d-none d-md-inline ml-1">
+                                    Limpiar
+                                </span>
+
+                            </a>
+
+                        </div>
                     </div>
                 </div>
             </form>
@@ -137,27 +161,35 @@
                                     </span>
                                 @endif
                             </td>
+                            <td class="align-middle text-center">
+                                <div class="acciones-botones">
 
-                            <td class="align-middle text-nowrap">
-                                <a href="{{ route('horarios-disponibles.show', $horario) }}" class="btn btn-info btn-sm"
-                                    title="Ver">
-                                    <i class="fas fa-eye"></i>
-                                </a>
+                                    <a href="{{ route('horarios-disponibles.show', $horario) }}"
+                                        class="btn btn-info btn-sm btn-accion" title="Ver">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
 
-                                <a href="{{ route('horarios-disponibles.edit', $horario) }}" class="btn btn-warning btn-sm"
-                                    title="Editar">
-                                    <i class="fas fa-edit"></i>
-                                </a>
+                                    <a href="{{ route('horarios-disponibles.edit', $horario) }}"
+                                        class="btn btn-warning btn-sm btn-accion" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
 
-                                <form action="{{ route('horarios-disponibles.destroy', $horario) }}" method="POST"
-                                    class="d-inline">
-                                    @csrf
-                                    @method('DELETE')
+                                    @if ($horario->activo)
+                                        <button type="button" class="btn btn-secondary btn-sm btn-accion"
+                                            title="Desactivar" data-toggle="modal" data-target="#modalDesactivar"
+                                            data-id="{{ $horario->id }}">
 
-                                    <button type="submit" class="btn btn-danger btn-sm" title="Eliminar">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </form>
+                                            <i class="fas fa-ban"></i>
+                                        </button>
+                                    @else
+                                        <button type="button" class="btn btn-success btn-sm btn-accion" title="Reactivar"
+                                            data-toggle="modal" data-target="#modalActivar" data-id="{{ $horario->id }}">
+
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    @endif
+
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -182,9 +214,8 @@
     <div class="modal fade" id="modalDesactivar" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
-                <div class="modal-header bg-danger">
+                <div class="modal-header">
                     <h5 class="modal-title">
-                        <i class="fas fa-ban mr-1"></i>
                         Desactivar horario
                     </h5>
 
@@ -196,15 +227,8 @@
                 <div class="modal-body">
                     <p>
                         ¿Está seguro de que desea desactivar este horario disponible?
-                        <strong id="nombreHorarioDesactivar"></strong>?
+                        <strong id="nombreHorarioDesactivar"></strong>
                     </p>
-
-                    <div class="alert alert-danger mb-0">
-                        <i class="fas fa-exclamation-triangle mr-2"></i>
-
-                        El horario dejará de estar disponible para
-                        nuevas reservas.
-                    </div>
                 </div>
 
                 <div class="modal-footer">
@@ -217,7 +241,6 @@
                         @method('DELETE')
 
                         <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-ban mr-1"></i>
                             Sí, desactivar
                         </button>
                     </form>
@@ -230,9 +253,8 @@
     <div class="modal fade" id="modalActivar" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
-                <div class="modal-header bg-success">
+                <div class="modal-header">
                     <h5 class="modal-title">
-                        <i class="fas fa-check-circle mr-1"></i>
                         Reactivar horario
                     </h5>
 
@@ -244,15 +266,8 @@
                 <div class="modal-body">
                     <p>
                         ¿Está seguro de que desea reactivar este horario disponible?
-                        <strong id="nombreHorarioActivar"></strong>?
+                        <strong id="nombreHorarioActivar"></strong>
                     </p>
-
-                    <div class="alert alert-success mb-0">
-                        <i class="fas fa-check-circle mr-2"></i>
-
-                        El horario volverá a estar disponible para
-                        nuevas reservas.
-                    </div>
                 </div>
 
                 <div class="modal-footer">
@@ -265,7 +280,6 @@
                         @method('PATCH')
 
                         <button type="submit" class="btn btn-success">
-                            <i class="fas fa-check mr-1"></i>
                             Sí, reactivar
                         </button>
                     </form>
@@ -275,48 +289,10 @@
     </div>
 @stop
 
+@section('css')
+    <link rel="stylesheet" href="{{ asset('css/buscador.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/acciones_botones.css') }}">
+@stop
 @section('js')
-    <script>
-        $('#modalDesactivar').on(
-            'show.bs.modal',
-            function(event) {
-                const boton = $(event.relatedTarget);
-                const id = boton.data('id');
-
-                const modal = $(this);
-
-                modal
-                    .find('#formDesactivar')
-                    .attr(
-                        'action',
-                        '{{ url('horarios-disponibles') }}/' +
-                        id
-                    );
-            }
-        );
-
-        $('#modalActivar').on(
-            'show.bs.modal',
-            function(event) {
-                const boton = $(event.relatedTarget);
-                const id = boton.data('id');
-                const nombre = boton.data('nombre');
-
-                const modal = $(this);
-
-                modal
-                    .find('#nombreHorarioActivar')
-                    .text(nombre);
-
-                modal
-                    .find('#formActivar')
-                    .attr(
-                        'action',
-                        '{{ url('horarios-disponibles') }}/' +
-                        id +
-                        '/activar'
-                    );
-            }
-        );
-    </script>
+    <script src="{{ asset('js/horarios_atencion/index.js') }}"></script>
 @stop

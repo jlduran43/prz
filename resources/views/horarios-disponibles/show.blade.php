@@ -5,18 +5,6 @@
 @section('content_header')
     <div class="d-flex justify-content-between align-items-center">
         <h1>Detalle del horario de atención</h1>
-
-        <div>
-            <a href="{{ route('horarios-disponibles.edit', $horario) }}" class="btn btn-warning">
-                <i class="fas fa-edit mr-1"></i>
-                Editar
-            </a>
-
-            <a href="{{ route('horarios-disponibles.index') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left mr-1"></i>
-                Volver
-            </a>
-        </div>
     </div>
 @stop
 
@@ -84,8 +72,17 @@
 
             </dl>
 
+            <a href="{{ route('horarios-disponibles.index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left mr-1"></i>
+                Volver
+            </a>
+
         </div>
 
     </div>
 
+@stop
+@section('css')
+    <link rel="stylesheet" href="{{ asset('css/buscador.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/acciones_botones.css') }}">
 @stop

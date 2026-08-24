@@ -13,10 +13,7 @@
 @stop
 
 @section('content')
-    <form
-        method="POST"
-        action="{{ route('horarios-disponibles.recurrentes.guardar') }}"
-    >
+    <form method="POST" action="{{ route('horarios-disponibles.recurrentes.guardar') }}">
         @csrf
 
         @if ($errors->any())
@@ -43,16 +40,10 @@
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <input
-                                type="date"
-                                name="fecha_desde"
-                                id="fecha_desde"
+                            <input type="date" name="fecha_desde" id="fecha_desde"
                                 class="form-control
                                     @error('fecha_desde') is-invalid @enderror"
-                                value="{{ old('fecha_desde') }}"
-                                min="{{ now()->format('Y-m-d') }}"
-                                required
-                            >
+                                value="{{ old('fecha_desde') }}" min="{{ now()->format('Y-m-d') }}" required>
 
                             @error('fecha_desde')
                                 <span class="invalid-feedback">
@@ -69,16 +60,10 @@
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <input
-                                type="date"
-                                name="fecha_hasta"
-                                id="fecha_hasta"
+                            <input type="date" name="fecha_hasta" id="fecha_hasta"
                                 class="form-control
                                     @error('fecha_hasta') is-invalid @enderror"
-                                value="{{ old('fecha_hasta') }}"
-                                min="{{ now()->format('Y-m-d') }}"
-                                required
-                            >
+                                value="{{ old('fecha_hasta') }}" min="{{ now()->format('Y-m-d') }}" required>
 
                             @error('fecha_hasta')
                                 <span class="invalid-feedback">
@@ -98,34 +83,21 @@
                     <div class="border rounded p-3">
                         <div class="row">
                             @foreach ([
-                                1 => 'Lunes',
-                                2 => 'Martes',
-                                3 => 'Miércoles',
-                                4 => 'Jueves',
-                                5 => 'Viernes',
-                                6 => 'Sábado',
-                                0 => 'Domingo',
+                                        1 => 'Lunes',
+                                        2 => 'Martes',
+                                        3 => 'Miércoles',
+                                        4 => 'Jueves',
+                                        5 => 'Viernes',
+                                        6 => 'Sábado',
+                                        0 => 'Domingo',
                             ] as $numero => $nombre)
                                 <div class="col-md-3 col-sm-6 mb-2">
                                     <div class="custom-control custom-checkbox">
-                                        <input
-                                            type="checkbox"
-                                            name="dias_semana[]"
-                                            value="{{ $numero }}"
-                                            id="dia_{{ $numero }}"
-                                            class="custom-control-input"
-                                            @checked(
-                                                in_array(
-                                                    $numero,
-                                                    old('dias_semana', [])
-                                                )
-                                            )
-                                        >
+                                        <input type="checkbox" name="dias_semana[]" value="{{ $numero }}"
+                                            id="dia_{{ $numero }}" class="custom-control-input"
+                                            @checked(in_array($numero, old('dias_semana', [])))>
 
-                                        <label
-                                            for="dia_{{ $numero }}"
-                                            class="custom-control-label"
-                                        >
+                                        <label for="dia_{{ $numero }}" class="custom-control-label">
                                             {{ $nombre }}
                                         </label>
                                     </div>
@@ -155,15 +127,10 @@
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <input
-                                type="time"
-                                name="hora_inicio"
-                                id="hora_inicio"
+                            <input type="time" name="hora_inicio" id="hora_inicio"
                                 class="form-control
                                     @error('hora_inicio') is-invalid @enderror"
-                                value="{{ old('hora_inicio') }}"
-                                required
-                            >
+                                value="{{ old('hora_inicio') }}" required>
 
                             @error('hora_inicio')
                                 <span class="invalid-feedback">
@@ -180,15 +147,10 @@
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <input
-                                type="time"
-                                name="hora_termino"
-                                id="hora_termino"
+                            <input type="time" name="hora_termino" id="hora_termino"
                                 class="form-control
                                     @error('hora_termino') is-invalid @enderror"
-                                value="{{ old('hora_termino') }}"
-                                required
-                            >
+                                value="{{ old('hora_termino') }}" required>
 
                             @error('hora_termino')
                                 <span class="invalid-feedback">
@@ -205,16 +167,10 @@
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <input
-                                type="number"
-                                name="capacidad_maxima"
-                                id="capacidad_maxima"
+                            <input type="number" name="capacidad_maxima" id="capacidad_maxima"
                                 class="form-control
                                     @error('capacidad_maxima') is-invalid @enderror"
-                                value="{{ old('capacidad_maxima') }}"
-                                min="1"
-                                required
-                            >
+                                value="{{ old('capacidad_maxima') }}" min="1" required>
 
                             @error('capacidad_maxima')
                                 <span class="invalid-feedback">
@@ -231,25 +187,12 @@
                         <span class="text-danger">*</span>
                     </label>
 
-                    <select
-                        name="servicios[]"
-                        id="servicios"
+                    <select name="servicios[]" id="servicios"
                         class="form-control
-                            @error('servicios') is-invalid @enderror"
-                        multiple
-                        size="7"
-                        required
-                    >
+                            @error('servicios') is-invalid @enderror" multiple
+                        size="7" required>
                         @foreach ($servicios as $servicio)
-                            <option
-                                value="{{ $servicio->id }}"
-                                @selected(
-                                    in_array(
-                                        $servicio->id,
-                                        old('servicios', [])
-                                    )
-                                )
-                            >
+                            <option value="{{ $servicio->id }}" @selected(in_array($servicio->id, old('servicios', [])))>
                                 {{ $servicio->nombre }}
                             </option>
                         @endforeach
@@ -267,22 +210,15 @@
                 </div>
             </div>
 
-            <div class="card-footer d-flex justify-content-between">
-                <a
-                    href="{{ route('horarios-disponibles.index') }}"
-                    class="btn btn-secondary"
-                >
-                    <i class="fas fa-arrow-left mr-1"></i>
-                    Volver
-                </a>
-
-                <button
-                    type="submit"
-                    class="btn btn-success"
-                >
+            <div class="card-footer">
+                <button type="submit" class="btn btn-success">
                     <i class="fas fa-calendar-plus mr-1"></i>
                     Generar horarios
                 </button>
+                <a href="{{ route('horarios-disponibles.index') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left mr-1"></i>
+                    Volver
+                </a>
             </div>
         </div>
     </form>
