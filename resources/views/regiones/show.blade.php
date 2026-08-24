@@ -7,10 +7,10 @@
 @stop
 
 @section('content')
-    <div class="card card-outline card-info">
+    <div class="card card-info">
         <div class="card-header">
             <h3 class="card-title">
-                Información de la Región
+                Información de la Región {{ $region->nombre }}
             </h3>
         </div>
 

@@ -365,7 +365,7 @@ return [
                     'icon' => 'fas fa-map-marker-alt',
                 ],
                 [
-                    'text' => 'Categorías de servicio',
+                    'text' => 'Categorías experiencia',
                     'route' => 'categorias-servicio.index',
                     'icon' => 'fas fa-layer-group',
                 ],

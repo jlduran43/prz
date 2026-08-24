@@ -17,6 +17,7 @@
     @if (session('success'))
         <div class="alert alert-success alert-dismissible fade show">
             <i class="fas fa-check-circle"></i>
+
             {{ session('success') }}
 
             <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
@@ -28,6 +29,7 @@
     @if (session('error'))
         <div class="alert alert-danger alert-dismissible fade show">
             <i class="fas fa-exclamation-circle"></i>
+
             {{ session('error') }}
 
             <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
@@ -42,7 +44,6 @@
             <form method="GET" action="{{ route('tipos-cliente.index') }}">
 
                 <div class="buscador-fila">
-
                     {{-- Buscador --}}
                     <div class="buscador-input">
 
@@ -50,23 +51,17 @@
                             placeholder="Buscar por código o nombre...">
 
                     </div>
-
                     {{-- Buscar --}}
                     <button type="submit" class="btn btn-primary btn-busqueda">
                         <i class="fas fa-search mr-1"></i>
 
-                        <span class="texto-boton">
-                            Buscar
-                        </span>
+                        <span class="texto-boton">Buscar</span>
                     </button>
-
                     {{-- Limpiar --}}
                     <a href="{{ route('tipos-cliente.index') }}" class="btn btn-secondary btn-limpiar">
                         <i class="fas fa-eraser mr-1"></i>
 
-                        <span class="texto-boton">
-                            Limpiar
-                        </span>
+                        <span class="texto-boton">Limpiar</span>
                     </a>
 
                 </div>
@@ -121,32 +116,34 @@
                                 @endif
                             </td>
                             <td class="align-middle text-center">
-                                <a href="{{ route('tipos-cliente.show', $tipoCliente) }}" class="btn btn-info btn-sm btn-accion"
-                                    title="Ver">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="{{ route('tipos-cliente.edit', $tipoCliente) }}" class="btn btn-warning btn-sm btn-accion"
-                                    title="Editar">
-                                    <i class="fas fa-edit"></i>
-                                </a>
+                                <div class="acciones-botones">
+                                    <a href="{{ route('tipos-cliente.show', $tipoCliente) }}"
+                                        class="btn btn-info btn-sm btn-accion" title="Ver">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ route('tipos-cliente.edit', $tipoCliente) }}"
+                                        class="btn btn-warning btn-sm btn-accion" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
 
-                                <form method="POST" action="{{ route('tipos-cliente.cambiar-estado', $tipoCliente) }}"
-                                    class="d-inline">
+                                    <form method="POST" action="{{ route('tipos-cliente.cambiar-estado', $tipoCliente) }}"
+                                        class="d-inline">
 
-                                    @csrf
-                                    @method('PATCH')
+                                        @csrf
+                                        @method('PATCH')
 
-                                    <button type="button"
-                                        class="btn btn-sm btn-accion
+                                        <button type="button"
+                                            class="btn btn-sm btn-accion
                                             {{ $tipoCliente->activo ? 'btn-secondary' : 'btn-success' }}"
-                                        title="{{ $tipoCliente->activo ? 'Desactivar' : 'Activar' }}" data-toggle="modal"
-                                        data-target="#modalCambiarEstado" data-id="{{ $tipoCliente->id }}"
-                                        data-nombre="{{ $tipoCliente->nombre }}"
-                                        data-activo="{{ $tipoCliente->activo ? 1 : 0 }}">
+                                            title="{{ $tipoCliente->activo ? 'Desactivar' : 'Activar' }}"
+                                            data-toggle="modal" data-target="#modalCambiarEstado"
+                                            data-id="{{ $tipoCliente->id }}" data-nombre="{{ $tipoCliente->nombre }}"
+                                            data-activo="{{ $tipoCliente->activo ? 1 : 0 }}">
 
-                                        <i class="fas {{ $tipoCliente->activo ? 'fa-ban' : 'fa-check' }}"></i>
-                                    </button>
-                                </form>
+                                            <i class="fas {{ $tipoCliente->activo ? 'fa-ban' : 'fa-check' }}"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </td>
                         </tr>
                     @empty

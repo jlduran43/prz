@@ -154,10 +154,8 @@ class ServicioExperienciaController extends Controller
                 ],
             ],
             [
-                'tipo_cobro.required' =>
-                'Debes seleccionar el tipo de cobro.',
-                'tipo_cobro.in' =>
-                'El tipo de cobro seleccionado no es válido.',
+                'tipo_cobro.required' => 'Debes seleccionar el tipo de cobro.',
+                'tipo_cobro.in' => 'El tipo de cobro seleccionado no es válido.',
 
                 'imagen.image' => 'El archivo seleccionado debe ser una imagen.',
                 'imagen.mimes' => 'La imagen debe ser JPG, JPEG, PNG o WebP.',
@@ -233,10 +231,8 @@ class ServicioExperienciaController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(
-        Request $request,
-        ServicioExperiencia $servicio
-    ) {
+    public function update(Request $request, ServicioExperiencia $servicio) 
+    {
         $datos = $request->validate(
             [
                 'categoria_servicio_id' => [
@@ -437,123 +433,5 @@ class ServicioExperienciaController extends Controller
                 'success',
                 'El servicio o experiencia fue reactivado correctamente.'
             );
-    }
-
-    private function validar(
-        Request $request,
-        ?ServicioExperiencia $servicio = null
-    ): array {
-        $datos = $request->validate([
-            'categoria_servicio_id' => [
-                'required',
-                Rule::exists(
-                    'categorias_servicio',
-                    'id'
-                )->where(function ($query) use ($servicio) {
-                    $query->where('activo', true);
-
-                    if ($servicio !== null) {
-                        $query->orWhere(
-                            'id',
-                            $servicio->categoria_servicio_id
-                        );
-                    }
-                }),
-            ],
-
-            'codigo' => [
-                'required',
-                'string',
-                'max:50',
-                Rule::unique(
-                    'servicios_experiencias',
-                    'codigo'
-                )->ignore($servicio?->id),
-            ],
-
-            'nombre' => [
-                'required',
-                'string',
-                'max:150',
-            ],
-
-            'descripcion' => [
-                'nullable',
-                'string',
-                'max:2000',
-            ],
-
-            'duracion_minutos' => [
-                'nullable',
-                'integer',
-                'min:1',
-            ],
-
-            'capacidad_minima' => [
-                'nullable',
-                'integer',
-                'min:1',
-            ],
-
-            'capacidad_maxima' => [
-                'nullable',
-                'integer',
-                'min:1',
-                'gte:capacidad_minima',
-            ],
-
-            'precio' => [
-                'required',
-                'numeric',
-                'min:0',
-            ],
-
-            'requiere_reserva' => [
-                'nullable',
-                'boolean',
-            ],
-        ], [
-            'categoria_servicio_id.required' =>
-            'Debe seleccionar una categoría.',
-
-            'categoria_servicio_id.exists' =>
-            'La categoría seleccionada no está disponible.',
-
-            'codigo.required' =>
-            'El código es obligatorio.',
-
-            'codigo.unique' =>
-            'El código ya se encuentra registrado.',
-
-            'nombre.required' =>
-            'El nombre es obligatorio.',
-
-            'duracion_minutos.integer' =>
-            'La duración debe ser un número entero.',
-
-            'capacidad_maxima.gte' =>
-            'La capacidad máxima debe ser mayor o igual que la capacidad mínima.',
-
-            'precio.required' =>
-            'El precio es obligatorio.',
-
-            'precio.numeric' =>
-            'El precio debe ser un número.',
-        ]);
-
-        $datos['requiere_reserva'] = $request->boolean(
-            'requiere_reserva'
-        );
-
-        /*
-         * En la creación queda activo.
-         * En la edición no se cambia desde este formulario;
-         * se utilizan los botones activar/desactivar.
-         */
-        if ($servicio === null) {
-            $datos['activo'] = true;
-        }
-
-        return $datos;
     }
 }

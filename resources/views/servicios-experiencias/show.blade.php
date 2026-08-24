@@ -4,20 +4,7 @@
 
 @section('content_header')
     <div class="d-flex justify-content-between align-items-center">
-        <h1>Detalle del servicio o experiencia</h1>
-
-        <div>
-            <a href="{{ route('servicios-experiencias.edit', $servicio) }}"
-                class="btn btn-warning">
-                <i class="fas fa-edit mr-1"></i>
-                Editar
-            </a>
-
-            <a href="{{ route('servicios-experiencias.index') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left mr-1"></i>
-                Volver
-            </a>
-        </div>
+        <h1>Detalle del servicio</h1>
     </div>
 @stop
 
@@ -68,11 +55,9 @@
                     @if ($servicio->imagen)
                         <img src="{{ asset('storage/' . $servicio->imagen) }}" alt="{{ $servicio->nombre }}"
                             class="img-thumbnail"
-                            style="
-                width: 300px;
-                height: 190px;
-                object-fit: cover;
-            ">
+                            style=" width: 300px;
+                                    height: 190px;
+                                    object-fit: cover;">
                     @else
                         <span class="text-muted">
                             <i class="fas fa-image mr-1"></i>
@@ -122,7 +107,10 @@
                         </span>
                     @endif
                 </dd>
-
+                <a href="{{ route('servicios-experiencias.index') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left mr-1"></i>
+                    Volver
+                </a>
             </dl>
         </div>
     </div>

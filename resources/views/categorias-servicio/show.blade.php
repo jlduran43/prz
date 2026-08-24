@@ -5,27 +5,6 @@
 @section('content_header')
     <div class="d-flex justify-content-between align-items-center">
         <h1>Detalle de categoría</h1>
-
-        <div>
-            <a
-                href="{{ route(
-                    'categorias-servicio.edit',
-                    $categoria
-                ) }}"
-                class="btn btn-warning"
-            >
-                <i class="fas fa-edit"></i>
-                Editar
-            </a>
-
-            <a
-                href="{{ route('categorias-servicio.index') }}"
-                class="btn btn-secondary"
-            >
-                <i class="fas fa-arrow-left"></i>
-                Volver
-            </a>
-        </div>
     </div>
 @stop
 
@@ -72,6 +51,11 @@
                     @endif
                 </dd>
             </dl>
+            <a href="{{ route('categorias-servicio.index') }}"
+               class="btn btn-secondary">
+               <i class="fas fa-arrow-left"></i>
+                Volver
+            </a>
         </div>
     </div>
 @stop

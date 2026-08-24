@@ -3,8 +3,8 @@
 @section('title', 'Servicios y experiencias')
 
 @section('content_header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1>Servicios y experiencias</h1>
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+        <h1 class="mb-3 mb-md-0">Lista de Servicios</h1>
 
         <a href="{{ route('servicios-experiencias.create') }}" class="btn btn-primary">
             <i class="fas fa-plus mr-1"></i>
@@ -14,36 +14,53 @@
 @stop
 
 @section('content')
+    {{-- Mensaje de éxito --}}
     @if (session('success'))
         <div class="alert alert-success alert-dismissible fade show">
-            <button type="button" class="close" data-dismiss="alert">
-                <span>&times;</span>
-            </button>
+            <i class="fas fa-check-circle mr-1"></i>
 
             {{ session('success') }}
+
+            <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
+                <span aria-hidden="true">&times;</span>
+            </button>
         </div>
     @endif
-
+    {{-- Mensaje de error --}}
     @if (session('error'))
         <div class="alert alert-danger alert-dismissible fade show">
-            <button type="button" class="close" data-dismiss="alert">
-                <span>&times;</span>
-            </button>
+            <i class="fas fa-exclamation-circle mr-1"></i>
 
             {{ session('error') }}
+
+            <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
+                <span aria-hidden="true">&times;</span>
+            </button>
         </div>
     @endif
 
     <div class="card">
+        {{-- Buscador --}}
         <div class="card-header">
             <form action="{{ route('servicios-experiencias.index') }}" method="GET">
-                <div class="row">
-                    <div class="col-md-4 mb-2">
-                        <input type="text" name="buscar" class="form-control" value="{{ $buscar }}"
-                            placeholder="Buscar por código o nombre">
+                <div class="row align-items-end">
+
+                    {{-- Buscador --}}
+                    <div class="col-12 col-lg-5 mb-2">
+                        <label class="small text-muted mb-1">
+                            Buscar servicio
+                        </label>
+
+                        <input type="text" name="buscar" class="form-control" value="{{ $buscar ?? '' }}"
+                            placeholder="Código o nombre...">
                     </div>
 
-                    <div class="col-md-3 mb-2">
+                    {{-- Categoría --}}
+                    <div class="col-12 col-sm-6 col-lg-3 mb-2">
+                        <label class="small text-muted mb-1">
+                            Categoría
+                        </label>
+
                         <select name="categoria_id" class="form-control">
                             <option value="">
                                 Todas las categorías
@@ -57,7 +74,12 @@
                         </select>
                     </div>
 
-                    <div class="col-md-2 mb-2">
+                    {{-- Estado --}}
+                    <div class="col-12 col-sm-6 col-lg-2 mb-2">
+                        <label class="small text-muted mb-1">
+                            Estado
+                        </label>
+
                         <select name="estado" class="form-control">
                             <option value="">
                                 Todos los estados
@@ -73,22 +95,29 @@
                         </select>
                     </div>
 
-                    <div class="col-md-3 mb-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-search mr-1"></i>
-                            Buscar
-                        </button>
+                    {{-- Botones --}}
+                    <div class="col-12 col-lg-2 mb-2">
+                        <div class="d-flex">
 
-                        <a href="{{ route('servicios-experiencias.index') }}" class="btn btn-secondary">
-                            Limpiar
-                        </a>
+                            <button type="submit" class="btn btn-primary flex-fill mr-2">
+                                <i class="fas fa-search mr-1"></i>
+                                Buscar
+                            </button>
+
+                            <a href="{{ route('servicios-experiencias.index') }}" class="btn btn-outline-secondary"
+                                title="Limpiar filtros">
+                                <i class="fas fa-eraser"></i>
+                            </a>
+
+                        </div>
                     </div>
+
                 </div>
             </form>
         </div>
-
+        {{-- Tabla --}}
         <div class="card-body table-responsive p-0">
-            <table class="table table-hover table-striped">
+            <table class="table table-hover table-striped mb-0">
                 <thead>
                     <tr>
                         <th>Código</th>
@@ -151,11 +180,9 @@
                                 @if ($servicio->imagen)
                                     <img src="{{ asset('storage/' . $servicio->imagen) }}" alt="{{ $servicio->nombre }}"
                                         class="img-thumbnail"
-                                        style="
-                width: 70px;
-                height: 50px;
-                object-fit: cover;
-            ">
+                                        style="width: 70px;
+                                               height: 50px;
+                                               object-fit: cover;">
                                 @else
                                     <span class="text-muted">
                                         <i class="fas fa-image"></i>
@@ -189,30 +216,34 @@
                                 @endif
                             </td>
 
-                            <td class="text-center">
-                                <a href="{{ route('servicios-experiencias.show', $servicio) }}" class="btn btn-info btn-sm"
-                                    title="Ver">
-                                    <i class="fas fa-eye"></i>
-                                </a>
+                            {{-- Acciones --}}
+                            <td class="align-middle text-center text-nowrap">
+                                <div class="acciones-botones">
+                                    <a href="{{ route('servicios-experiencias.show', $servicio) }}"
+                                        class="btn btn-info btn-sm" title="Ver">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
 
-                                <a href="{{ route('servicios-experiencias.edit', $servicio) }}"
-                                    class="btn btn-warning btn-sm" title="Editar">
-                                    <i class="fas fa-edit"></i>
-                                </a>
+                                    <a href="{{ route('servicios-experiencias.edit', $servicio) }}"
+                                        class="btn btn-warning btn-sm" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
 
-                                @if ($servicio->activo)
-                                    <button type="button" class="btn btn-danger btn-sm" title="Desactivar"
-                                        data-toggle="modal" data-target="#modalDesactivar" data-id="{{ $servicio->id }}"
-                                        data-nombre="{{ $servicio->nombre }}">
-                                        <i class="fas fa-ban"></i>
-                                    </button>
-                                @else
-                                    <button type="button" class="btn btn-success btn-sm" title="Reactivar"
-                                        data-toggle="modal" data-target="#modalActivar" data-id="{{ $servicio->id }}"
-                                        data-nombre="{{ $servicio->nombre }}">
-                                        <i class="fas fa-check"></i>
-                                    </button>
-                                @endif
+                                    @if ($servicio->activo)
+                                        <button type="button" 
+                                                class="btn btn-secondary btn-sm" title="Desactivar"
+                                            data-toggle="modal" data-target="#modalDesactivar"
+                                            data-id="{{ $servicio->id }}" data-nombre="{{ $servicio->nombre }}">
+                                            <i class="fas fa-ban"></i>
+                                        </button>
+                                    @else
+                                        <button type="button" class="btn btn-success btn-sm" title="Reactivar"
+                                            data-toggle="modal" data-target="#modalActivar" data-id="{{ $servicio->id }}"
+                                            data-nombre="{{ $servicio->nombre }}">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @empty
@@ -237,9 +268,8 @@
     <div class="modal fade" id="modalDesactivar" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
-                <div class="modal-header bg-danger">
+                <div class="modal-header">
                     <h5 class="modal-title">
-                        <i class="fas fa-ban mr-1"></i>
                         Desactivar servicio
                     </h5>
 
@@ -253,13 +283,6 @@
                         ¿Está seguro de que desea desactivar el servicio
                         <strong id="nombreServicioDesactivar"></strong>?
                     </p>
-
-                    <div class="alert alert-danger mb-0">
-                        <i class="fas fa-exclamation-triangle mr-2"></i>
-
-                        El servicio no será eliminado de la base de datos.
-                        Dejará de estar disponible para nuevas reservas.
-                    </div>
                 </div>
 
                 <div class="modal-footer">
@@ -272,7 +295,6 @@
                         @method('DELETE')
 
                         <button type="submit" class="btn btn-danger">
-                            <i class="fas fa-ban mr-1"></i>
                             Sí, desactivar
                         </button>
                     </form>
@@ -330,46 +352,12 @@
     </div>
 @stop
 
+@section('css')
+    <link rel="stylesheet" href="{{ asset('css/acciones_botones.css') }}">
+@stop
+
 @section('js')
     <script>
-        $('#modalDesactivar').on('show.bs.modal', function(event) {
-            const boton = $(event.relatedTarget);
-            const id = boton.data('id');
-            const nombre = boton.data('nombre');
-
-            const modal = $(this);
-
-            modal
-                .find('#nombreServicioDesactivar')
-                .text(nombre);
-
-            modal
-                .find('#formDesactivar')
-                .attr(
-                    'action',
-                    '{{ url('servicios-experiencias') }}/' + id
-                );
-        });
-
-        $('#modalActivar').on('show.bs.modal', function(event) {
-            const boton = $(event.relatedTarget);
-            const id = boton.data('id');
-            const nombre = boton.data('nombre');
-
-            const modal = $(this);
-
-            modal
-                .find('#nombreServicioActivar')
-                .text(nombre);
-
-            modal
-                .find('#formActivar')
-                .attr(
-                    'action',
-                    '{{ url('servicios-experiencias') }}/' +
-                    id +
-                    '/activar'
-                );
-        });
+        = "{{ asset('js/servicios_experiencias/index.js') }}"
     </script>
 @stop

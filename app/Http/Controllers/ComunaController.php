@@ -15,17 +15,17 @@ class ComunaController extends Controller
      */
     public function index(Request $request)
     {
-        $busqueda = $request->input('buscar');
+        $buscar = $request->input('buscar');
 
         $comunas = Comuna::query()
             ->with('region')
-            ->when($busqueda, function ($query, $busqueda) {
-                $query->where(function ($subquery) use ($busqueda) {
+            ->when($buscar, function ($query, $buscar) {
+                $query->where(function ($subquery) use ($buscar) {
                     $subquery
-                        ->where('nombre', 'like', "%{$busqueda}%")
-                        ->orWhere('codigo', 'like', "%{$busqueda}%")
-                        ->orWhereHas('region', function ($regionQuery) use ($busqueda) {
-                            $regionQuery->where('nombre', 'like', "%{$busqueda}%");
+                        ->where('nombre', 'like', "%{$buscar}%")
+                        ->orWhere('codigo', 'like', "%{$buscar}%")
+                        ->orWhereHas('region', function ($regionQuery) use ($buscar) {
+                            $regionQuery->where('nombre', 'like', "%{$buscar}%");
                         });
                 });
             })
@@ -33,7 +33,7 @@ class ComunaController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('comunas.index', compact('comunas', 'busqueda'));
+        return view('comunas.index', compact('comunas', 'buscar'));
     }
 
     /**
@@ -178,7 +178,8 @@ class ComunaController extends Controller
             ->with('success', 'Comuna eliminada correctamente.');
     }
 
-    public function cambiarEstado(Comuna $comuna): RedirectResponse {
+    public function cambiarEstado(Comuna $comuna): RedirectResponse 
+    {
         $comuna->update([
             'activo' => ! $comuna->activo,
         ]);

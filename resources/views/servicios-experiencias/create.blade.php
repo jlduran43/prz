@@ -4,12 +4,7 @@
 
 @section('content_header')
     <div class="d-flex justify-content-between align-items-center">
-        <h1>Crear servicio o experiencia</h1>
-
-        <a href="{{ route('servicios-experiencias.index') }}" class="btn btn-secondary">
-            <i class="fas fa-arrow-left mr-1"></i>
-            Volver
-        </a>
+        <h1>Crear Servicio</h1>
     </div>
 @stop
 
@@ -26,7 +21,7 @@
     <div class="card card-primary">
         <div class="card-header">
             <h3 class="card-title">
-                Datos del servicio o experiencia
+                Datos del Servicio
             </h3>
         </div>
 
@@ -44,7 +39,8 @@
                 </button>
 
                 <a href="{{ route('servicios-experiencias.index') }}" class="btn btn-secondary">
-                    Cancelar
+                    <i class="fas fa-arrow-left mr-1"></i>
+                    Volver
                 </a>
             </div>
         </form>

@@ -120,10 +120,8 @@ class CategoriaServicioController extends Controller
             );
     }
 
-    private function validar(
-        Request $request,
-        ?CategoriaServicio $categoria = null
-    ): array {
+    private function validar(Request $request, ?CategoriaServicio $categoria = null): array 
+    {
         $datos = $request->validate([
             'codigo' => [
                 'required',

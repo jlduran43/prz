@@ -10,7 +10,7 @@
     <div class="card card-info">
         <div class="card-header">
             <h3 class="card-title">
-                Detalles tipo cliente {{ $tipoCliente->nombre }}
+                Información tipo cliente {{ $tipoCliente->nombre }}
             </h3>
         </div>
         <div class="card-body">

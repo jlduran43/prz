@@ -4,15 +4,7 @@
 
 @section('content_header')
     <div class="d-flex justify-content-between align-items-center">
-        <h1>Editar servicio o experiencia</h1>
-
-        <a
-            href="{{ route('servicios-experiencias.index') }}"
-            class="btn btn-secondary"
-        >
-            <i class="fas fa-arrow-left mr-1"></i>
-            Volver
-        </a>
+        <h1>Editar servicio</h1>
     </div>
 @stop
 
@@ -30,18 +22,12 @@
     <div class="card card-warning">
         <div class="card-header">
             <h3 class="card-title">
-                Datos del servicio o experiencia
+                Datos del servicio
             </h3>
         </div>
 
-        <form
-            action="{{ route(
-                'servicios-experiencias.update',
-                $servicio
-            ) }}"
-            method="POST"
-            enctype="multipart/form-data"
-        >
+        <form action="{{ route('servicios-experiencias.update', $servicio) }}"
+            method="POST" enctype="multipart/form-data">
             @csrf
             @method('PUT')
 
@@ -50,19 +36,14 @@
             </div>
 
             <div class="card-footer">
-                <button
-                    type="submit"
-                    class="btn btn-warning"
-                >
+                <button type="submit" class="btn btn-warning">
                     <i class="fas fa-save mr-1"></i>
                     Actualizar
                 </button>
 
-                <a
-                    href="{{ route('servicios-experiencias.index') }}"
-                    class="btn btn-secondary"
-                >
-                    Cancelar
+                <a href="{{ route('servicios-experiencias.index') }}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left mr-1"></i>
+                    Volver
                 </a>
             </div>
         </form>

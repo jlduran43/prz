@@ -4,16 +4,12 @@
 
 @section('content_header')
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
-
-        <h1 class="mb-2 mb-md-0">
-            Comunas
-        </h1>
+        <h1 class="mb-2 mb-md-0">Comunas</h1>
 
         <a href="{{ route('comunas.create') }}" class="btn btn-primary">
             <i class="fas fa-plus mr-1"></i>
             Nueva comuna
         </a>
-
     </div>
 @stop
 
@@ -21,12 +17,10 @@
     @if (session('success'))
         <div class="alert alert-success alert-dismissible fade show">
             <i class="fas fa-check-circle mr-1"></i>
+
             {{ session('success') }}
-            <button
-                type="button"
-                class="close"
-                data-dismiss="alert"
-                aria-label="Cerrar">
+
+            <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
@@ -35,12 +29,10 @@
     @if (session('error'))
         <div class="alert alert-danger alert-dismissible fade show">
             <i class="fas fa-exclamation-circle mr-1"></i>
+
             {{ session('error') }}
-            <button
-                type="button"
-                class="close"
-                data-dismiss="alert"
-                aria-label="Cerrar">
+
+            <button type="button" class="close" data-dismiss="alert" aria-label="Cerrar">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
@@ -49,57 +41,26 @@
     <div class="card">
         {{-- Buscador --}}
         <div class="card-header">
-            <form
-                action="{{ route('comunas.index') }}"
-                method="GET">
+            <form action="{{ route('comunas.index') }}" method="GET">
+                <div class="buscador-fila">
+                    {{-- Buscador --}}
+                    <div class="buscador-input">
 
-                <div class="row align-items-center">
-                    {{-- Campo de búsqueda --}}
-                    <div class="col-12 col-lg-9 mb-2 mb-lg-0">
-                        <div class="input-group">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">
-                                    <i class="fas fa-search"></i>
-                                </span>
-                            </div>
+                        <input type="text" name="buscar" class="form-control" value="{{ $buscar ?? '' }}"
+                            placeholder="Buscar por código o nombre...">
 
-                            <input
-                                type="text"
-                                name="buscar"
-                                class="form-control"
-                                placeholder="Buscar por código, comuna o región..."
-                                value="{{ $busqueda }}">
-                        </div>
                     </div>
-                    {{-- Botones --}}
-                    <div class="col-12 col-lg-3">
-                        <div
-                            class="
-                                d-flex
-                                flex-column
-                                flex-sm-row
-                                justify-content-lg-end">
+                    {{-- Buscar --}}
+                    <button type="submit" class="btn btn-primary btn-busqueda">
+                        <i class="fas fa-search mr-1"></i>
 
-                            <button
-                                type="submit"
-                                class="
-                                    btn
-                                    btn-primary
-                                    mb-2
-                                    mb-sm-0
-                                    mr-sm-2">
+                        <span class="texto-boton">Buscar</span>
+                    </button>
+                    <a href="{{ route('comunas.index') }}" class="btn btn-secondary btn-limpiar">
+                        <i class="fas fa-eraser mr-1"></i>
 
-                                <i class="fas fa-search mr-1"></i>
-                                Buscar
-                            </button>
-                            <a
-                                href="{{ route('comunas.index') }}"
-                                class="btn btn-secondary">
-                                <i class="fas fa-eraser mr-1"></i>
-                                Limpiar
-                            </a>
-                        </div>
-                    </div>
+                        <span class="texto-boton">Limpiar</span>
+                    </a>
                 </div>
             </form>
         </div>
@@ -121,9 +82,7 @@
                         <th style="width: 15%;">
                             Estado
                         </th>
-                        <th
-                            style="width: 15%;"
-                            class="text-center">
+                        <th style="width: 15%;" class="text-center">
                             Acciones
                         </th>
                     </tr>
@@ -157,54 +116,34 @@
                             </td>
                             {{-- Acciones --}}
                             <td class="align-middle text-center text-nowrap">
-                                <a
-                                    href="{{ route('comunas.show', $comuna) }}"
-                                    class="btn btn-info btn-sm"
-                                    title="Ver">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-                                <a
-                                    href="{{ route('comunas.edit', $comuna) }}"
-                                    class="btn btn-warning btn-sm"
-                                    title="Editar">
-                                    <i class="fas fa-edit"></i>
-                                </a>
-                                <button
-                                    type="button"
-                                    class="
+                                <div class="acciones-botones">
+                                    <a href="{{ route('comunas.show', $comuna) }}" class="btn btn-info btn-sm"
+                                        title="Ver">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ route('comunas.edit', $comuna) }}" class="btn btn-warning btn-sm"
+                                        title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button"
+                                        class="
                                         btn
                                         btn-sm
-                                        {{
-                                            $comuna->activo
-                                                ? 'btn-secondary'
-                                                : 'btn-success'
-                                        }}"
-                                    title="{{
-                                        $comuna->activo
-                                            ? 'Desactivar'
-                                            : 'Activar'}}"
-                                    data-toggle="modal"
-                                    data-target="#modalCambiarEstadoComuna"
-                                    data-id="{{ $comuna->id }}"
-                                    data-nombre="{{ $comuna->nombre }}"
-                                    data-activo="{{ $comuna->activo ? 1 : 0 }}">
-                                    <i
-                                        class="
+                                        {{ $comuna->activo ? 'btn-secondary' : 'btn-success' }}"
+                                        title="{{ $comuna->activo ? 'Desactivar' : 'Activar' }}" data-toggle="modal"
+                                        data-target="#modalCambiarEstadoComuna" data-id="{{ $comuna->id }}"
+                                        data-nombre="{{ $comuna->nombre }}" data-activo="{{ $comuna->activo ? 1 : 0 }}">
+                                        <i
+                                            class="
                                             fas
-                                            {{
-                                                $comuna->activo
-                                                    ? 'fa-ban'
-                                                    : 'fa-check'
-                                            }}"
-                                    ></i>
-                                </button>
+                                            {{ $comuna->activo ? 'fa-ban' : 'fa-check' }}"></i>
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td
-                                colspan="5"
-                                class="text-center py-4">
+                            <td colspan="5" class="text-center py-4">
                                 <i class="fas fa-info-circle mr-1"></i>
                                 No existen comunas registradas.
                             </td>
@@ -213,57 +152,33 @@
                 </tbody>
             </table>
             {{-- Modal cambio de estado --}}
-            <div
-                class="modal fade"
-                id="modalCambiarEstadoComuna"
-                tabindex="-1"
-                role="dialog"
-                aria-labelledby="modalCambiarEstadoComunaLabel"
-                aria-hidden="true">
-                <div
-                    class="modal-dialog modal-dialog-centered"
-                    role="document">
+            <div class="modal fade" id="modalCambiarEstadoComuna" tabindex="-1" role="dialog"
+                aria-labelledby="modalCambiarEstadoComunaLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5
-                                class="modal-title"
-                                id="modalCambiarEstadoComunaLabel">
+                            <h5 class="modal-title" id="modalCambiarEstadoComunaLabel">
                                 Cambiar estado
                             </h5>
-                            <button
-                                type="button"
-                                class="close"
-                                data-dismiss="modal"
-                                aria-label="Cerrar">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
                                 <span aria-hidden="true">
                                     &times;
                                 </span>
                             </button>
                         </div>
-                        <form
-                            id="formCambiarEstadoComuna"
-                            method="POST">
+                        <form id="formCambiarEstadoComuna" method="POST">
 
                             @csrf
                             @method('PATCH')
 
                             <div class="modal-body">
-                                <p
-                                    id="mensajeCambiarEstadoComuna"
-                                    class="mb-0"
-                                ></p>
+                                <p id="mensajeCambiarEstadoComuna" class="mb-0"></p>
                             </div>
                             <div class="modal-footer">
-                                <button
-                                    type="button"
-                                    class="btn btn-secondary"
-                                    data-dismiss="modal">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">
                                     Cancelar
                                 </button>
-                                <button
-                                    type="submit"
-                                    id="botonConfirmarEstadoComuna"
-                                    class="btn">
+                                <button type="submit" id="botonConfirmarEstadoComuna" class="btn">
                                     Confirmar
                                 </button>
                             </div>
@@ -279,6 +194,11 @@
             </div>
         @endif
     </div>
+@stop
+
+@section('css')
+    <link rel="stylesheet" href="{{ asset('css/buscador.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/acciones_botones.css') }}">
 @stop
 
 @section('js')

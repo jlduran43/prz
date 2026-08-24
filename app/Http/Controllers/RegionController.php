@@ -14,14 +14,14 @@ class RegionController extends Controller
      */
     public function index(Request $request)
     {
-        $busqueda = trim((string) $request->input('buscar'));
+        $buscar = trim((string) $request->input('buscar'));
 
         $regiones = Region::query()
-            ->when($busqueda !== '', function ($query) use ($busqueda) {
-                $query->where(function ($subquery) use ($busqueda) {
+            ->when($buscar !== '', function ($query) use ($buscar) {
+                $query->where(function ($subquery) use ($buscar) {
                     $subquery
-                        ->where('codigo', 'like', "%{$busqueda}%")
-                        ->orWhere('nombre', 'like', "%{$busqueda}%");
+                        ->where('codigo', 'like', "%{$buscar}%")
+                        ->orWhere('nombre', 'like', "%{$buscar}%");
                 });
             })
             ->withCount('comunas')
@@ -29,7 +29,7 @@ class RegionController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('regiones.index', compact('regiones', 'busqueda'));
+        return view('regiones.index', compact('regiones', 'buscar'));
     }
 
     /**
@@ -173,7 +173,8 @@ class RegionController extends Controller
             ->with('success', 'La región fue eliminada correctamente.');
     }
 
-    public function cambiarEstado(Region $region): RedirectResponse {
+    public function cambiarEstado(Region $region): RedirectResponse 
+    {
         $region->update([
             'activo' => ! $region->activo,
         ]);
