@@ -13,134 +13,6 @@
 @stop
 
 @section('content')
-
-    <style>
-        .opcion-operacion {
-            height: 100%;
-            border: 1px solid #dee2e6;
-            border-top: 3px solid #17a2b8;
-            border-radius: 6px;
-            background: #ffffff;
-            transition:
-                transform .2s ease,
-                box-shadow .2s ease,
-                border-color .2s ease;
-        }
-
-        .opcion-operacion:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, .10);
-            border-color: #17a2b8;
-        }
-
-        .opcion-operacion.reserva {
-            border-top-color: #007bff;
-        }
-
-        .opcion-operacion.reserva:hover {
-            border-color: #007bff;
-        }
-
-        .opcion-body {
-            padding: 26px 24px;
-        }
-
-        .opcion-icono {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            width: 52px;
-            height: 52px;
-
-            margin-bottom: 18px;
-
-            border-radius: 50%;
-
-            background: #17a2b8;
-            color: white;
-
-            font-size: 22px;
-        }
-
-        .reserva .opcion-icono {
-            background: #007bff;
-        }
-
-        .opcion-titulo {
-            margin-bottom: 8px;
-            color: #212529;
-            font-size: 24px;
-            font-weight: 700;
-        }
-
-        .opcion-descripcion {
-            min-height: 48px;
-            margin-bottom: 20px;
-
-            color: #6c757d;
-            font-size: 15px;
-        }
-
-        .opcion-aviso {
-            min-height: 58px;
-
-            margin-bottom: 20px;
-            padding: 14px 16px;
-
-            border: 1px solid #dee2e6;
-            border-radius: 4px;
-
-            background: #f8f9fa;
-            color: #343a40;
-        }
-
-        .opcion-aviso i {
-            margin-right: 6px;
-        }
-
-        .opcion-enlace {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-
-            border: none;
-            padding: 0;
-
-            background: transparent;
-
-            font-weight: 700;
-            font-size: 15px;
-        }
-
-        .opcion-enlace.cotizar {
-            color: #17a2b8;
-        }
-
-        .opcion-enlace.reservar {
-            color: #007bff;
-        }
-
-        .opcion-enlace:hover {
-            text-decoration: none;
-            opacity: .8;
-        }
-
-        @media (max-width: 767.98px) {
-            .opcion-descripcion,
-            .opcion-aviso {
-                min-height: auto;
-            }
-        }
-    </style>
-
-
-    {{-- WIZARD --}}
-    @include('reservas.partials._wizard', [
-        'paso' => 0
-    ])
-
-
     <div class="card">
 
         <div class="card-header">
@@ -196,8 +68,7 @@
 
                             <div class="opcion-aviso">
 
-                                <i
-                                    class="fas fa-info-circle
+                                <i class="fas fa-info-circle
                                            text-info">
                                 </i>
 
@@ -209,24 +80,14 @@
                             </div>
 
 
-                            <form
-                                action="{{ route('reservas.operacion.guardar') }}"
-                                method="POST"
-                            >
+                            <form action="{{ route('reservas.operacion.guardar') }}" method="POST">
 
                                 @csrf
 
-                                <input
-                                    type="hidden"
-                                    name="tipo_operacion"
-                                    value="COTIZACION"
-                                >
+                                <input type="hidden" name="tipo_operacion" value="COTIZACION">
 
 
-                                <button
-                                    type="submit"
-                                    class="opcion-enlace cotizar"
-                                >
+                                <button type="submit" class="opcion-enlace cotizar">
 
                                     Cotizar
 
@@ -273,8 +134,7 @@
 
                             <div class="opcion-aviso">
 
-                                <i
-                                    class="fas fa-info-circle
+                                <i class="fas fa-info-circle
                                            text-primary">
                                 </i>
 
@@ -284,24 +144,14 @@
                             </div>
 
 
-                            <form
-                                action="{{ route('reservas.operacion.guardar') }}"
-                                method="POST"
-                            >
+                            <form action="{{ route('reservas.operacion.guardar') }}" method="POST">
 
                                 @csrf
 
-                                <input
-                                    type="hidden"
-                                    name="tipo_operacion"
-                                    value="RESERVA"
-                                >
+                                <input type="hidden" name="tipo_operacion" value="RESERVA">
 
 
-                                <button
-                                    type="submit"
-                                    class="opcion-enlace reservar"
-                                >
+                                <button type="submit" class="opcion-enlace reservar">
 
                                     Reservar
 
@@ -326,8 +176,7 @@
 
                     <div class="mr-3">
 
-                        <i
-                            class="fas fa-info-circle
+                        <i class="fas fa-info-circle
                                    fa-2x">
                         </i>
 
@@ -360,4 +209,9 @@
 
     </div>
 
+@stop
+
+@section('css')
+    <link rel="stylesheet" href="{{ asset('css/reservas/wizard.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/reservas/paso0.css') }}">
 @stop
