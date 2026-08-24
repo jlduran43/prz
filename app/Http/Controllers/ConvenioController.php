@@ -88,9 +88,11 @@ class ConvenioController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(Convenio $convenio)
     {
-        //
+        $convenio->load('entidades');
+
+        return view('convenios.show', compact('convenio'));
     }
 
     /**
@@ -109,7 +111,8 @@ class ConvenioController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Convenio $convenio) {
+    public function update(Request $request, Convenio $convenio)
+    {
         $datos = $this->validarDatos(
             $request,
             $convenio->id
@@ -199,7 +202,8 @@ class ConvenioController extends Controller
             );
     }
 
-    private function validarDatos(Request $request, ?int $convenioId = null): array {
+    private function validarDatos(Request $request, ?int $convenioId = null): array
+    {
 
         return $request->validate([
 
@@ -264,7 +268,8 @@ class ConvenioController extends Controller
         ]);
     }
 
-    private function normalizarRut(?string $rut): string {
+    private function normalizarRut(?string $rut): string
+    {
 
         return mb_strtoupper(
             preg_replace(
@@ -273,5 +278,15 @@ class ConvenioController extends Controller
                 (string) $rut
             )
         );
+    }
+
+    public function activar(Convenio $convenio)
+    {
+        $convenio->activo = true;
+        $convenio->save();
+
+        return redirect()
+            ->route('convenios.index')
+            ->with('success', 'Convenio reactivado correctamente.');
     }
 }

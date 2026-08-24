@@ -4,7 +4,7 @@
 
 @section('content_header')
 
-    <div class="d-flex justify-content-between align-items-center">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center">
 
         <div>
             <h1 class="mb-1">
@@ -17,10 +17,7 @@
             </p>
         </div>
 
-        <a
-            href="{{ route('convenios.create') }}"
-            class="btn btn-primary"
-        >
+        <a href="{{ route('convenios.create') }}" class="btn btn-primary mt-3 mt-md-0">
             <i class="fas fa-plus mr-1"></i>
             Nuevo convenio
         </a>
@@ -34,7 +31,6 @@
 
     {{-- Mensaje de éxito --}}
     @if (session('success'))
-
         <div class="alert alert-success">
 
             <i class="fas fa-check-circle mr-1"></i>
@@ -42,11 +38,10 @@
             {{ session('success') }}
 
         </div>
-
     @endif
 
 
-    <div class="card card-outline card-primary">
+    <div class="card">
 
         <div class="card-header">
 
@@ -59,6 +54,33 @@
             </h3>
 
         </div>
+        {{-- Buscador --}}
+        <div class="card-header">
+            <form action="{{ route('convenios.index') }}" method="GET">
+                <div class="buscador-fila">
+
+                    <div class="buscador-input">
+                        <input type="text" name="buscar" class="form-control" value="{{ $buscar ?? '' }}"
+                            placeholder="Buscar por código o nombre...">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-busqueda">
+                        <i class="fas fa-search mr-1"></i>
+                        <span class="texto-boton">
+                            Buscar
+                        </span>
+                    </button>
+
+                    <a href="{{ route('convenios.index') }}" class="btn btn-secondary btn-limpiar">
+                        <i class="fas fa-eraser mr-1"></i>
+                        <span class="texto-boton">
+                            Limpiar
+                        </span>
+                    </a>
+
+                </div>
+            </form>
+        </div>
 
 
         <div class="card-body p-0">
@@ -66,13 +88,10 @@
             <div class="table-responsive">
 
                 <table
-                    class="
-                        table
-                        table-hover
-                        table-striped
-                        mb-0
-                    "
-                >
+                    class=" table
+                            table-hover
+                            table-striped
+                            mb-0">
 
                     <thead>
 
@@ -102,10 +121,7 @@
                                 Estado
                             </th>
 
-                            <th
-                                class="text-center"
-                                style="width: 150px;"
-                            >
+                            <th class="text-center" style="width: 150px;">
                                 Acciones
                             </th>
 
@@ -117,19 +133,17 @@
                     <tbody>
 
                         @forelse ($convenios as $convenio)
-
-                            <tr>
+                            <tr class="align-middle">
 
                                 {{-- Código --}}
-                                <td>
+                                <td class="align-middle">
 
                                     <span
                                         class="
                                             badge
                                             badge-info
                                             p-2
-                                        "
-                                    >
+                                        ">
                                         {{ $convenio->codigo }}
                                     </span>
 
@@ -137,7 +151,7 @@
 
 
                                 {{-- Nombre --}}
-                                <td>
+                                <td class="align-middle">
 
                                     <strong>
                                         {{ $convenio->nombre }}
@@ -147,30 +161,23 @@
 
 
                                 {{-- Descuento --}}
-                                <td class="text-center">
+                                <td class="text-center align-middle">
 
                                     <span
                                         class="
                                             badge
                                             badge-success
                                             p-2
-                                        "
-                                    >
+                                        ">
 
                                         <i
                                             class="
                                                 fas
                                                 fa-percent
                                                 mr-1
-                                            "
-                                        ></i>
+                                            "></i>
 
-                                        {{ number_format(
-                                            $convenio->porcentaje_descuento,
-                                            0,
-                                            ',',
-                                            '.'
-                                        ) }}
+                                        {{ number_format($convenio->porcentaje_descuento, 0, ',', '.') }}
 
                                     </span>
 
@@ -178,7 +185,7 @@
 
 
                                 {{-- Vigencia --}}
-                                <td>
+                                <td class="align-middle">
 
                                     <div>
 
@@ -188,12 +195,9 @@
                                                 fa-calendar-alt
                                                 text-muted
                                                 mr-1
-                                            "
-                                        ></i>
+                                            "></i>
 
-                                        {{ optional(
-                                            $convenio->fecha_inicio
-                                        )->format('d/m/Y') }}
+                                        {{ optional($convenio->fecha_inicio)->format('d/m/Y') }}
 
                                     </div>
 
@@ -203,15 +207,9 @@
                                         hasta
 
                                         @if ($convenio->fecha_termino)
-
-                                            {{ $convenio
-                                                ->fecha_termino
-                                                ->format('d/m/Y') }}
-
+                                            {{ $convenio->fecha_termino->format('d/m/Y') }}
                                         @else
-
                                             Sin fecha de término
-
                                         @endif
 
                                     </small>
@@ -220,23 +218,18 @@
 
 
                                 {{-- Cantidad de entidades --}}
-                                <td class="text-center">
+                                <td class="text-center align-middle">
 
                                     <span
-                                        class="
-                                            badge
-                                            badge-secondary
-                                            p-2
-                                        "
-                                    >
+                                        class=" badge
+                                                badge-secondary p-2">
 
                                         <i
                                             class="
-                                                fas
-                                                fa-building
-                                                mr-1
-                                            "
-                                        ></i>
+                                            fas
+                                            fa-building
+                                            mr-1">
+                                        </i>
 
                                         {{ $convenio->entidades_count }}
 
@@ -244,132 +237,82 @@
 
                                 </td>
 
-
                                 {{-- Estado --}}
-                                <td class="text-center">
+                                <td class="text-center align-middle">
 
                                     @if ($convenio->activo)
-
                                         <span
                                             class="
                                                 badge
                                                 badge-success
                                                 p-2
-                                            "
-                                        >
+                                            ">
                                             Activo
                                         </span>
-
                                     @else
-
                                         <span
                                             class="
                                                 badge
                                                 badge-secondary
                                                 p-2
-                                            "
-                                        >
+                                            ">
                                             Inactivo
                                         </span>
-
                                     @endif
 
                                 </td>
 
 
                                 {{-- Acciones --}}
-                                <td class="text-center">
+                                <td class="align-middle text-center text-nowrap">
+                                    <div class="acciones-botones">
+                                        <a href="{{ route('convenios.show', $convenio) }}" class="btn btn-info btn-sm"
+                                            title="Ver">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
 
-                                    <a
-                                        href="{{
-                                            route(
-                                                'convenios.edit',
-                                                $convenio
-                                            )
-                                        }}"
-                                        class="
-                                            btn
-                                            btn-sm
-                                            btn-warning
-                                        "
-                                        title="Editar"
-                                    >
+                                        <a href="{{ route('convenios.edit', $convenio) }}" class="btn btn-sm btn-warning"
+                                            title="Editar">
 
-                                        <i class="fas fa-edit"></i>
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        @if ($convenio->activo)
+                                            {{-- Desactivar --}}
+                                            <button type="button" class="btn btn-secondary btn-sm" title="Desactivar"
+                                                data-toggle="modal" data-target="#modalDesactivarConvenio"
+                                                data-id="{{ $convenio->id }}" data-nombre="{{ $convenio->nombre }}">
 
-                                    </a>
-
-
-                                    @if ($convenio->activo)
-
-                                        <form
-                                            action="{{
-                                                route(
-                                                    'convenios.destroy',
-                                                    $convenio
-                                                )
-                                            }}"
-                                            method="POST"
-                                            class="d-inline"
-                                        >
-
-                                            @csrf
-                                            @method('DELETE')
-
-
-                                            <button
-                                                type="submit"
-                                                class="
-                                                    btn
-                                                    btn-sm
-                                                    btn-danger
-                                                "
-                                                title="Desactivar"
-                                                onclick="
-                                                    return confirm(
-                                                        '¿Deseas desactivar este convenio?'
-                                                    );
-                                                "
-                                            >
-
-                                                <i
-                                                    class="
-                                                        fas
-                                                        fa-ban
-                                                    "
-                                                ></i>
-
+                                                <i class="fas fa-ban"></i>
                                             </button>
+                                        @else
+                                            {{-- Reactivar --}}
+                                            <button type="button" class="btn btn-success btn-sm" title="Reactivar"
+                                                data-toggle="modal" data-target="#modalActivarConvenio"
+                                                data-id="{{ $convenio->id }}" data-nombre="{{ $convenio->nombre }}">
 
-                                        </form>
-
-                                    @endif
-
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        @endif
+                                    </div>
                                 </td>
-
                             </tr>
 
                         @empty
 
                             <tr>
 
-                                <td
-                                    colspan="7"
+                                <td colspan="7"
                                     class="
                                         text-center
                                         text-muted
-                                        py-5
-                                    "
-                                >
-
+                                        py-5">
                                     <i
                                         class="
                                             fas
                                             fa-percent
                                             fa-2x
-                                            mb-3
-                                        "
-                                    ></i>
+                                            mb-3">
+                                    </i>
 
                                     <div>
                                         No existen convenios
@@ -379,7 +322,6 @@
                                 </td>
 
                             </tr>
-
                         @endforelse
 
                     </tbody>
@@ -392,15 +334,128 @@
 
 
         @if ($convenios->hasPages())
-
             <div class="card-footer">
 
                 {{ $convenios->links() }}
 
             </div>
-
         @endif
 
     </div>
+    {{-- Modal desactivar convenio --}}
+    <div class="modal fade" id="modalDesactivarConvenio" tabindex="-1" role="dialog" aria-hidden="true">
 
+        <div class="modal-dialog modal-dialog-centered" role="document">
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+
+                    <h5 class="modal-title">
+                        Desactivar convenio
+                    </h5>
+
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+
+                        <span aria-hidden="true">
+                            &times;
+                        </span>
+
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <p class="mb-0">
+                        ¿Está seguro de que desea desactivar el convenio
+                        <strong id="nombreConvenioDesactivar"></strong>?
+                    </p>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+
+                        Cancelar
+
+                    </button>
+
+                    <form id="formDesactivarConvenio" method="POST">
+
+                        @csrf
+                        @method('DELETE')
+
+                        <button type="submit" class="btn btn-danger">
+                            Sí, desactivar
+                        </button>
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+    {{-- Modal activar convenio --}}
+    <div class="modal fade" id="modalActivarConvenio" tabindex="-1" role="dialog" aria-hidden="true">
+
+        <div class="modal-dialog modal-dialog-centered" role="document">
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+
+                    <h5 class="modal-title">
+                        Reactivar convenio
+                    </h5>
+
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <p class="mb-0">
+                        ¿Está seguro de que desea reactivar el convenio
+                        <strong id="nombreConvenioActivar"></strong>?
+                    </p>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        Cancelar
+                    </button>
+
+                    <form id="formActivarConvenio" method="POST">
+                        @csrf
+                        @method('PATCH')
+
+                        <button type="submit" class="btn btn-success">
+                            Sí, reactivar
+                        </button>
+                    </form>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+@stop
+@section('css')
+    <link rel="stylesheet" href="{{ asset('css/buscador.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/acciones_botones.css') }}">
+@stop
+@section('js')
+    <script src="{{ asset('js/convenios/index.js') }}"></script>
 @stop

@@ -58,11 +58,15 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
 
+    Route::patch(
+        'convenios/{convenio}/activar',
+        [ConvenioController::class, 'activar']
+    )->name('convenios.activar');
+
     Route::resource(
         'convenios',
         ConvenioController::class
     );
-
 
     /*
     |--------------------------------------------------------------------------
