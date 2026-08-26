@@ -28,8 +28,7 @@
 
         </div>
 
-        <form method="POST"
-            action="{{ route('configuraciones-cotizacion.update', $configuracion) }}">
+        <form method="POST" action="{{ route('configuraciones-cotizacion.update', $configuracion) }}">
 
             @csrf
             @method('PUT')
@@ -47,8 +46,7 @@
                     Actualizar
                 </button>
 
-                <a href="{{ route('configuraciones-cotizacion.index') }}"
-                    class="btn btn-secondary">
+                <a href="{{ route('configuraciones-cotizacion.index') }}" class="btn btn-secondary">
                     <i class="fas fa-arrow-left mr-1"></i>
                     Volver
                 </a>

@@ -37,173 +37,174 @@
 
     <div class="card">
 
-        <div class="card-header">
+        div class="card-header">
 
-            <form method="GET" action="{{ route('cotizaciones.index') }}">
+        <form action="{{ route('cotizaciones.index') }}" method="GET">
 
-                <div class="row align-items-center">
+            <div class="buscador-fila">
 
-                    <div class="col-md-9">
+                <div class="buscador-input">
 
-                        <div class="input-group">
-
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">
-                                    <i class="fas fa-search"></i>
-                                </span>
-                            </div>
-
-                            <input type="text" name="buscar" class="form-control" value="{{ $buscar }}"
-                                placeholder="Buscar por folio, cliente o correo...">
-
-                        </div>
-
-                    </div>
-
-
-                    <div class="col-md-3 mt-2 mt-md-0">
-
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-search mr-1"></i>
-                            Buscar
-                        </button>
-
-                        <a href="{{ route('cotizaciones.index') }}" class="btn btn-secondary ml-1">
-                            <i class="fas fa-eraser mr-1"></i>
-                            Limpiar
-                        </a>
-
-                    </div>
+                    <input type="text" name="buscar" class="form-control" value="{{ $buscar ?? '' }}"
+                        placeholder="Buscar por folio, cliente o correo...">
 
                 </div>
 
-            </form>
 
-        </div>
+                <button type="submit" class="btn btn-primary btn-busqueda">
 
+                    <i class="fas fa-search mr-1"></i>
 
-        <div class="card-body table-responsive p-0">
+                    <span class="texto-boton">
+                        Buscar
+                    </span>
 
-            <table class="table table-hover">
-
-                <thead>
-                    <tr>
-                        <th>Folio</th>
-                        <th>Cliente</th>
-                        <th>Fecha</th>
-                        <th>Asistentes</th>
-                        <th class="text-right">
-                            Total
-                        </th>
-                        <th>Estado</th>
-                        <th class="text-right">
-                            Acciones
-                        </th>
-                    </tr>
-                </thead>
-
-                <tbody>
-
-                    @forelse ($cotizaciones as $cotizacion)
-
-                        @php
-                            $nombreCliente =
-                                $cotizacion->nombre_entidad ?:
-                                trim(($cotizacion->nombres ?? '') . ' ' . ($cotizacion->apellidos ?? ''));
-                        @endphp
-
-                        <tr>
-
-                            <td>
-                                <strong>
-                                    {{ $cotizacion->folio }}
-                                </strong>
-                            </td>
-
-                            <td>
-                                {{ $nombreCliente ?: '-' }}
-
-                                <div class="small text-muted">
-                                    {{ $cotizacion->email }}
-                                </div>
-                            </td>
-
-                            <td>
-                                {{ $cotizacion->fecha_emision->format('d/m/Y H:i') }}
-                            </td>
-
-                            <td>
-                                {{ $cotizacion->cantidad_asistentes }}
-                            </td>
-
-                            <td class="text-right">
-                                <strong>
-                                    ${{ number_format($cotizacion->total, 0, ',', '.') }}
-                                </strong>
-                            </td>
-
-                            <td>
-
-                                @php
-                                    $estado = strtoupper($cotizacion->estado ?? '');
-
-                                    $badgeEstado = match ($estado) {
-                                        'EMITIDA' => 'badge-info',
-                                        'ENVIADA' => 'badge-primary',
-                                        'ACEPTADA' => 'badge-success',
-                                        'ANULADA' => 'badge-danger',
-                                        'VENCIDA' => 'badge-secondary',
-                                        default => 'badge-light',
-                                    };
-
-                                    $textoEstado = match ($estado) {
-                                        'EMITIDA' => 'Emitida',
-                                        'ENVIADA' => 'Enviada',
-                                        'ACEPTADA' => 'Aceptada',
-                                        'ANULADA' => 'Anulada',
-                                        'VENCIDA' => 'Vencida',
-                                        default => ucfirst(strtolower($estado)),
-                                    };
-                                @endphp
-
-                                <span class="badge {{ $badgeEstado }}">
-                                    {{ $textoEstado }}
-                                </span>
-
-                            </td>
-
-                            <td class="text-right">
-
-                                <a href="{{ route('admin.cotizaciones.show', $cotizacion) }}"
-                                    class="btn btn-info btn-sm" title="Ver cotización">
-                                    <i class="fas fa-eye"></i>
-                                </a>
-
-                            </td>
-
-                        </tr>
-
-                    @empty
-
-                        <tr>
-                            <td colspan="7" class="text-center py-4 text-muted">
-                                No hay cotizaciones registradas.
-                            </td>
-                        </tr>
-                    @endforelse
-
-                </tbody>
-
-            </table>
-
-        </div>
+                </button>
 
 
-        @if ($cotizaciones->hasPages())
-            <div class="card-footer">
-                {{ $cotizaciones->links() }}
+                <a href="{{ route('cotizaciones.index') }}" class="btn btn-secondary btn-limpiar">
+
+                    <i class="fas fa-eraser mr-1"></i>
+
+                    <span class="texto-boton">
+                        Limpiar
+                    </span>
+
+                </a>
+
             </div>
-        @endif
+
+        </form>
 
     </div>
+
+
+    <div class="card-body table-responsive p-0">
+
+        <table class="table table-hover">
+
+            <thead>
+                <tr>
+                    <th>Folio</th>
+                    <th>Cliente</th>
+                    <th>Fecha</th>
+                    <th>Asistentes</th>
+                    <th class="text-right">
+                        Total
+                    </th>
+                    <th>Estado</th>
+                    <th class="text-right">
+                        Acciones
+                    </th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                @forelse ($cotizaciones as $cotizacion)
+                    @php
+                        $nombreCliente =
+                            $cotizacion->nombre_entidad ?:
+                            trim(($cotizacion->nombres ?? '') . ' ' . ($cotizacion->apellidos ?? ''));
+                    @endphp
+
+                    <tr>
+
+                        <td>
+                            <strong>
+                                {{ $cotizacion->folio }}
+                            </strong>
+                        </td>
+
+                        <td>
+                            {{ $nombreCliente ?: '-' }}
+
+                            <div class="small text-muted">
+                                {{ $cotizacion->email }}
+                            </div>
+                        </td>
+
+                        <td>
+                            {{ $cotizacion->fecha_emision->format('d/m/Y H:i') }}
+                        </td>
+
+                        <td>
+                            {{ $cotizacion->cantidad_asistentes }}
+                        </td>
+
+                        <td class="text-right">
+                            <strong>
+                                ${{ number_format($cotizacion->total, 0, ',', '.') }}
+                            </strong>
+                        </td>
+
+                        <td>
+
+                            @php
+                                $estado = strtoupper($cotizacion->estado ?? '');
+
+                                $badgeEstado = match ($estado) {
+                                    'EMITIDA' => 'badge-info',
+                                    'ENVIADA' => 'badge-primary',
+                                    'ACEPTADA' => 'badge-success',
+                                    'ANULADA' => 'badge-danger',
+                                    'VENCIDA' => 'badge-secondary',
+                                    default => 'badge-light',
+                                };
+
+                                $textoEstado = match ($estado) {
+                                    'EMITIDA' => 'Emitida',
+                                    'ENVIADA' => 'Enviada',
+                                    'ACEPTADA' => 'Aceptada',
+                                    'ANULADA' => 'Anulada',
+                                    'VENCIDA' => 'Vencida',
+                                    default => ucfirst(strtolower($estado)),
+                                };
+                            @endphp
+
+                            <span class="badge {{ $badgeEstado }}">
+                                {{ $textoEstado }}
+                            </span>
+
+                        </td>
+
+                        <td class="text-right">
+
+                            <a href="{{ route('admin.cotizaciones.show', $cotizacion) }}" class="btn btn-info btn-sm"
+                                title="Ver cotización">
+                                <i class="fas fa-eye"></i>
+                            </a>
+
+                        </td>
+
+                    </tr>
+
+                @empty
+
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">
+                            No hay cotizaciones registradas.
+                        </td>
+                    </tr>
+                @endforelse
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+
+    @if ($cotizaciones->hasPages())
+        <div class="card-footer">
+            {{ $cotizaciones->links() }}
+        </div>
+    @endif
+
+    </div>
+@stop
+
+@section('css')
+    <link rel="stylesheet" href="{{ asset('css/buscador.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/acciones_botones.css') }}">
 @stop

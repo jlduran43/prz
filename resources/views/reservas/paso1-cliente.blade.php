@@ -69,6 +69,7 @@
             </div>
 
             <div class="card-body">
+
                 @php
                     $tipos = $tiposCliente->sortBy(function ($tipo) {
                         return $tipo->codigo === 'PERSONA' ? 0 : 1;
@@ -76,27 +77,44 @@
                 @endphp
 
                 <div class="form-group">
+
                     <label for="tipo_cliente_id">
                         Tipo de cliente
                         <span class="text-danger">*</span>
                     </label>
 
-                    <select id="tipo_cliente_id" name="tipo_cliente_id"
-                        class="form-control @error('tipo_cliente_id') is-invalid @enderror" required>
-                        <option value="">
-                            Seleccione un tipo de cliente
-                        </option>
+                    <div class="input-group">
 
-                        @foreach ($tipos as $tipo)
-                            <option value="{{ $tipo->id }}" data-codigo="{{ $tipo->codigo }}"
-                                data-estructura="{{ $tipo->tipo_estructura }}" @selected(old('tipo_cliente_id', $datosCliente['tipo_cliente_id'] ?? '') == $tipo->id)>
-                                {{ $tipo->nombre }}
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">
+                                <i class="fas fa-users"></i>
+                            </span>
+                        </div>
+
+                        <select id="tipo_cliente_id" name="tipo_cliente_id"
+                            class="form-control @error('tipo_cliente_id') is-invalid @enderror" required>
+
+                            <option value="">
+                                Seleccione un tipo de cliente
                             </option>
-                        @endforeach
-                    </select>
+
+                            @foreach ($tipos as $tipo)
+                                <option value="{{ $tipo->id }}" data-codigo="{{ $tipo->codigo }}"
+                                    data-estructura="{{ $tipo->tipo_estructura }}" @selected(old('tipo_cliente_id', $datosCliente['tipo_cliente_id'] ?? '') == $tipo->id)>
+
+                                    {{ $tipo->nombre }}
+
+                                </option>
+                            @endforeach
+
+                        </select>
+
+                    </div>
 
                     <small id="descripcion-tipo" class="form-text text-muted mt-2">
+
                         Selecciona el tipo de cliente que realizará la reserva.
+
                     </small>
 
                     @error('tipo_cliente_id')
@@ -104,7 +122,9 @@
                             {{ $message }}
                         </div>
                     @enderror
+
                 </div>
+
             </div>
         </div>
 
@@ -427,54 +447,88 @@
                     </div>
 
                     <div class="col-md-6">
+
                         <div class="form-group">
+
                             <label for="region_id">
                                 Región
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <select id="region_id" name="region_id"
-                                class="form-control @error('region_id') is-invalid @enderror" required>
-                                <option value="">
-                                    Seleccione una región
-                                </option>
+                            <div class="input-group">
 
-                                @foreach ($regiones as $region)
-                                    <option value="{{ $region->id }}" @selected(old('region_id', $datosCliente['region_id'] ?? '') == $region->id)>
-                                        {{ $region->nombre }}
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-map"></i>
+                                    </span>
+                                </div>
+
+                                <select id="region_id" name="region_id"
+                                    class="form-control @error('region_id') is-invalid @enderror" required>
+
+                                    <option value="">
+                                        Seleccione una región
                                     </option>
-                                @endforeach
-                            </select>
+
+                                    @foreach ($regiones as $region)
+                                        <option value="{{ $region->id }}" @selected(old('region_id', $datosCliente['region_id'] ?? '') == $region->id)>
+
+                                            {{ $region->nombre }}
+
+                                        </option>
+                                    @endforeach
+
+                                </select>
+
+                            </div>
 
                             @error('region_id')
-                                <span class="invalid-feedback">
+                                <span class="invalid-feedback d-block">
                                     {{ $message }}
                                 </span>
                             @enderror
+
                         </div>
+
                     </div>
 
                     <div class="col-md-6">
+
                         <div class="form-group">
+
                             <label for="comuna_id">
                                 Comuna
                                 <span class="text-danger">*</span>
                             </label>
 
-                            <select id="comuna_id" name="comuna_id"
-                                class="form-control @error('comuna_id') is-invalid @enderror"
-                                data-selected="{{ old('comuna_id', $datosCliente['comuna_id'] ?? '') }}" required>
-                                <option value="">
-                                    Seleccione una región primero
-                                </option>
-                            </select>
+                            <div class="input-group">
+
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-map-marker-alt"></i>
+                                    </span>
+                                </div>
+
+                                <select id="comuna_id" name="comuna_id"
+                                    class="form-control @error('comuna_id') is-invalid @enderror"
+                                    data-selected="{{ old('comuna_id', $datosCliente['comuna_id'] ?? '') }}" required>
+
+                                    <option value="">
+                                        Seleccione una región primero
+                                    </option>
+
+                                </select>
+
+                            </div>
 
                             @error('comuna_id')
-                                <span class="invalid-feedback">
+                                <span class="invalid-feedback d-block">
                                     {{ $message }}
                                 </span>
                             @enderror
+
                         </div>
+
                     </div>
                 </div>
             </div>

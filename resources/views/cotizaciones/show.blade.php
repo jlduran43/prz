@@ -815,8 +815,6 @@
                             <div class="modal-header">
 
                                 <h5 class="modal-title" id="modalAnularAdminLabel">
-                                    <i class="fas fa-ban text-danger mr-1"></i>
-
                                     Anular cotización
                                 </h5>
 
@@ -831,22 +829,6 @@
 
                             {{-- CONTENIDO --}}
                             <div class="modal-body">
-
-                                <div class="alert alert-danger">
-
-                                    Esta acción cambiará la cotización
-
-                                    <strong>
-                                        {{ $cotizacion->folio }}
-                                    </strong>
-
-                                    al estado
-
-                                    <strong>ANULADA</strong>.
-
-                                </div>
-
-
                                 <div class="form-group mb-0">
 
                                     <label for="motivo_anulacion_admin">
@@ -869,8 +851,6 @@
                                 </button>
 
                                 <button type="submit" class="btn btn-danger">
-                                    <i class="fas fa-ban mr-1"></i>
-
                                     Confirmar anulación
                                 </button>
 

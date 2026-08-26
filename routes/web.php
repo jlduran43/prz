@@ -13,6 +13,7 @@ use App\Http\Controllers\ServicioExperienciaController;
 use App\Http\Controllers\TipoClienteController;
 use Illuminate\Support\Facades\Route;
 
+
 /*
 |--------------------------------------------------------------------------
 | AUTENTICACIÓN
@@ -21,21 +22,14 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
 
-    Route::get(
-        '/login',
-        [LoginController::class, 'showLoginForm']
-    )->name('login');
+    Route::get('/login', [LoginController::class, 'showLoginForm'])
+        ->name('login');
 
-    Route::post(
-        '/login',
-        [LoginController::class, 'login']
-    )->name('login.attempt');
+    Route::post('/login', [LoginController::class, 'login'])
+        ->name('login.attempt');
 });
 
-Route::post(
-    '/logout',
-    [LoginController::class, 'logout']
-)
+Route::post('/logout', [LoginController::class, 'logout'])
     ->middleware('auth')
     ->name('logout');
 
@@ -47,6 +41,12 @@ Route::post(
 */
 
 Route::middleware('auth')->group(function () {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Dashboard
+    |--------------------------------------------------------------------------
+    */
 
     Route::view('/dashboard', 'dashboard')
         ->name('dashboard');
@@ -67,6 +67,7 @@ Route::middleware('auth')->group(function () {
         'convenios',
         ConvenioController::class
     );
+
 
     /*
     |--------------------------------------------------------------------------
@@ -159,22 +160,17 @@ Route::middleware('auth')->group(function () {
 
     Route::prefix('horarios-disponibles')
         ->name('horarios-disponibles.')
+        ->controller(HorarioDisponibleController::class)
         ->group(function () {
 
-            Route::get(
-                'generar',
-                [HorarioDisponibleController::class, 'generar']
-            )->name('generar');
+            Route::get('generar', 'generar')
+                ->name('generar');
 
-            Route::post(
-                'recurrentes',
-                [HorarioDisponibleController::class, 'guardarRecurrentes']
-            )->name('recurrentes.guardar');
+            Route::post('recurrentes', 'guardarRecurrentes')
+                ->name('recurrentes.guardar');
 
-            Route::patch(
-                '{horario}/activar',
-                [HorarioDisponibleController::class, 'activar']
-            )->name('activar');
+            Route::patch('{horario}/activar', 'activar')
+                ->name('activar');
         });
 
     Route::resource(
@@ -188,7 +184,7 @@ Route::middleware('auth')->group(function () {
 
     /*
     |--------------------------------------------------------------------------
-    | Servicios / experiencias
+    | Servicios / Experiencias
     |--------------------------------------------------------------------------
     */
 
@@ -212,6 +208,11 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
 
+    Route::patch(
+        'configuraciones-cotizacion/{configuracion}/activar',
+        [ConfiguracionCotizacionController::class, 'activar']
+    )->name('configuraciones-cotizacion.activar');
+
     Route::resource(
         'configuraciones-cotizacion',
         ConfiguracionCotizacionController::class
@@ -220,11 +221,6 @@ Route::middleware('auth')->group(function () {
             'configuraciones-cotizacion' => 'configuracion',
         ]);
 
-    Route::patch(
-        'configuraciones-cotizacion/{configuracion}/activar',
-        [ConfiguracionCotizacionController::class, 'activar']
-    )->name('configuraciones-cotizacion.activar');
-
 
     /*
     |--------------------------------------------------------------------------
@@ -232,35 +228,28 @@ Route::middleware('auth')->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::prefix('admin/cotizaciones')
-        ->name('admin.cotizaciones.')
-        ->group(function () {
-
-            Route::get(
-                '{cotizacion}',
-                [CotizacionController::class, 'show']
-            )->name('show');
-
-            Route::patch(
-                '{cotizacion}/anular',
-                [CotizacionController::class, 'anularAdmin']
-            )->name('anular');
-
-            Route::get(
-                '{cotizacion}/pdf',
-                [CotizacionController::class, 'descargarPdf']
-            )->name('pdf');
-
-            Route::post(
-                '{cotizacion}/reenviar-correo',
-                [CotizacionController::class, 'reenviarCorreo']
-            )->name('reenviar-correo');
-        });
-
     Route::get(
         '/cotizaciones',
         [CotizacionController::class, 'index']
     )->name('cotizaciones.index');
+
+    Route::prefix('admin/cotizaciones')
+        ->name('admin.cotizaciones.')
+        ->controller(CotizacionController::class)
+        ->group(function () {
+
+            Route::get('{cotizacion}', 'show')
+                ->name('show');
+
+            Route::patch('{cotizacion}/anular', 'anularAdmin')
+                ->name('anular');
+
+            Route::get('{cotizacion}/pdf', 'descargarPdf')
+                ->name('pdf');
+
+            Route::post('{cotizacion}/reenviar-correo', 'reenviarCorreo')
+                ->name('reenviar-correo');
+        });
 });
 
 
@@ -281,15 +270,11 @@ Route::prefix('reservas')
         |--------------------------------------------------------------------------
         */
 
-        Route::get(
-            'crear',
-            'operacion'
-        )->name('operacion');
+        Route::get('crear', 'operacion')
+            ->name('operacion');
 
-        Route::post(
-            'crear/operacion',
-            'guardarOperacion'
-        )->name('operacion.guardar');
+        Route::post('crear/operacion', 'guardarOperacion')
+            ->name('operacion.guardar');
 
 
         /*
@@ -298,15 +283,11 @@ Route::prefix('reservas')
         |--------------------------------------------------------------------------
         */
 
-        Route::get(
-            'crear/cliente',
-            'cliente'
-        )->name('cliente');
+        Route::get('crear/cliente', 'cliente')
+            ->name('cliente');
 
-        Route::post(
-            'crear/cliente',
-            'guardarCliente'
-        )->name('cliente.guardar');
+        Route::post('crear/cliente', 'guardarCliente')
+            ->name('cliente.guardar');
 
 
         /*
@@ -315,20 +296,14 @@ Route::prefix('reservas')
         |--------------------------------------------------------------------------
         */
 
-        Route::get(
-            'crear/datos-reserva',
-            'reserva'
-        )->name('datos');
+        Route::get('crear/datos-reserva', 'reserva')
+            ->name('datos');
 
-        Route::post(
-            'crear/datos-reserva',
-            'guardarReserva'
-        )->name('datos.guardar');
+        Route::post('crear/datos-reserva', 'guardarReserva')
+            ->name('datos.guardar');
 
-        Route::post(
-            'validar-convenio',
-            'validarConvenio'
-        )->name('validar-convenio');
+        Route::post('validar-convenio', 'validarConvenio')
+            ->name('validar-convenio');
 
 
         /*
@@ -337,10 +312,8 @@ Route::prefix('reservas')
         |--------------------------------------------------------------------------
         */
 
-        Route::get(
-            'crear/confirmacion',
-            'confirmacion'
-        )->name('confirmacion');
+        Route::get('crear/confirmacion', 'confirmacion')
+            ->name('confirmacion');
 
 
         /*
@@ -349,20 +322,14 @@ Route::prefix('reservas')
         |--------------------------------------------------------------------------
         */
 
-        Route::post(
-            'crear/finalizar',
-            'finalizar'
-        )->name('finalizar');
+        Route::post('crear/finalizar', 'finalizar')
+            ->name('finalizar');
 
-        Route::get(
-            '{reserva}/pago',
-            'pago'
-        )->name('pago');
+        Route::get('{reserva}/pago', 'pago')
+            ->name('pago');
 
-        Route::get(
-            '{reserva}/resultado',
-            'resultado'
-        )->name('resultado');
+        Route::get('{reserva}/resultado', 'resultado')
+            ->name('resultado');
 
 
         /*
@@ -371,15 +338,11 @@ Route::prefix('reservas')
         |--------------------------------------------------------------------------
         */
 
-        Route::post(
-            '{reserva}/pago/webpay',
-            'iniciarPagoWebpay'
-        )->name('pago.webpay');
+        Route::post('{reserva}/pago/webpay', 'iniciarPagoWebpay')
+            ->name('pago.webpay');
 
-        Route::get(
-            '{reserva}/pago/webpay/retorno',
-            'retornoWebpay'
-        )->name('pago.webpay.retorno');
+        Route::get('{reserva}/pago/webpay/retorno', 'retornoWebpay')
+            ->name('pago.webpay.retorno');
 
 
         /*
@@ -407,6 +370,18 @@ Route::prefix('reservas')
 
 /*
 |--------------------------------------------------------------------------
+| NUEVA OPERACIÓN
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/reservas/nueva',
+    [ReservaWizardController::class, 'nuevaOperacion']
+)->name('reservas.nueva');
+
+
+/*
+|--------------------------------------------------------------------------
 | COTIZACIONES PÚBLICAS
 |--------------------------------------------------------------------------
 */
@@ -415,6 +390,7 @@ Route::post(
     '/cotizaciones/generar',
     [ReservaWizardController::class, 'generarCotizacion']
 )->name('cotizaciones.generar');
+
 
 Route::prefix('cotizaciones')
     ->name('cotizaciones.')
@@ -440,12 +416,17 @@ Route::prefix('cotizaciones')
             '{cotizacion}/convertir/{token}',
             'convertirEnReserva'
         )->name('convertir');
+
+        Route::post(
+            '{cotizacion}/reenviar-correo',
+            'reenviarCorreo'
+        )->name('reenviar-correo');
     });
 
 
 /*
 |--------------------------------------------------------------------------
-| CONVERSIÓN DE COTIZACIÓN
+| CONVERSIÓN DESDE CORREO
 |--------------------------------------------------------------------------
 */
 
@@ -455,8 +436,3 @@ Route::get(
 )
     ->middleware('signed')
     ->name('cotizaciones.publica.convertir');
-
-Route::get(
-    '/reservas/nueva',
-    [ReservaWizardController::class, 'nuevaOperacion']
-)->name('reservas.nueva');

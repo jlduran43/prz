@@ -410,7 +410,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         try {
             const url =
-                `{{ url('/reservas/comunas-por-region') }}/${regionId}`;
+                `/reservas/comunas-por-region/${regionId}`;
 
             const respuesta = await fetch(url, {
                 headers: {

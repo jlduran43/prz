@@ -14,6 +14,7 @@
 @stop
 
 @section('content')
+
     {{-- Mensaje de éxito --}}
     @if (session('success'))
         <div class="alert alert-success alert-dismissible fade show">
@@ -26,6 +27,7 @@
             </button>
         </div>
     @endif
+
     {{-- Mensaje de error --}}
     @if (session('error'))
         <div class="alert alert-danger alert-dismissible fade show">
@@ -39,67 +41,86 @@
         </div>
     @endif
 
+
     <div class="card">
+
         {{-- Buscador --}}
         <div class="card-header">
 
             <form action="{{ route('regiones.index') }}" method="GET">
 
                 <div class="buscador-fila">
-                    {{-- Buscador --}}
-                    <div class="buscador-input">
 
+                    <div class="buscador-input">
                         <input type="text" name="buscar" class="form-control" value="{{ $buscar ?? '' }}"
                             placeholder="Buscar por código o nombre...">
-
                     </div>
+
                     {{-- Buscar --}}
                     <button type="submit" class="btn btn-primary btn-busqueda">
                         <i class="fas fa-search mr-1"></i>
-
                         <span class="texto-boton">Buscar</span>
                     </button>
+
+                    {{-- Limpiar --}}
                     <a href="{{ route('regiones.index') }}" class="btn btn-secondary btn-limpiar">
                         <i class="fas fa-eraser mr-1"></i>
-
                         <span class="texto-boton">Limpiar</span>
                     </a>
+
                 </div>
+
             </form>
+
         </div>
+
 
         {{-- Tabla --}}
         <div class="card-body table-responsive p-0">
+
             <table class="table table-hover table-nowrap mb-0">
+
                 <thead>
                     <tr>
                         <th>Código</th>
                         <th>Nombre</th>
-                        <th class="d-none d-md-table-cell">Comunas</th>
-                        <th class="d-none d-sm-table-cell">Estado</th>
-                        <th class="text-center">Acciones</th>
+                        <th class="d-none d-md-table-cell">
+                            Comunas
+                        </th>
+                        <th class="d-none d-sm-table-cell">
+                            Estado
+                        </th>
+                        <th class="text-center">
+                            Acciones
+                        </th>
                     </tr>
                 </thead>
 
                 <tbody>
+
                     @forelse ($regiones as $region)
                         <tr>
+
                             {{-- Código --}}
                             <td class="align-middle font-weight-bold">
                                 {{ $region->codigo }}
                             </td>
+
                             {{-- Nombre --}}
                             <td class="align-middle">
                                 {{ $region->nombre }}
                             </td>
+
                             {{-- Comunas --}}
                             <td class="align-middle d-none d-md-table-cell">
                                 <span class="badge badge-info">
                                     {{ $region->comunas_count }}
                                 </span>
                             </td>
+
                             {{-- Estado --}}
                             <td class="align-middle d-none d-sm-table-cell">
+
                                 @if ($region->activo)
                                     <span class="badge badge-success">
                                         Activa
@@ -109,61 +130,72 @@
                                         Inactiva
                                     </span>
                                 @endif
+
                             </td>
+
+
                             {{-- Acciones --}}
                             <td class="align-middle text-center">
+
                                 <div class="acciones-botones">
 
-                                    {{-- Ver --}}
-                                    <a href="{{ route('configuraciones-cotizacion.show', $configuracion) }}"
-                                        class="btn btn-info btn-sm btn-accion" title="Ver">
-                                        <i class="fas fa-eye"></i>
-                                    </a>
-
                                     {{-- Editar --}}
-                                    <a href="{{ route('configuraciones-cotizacion.edit', $configuracion) }}"
+                                    <a href="{{ route('regiones.edit', $region) }}"
                                         class="btn btn-warning btn-sm btn-accion" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>
 
-                                    {{-- Desactivar / Activar --}}
-                                    @if ($configuracion->activo)
-                                        <button type="button" class="btn btn-secondary btn-sm btn-accion"
-                                            title="Desactivar" data-toggle="modal"
-                                            data-target="#modalDesactivarConfiguracion" data-id="{{ $configuracion->id }}"
-                                            data-titulo="{{ $configuracion->titulo }}">
 
+                                    {{-- Desactivar --}}
+                                    @if ($region->activo)
+                                        <button type="button"
+                                            class="btn btn-secondary btn-sm btn-accion btn-cambiar-estado-region"
+                                            title="Desactivar" data-toggle="modal" data-target="#modalCambiarEstadoRegion"
+                                            data-id="{{ $region->id }}" data-nombre="{{ $region->nombre }}"
+                                            data-activo="1">
                                             <i class="fas fa-ban"></i>
                                         </button>
                                     @else
-                                        <button type="button" class="btn btn-success btn-sm btn-accion" title="Activar"
-                                            data-toggle="modal" data-target="#modalActivarConfiguracion"
-                                            data-id="{{ $configuracion->id }}" data-titulo="{{ $configuracion->titulo }}">
-
+                                        {{-- Activar --}}
+                                        <button type="button"
+                                            class="btn btn-success btn-sm btn-accion btn-cambiar-estado-region"
+                                            title="Activar" data-toggle="modal" data-target="#modalCambiarEstadoRegion"
+                                            data-id="{{ $region->id }}" data-nombre="{{ $region->nombre }}"
+                                            data-activo="0">
                                             <i class="fas fa-check"></i>
                                         </button>
                                     @endif
 
                                 </div>
+
                             </td>
+
                         </tr>
+
                     @empty
+
                         <tr>
                             <td colspan="5" class="text-center py-4">
                                 No se encontraron regiones.
                             </td>
                         </tr>
                     @endforelse
+
                 </tbody>
+
             </table>
+
 
             {{-- Modal cambio de estado --}}
             <div class="modal fade" id="modalCambiarEstadoRegion" tabindex="-1" role="dialog"
                 aria-labelledby="modalCambiarEstadoRegionLabel" aria-hidden="true">
 
                 <div class="modal-dialog modal-dialog-centered" role="document">
+
                     <div class="modal-content">
+
                         <div class="modal-header">
+
                             <h5 class="modal-title" id="modalCambiarEstadoRegionLabel">
                                 Confirmar cambio de estado
                             </h5>
@@ -173,29 +205,45 @@
                                     &times;
                                 </span>
                             </button>
+
                         </div>
+
+
                         <form id="formCambiarEstadoRegion" method="POST" data-url-base="{{ url('regiones') }}">
 
                             @csrf
                             @method('PATCH')
 
+
                             <div class="modal-body">
+
                                 <p id="mensajeCambiarEstadoRegion" class="mb-0"></p>
+
                             </div>
 
+
                             <div class="modal-footer">
+
                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">
                                     Cancelar
                                 </button>
+
                                 <button type="submit" id="botonConfirmarEstadoRegion" class="btn">
                                     Confirmar
                                 </button>
+
                             </div>
+
                         </form>
+
                     </div>
+
                 </div>
+
             </div>
+
         </div>
+
 
         {{-- Paginación --}}
         @if ($regiones->hasPages())
@@ -203,12 +251,15 @@
                 {{ $regiones->links('vendor.pagination.bootstrap-5') }}
             </div>
         @endif
+
     </div>
+
 @stop
 
 @section('css')
     <link rel="stylesheet" href="{{ asset('css/buscador.css') }}">
     <link rel="stylesheet" href="{{ asset('css/acciones_botones.css') }}">
+
 @stop
 
 @section('js')

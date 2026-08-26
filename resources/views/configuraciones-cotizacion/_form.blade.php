@@ -9,15 +9,8 @@
                 <span class="text-danger">*</span>
             </label>
 
-            <input
-                type="text"
-                name="titulo"
-                class="form-control @error('titulo') is-invalid @enderror"
-                value="{{ old(
-                    'titulo',
-                    $configuracion->titulo ?? 'Condiciones de la reserva'
-                ) }}"
-            >
+            <input type="text" name="titulo" class="form-control @error('titulo') is-invalid @enderror"
+                value="{{ old('titulo', $configuracion->titulo ?? 'Condiciones de la reserva') }}">
 
             @error('titulo')
                 <div class="invalid-feedback">
@@ -41,20 +34,12 @@
 
             <div class="input-group">
 
-                <input
-                    type="number"
-                    name="dias_validez"
-                    min="1"
-                    max="365"
+                <input type="number" name="dias_validez" min="1" max="365"
                     class="form-control
                         @error('dias_validez')
                             is-invalid
                         @enderror"
-                    value="{{ old(
-                        'dias_validez',
-                        $configuracion->dias_validez ?? 30
-                    ) }}"
-                >
+                    value="{{ old('dias_validez', $configuracion->dias_validez ?? 30) }}">
 
                 <div class="input-group-append">
                     <span class="input-group-text">
@@ -86,15 +71,8 @@
 
 <div class="form-group">
 
-    <textarea
-        name="descripcion_tour"
-        rows="4"
-        class="form-control"
-        placeholder="Ingrese las condiciones generales del tour o visita..."
-    >{{ old(
-        'descripcion_tour',
-        $configuracion->descripcion_tour ?? ''
-    ) }}</textarea>
+    <textarea name="descripcion_tour" rows="4" class="form-control"
+        placeholder="Ingrese las condiciones generales del tour o visita...">{{ old('descripcion_tour', $configuracion->descripcion_tour ?? '') }}</textarea>
 
 </div>
 
@@ -108,15 +86,8 @@
 
 <div class="form-group">
 
-    <textarea
-        name="condiciones_pago"
-        rows="5"
-        class="form-control"
-        placeholder="Ingrese las formas de pago y condiciones..."
-    >{{ old(
-        'condiciones_pago',
-        $configuracion->condiciones_pago ?? ''
-    ) }}</textarea>
+    <textarea name="condiciones_pago" rows="5" class="form-control"
+        placeholder="Ingrese las formas de pago y condiciones...">{{ old('condiciones_pago', $configuracion->condiciones_pago ?? '') }}</textarea>
 
 </div>
 
@@ -139,15 +110,18 @@
                 <div class="form-group">
                     <label>Titular de la cuenta</label>
 
-                    <input
-                        type="text"
-                        name="titular_cuenta"
-                        class="form-control"
-                        value="{{ old(
-                            'titular_cuenta',
-                            $configuracion->titular_cuenta ?? ''
-                        ) }}"
-                    >
+                    <div class="input-group">
+
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">
+                                <i class="fas fa-user"></i>
+                            </span>
+                        </div>
+
+                        <input type="text" name="titular_cuenta" class="form-control"
+                            value="{{ old('titular_cuenta', $configuracion->titular_cuenta ?? '') }}">
+
+                    </div>
                 </div>
 
             </div>
@@ -158,15 +132,18 @@
                 <div class="form-group">
                     <label>RUT titular</label>
 
-                    <input
-                        type="text"
-                        name="rut_titular"
-                        class="form-control"
-                        value="{{ old(
-                            'rut_titular',
-                            $configuracion->rut_titular ?? ''
-                        ) }}"
-                    >
+                    <div class="input-group">
+
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">
+                                <i class="fas fa-id-card"></i>
+                            </span>
+                        </div>
+
+                        <input type="text" name="rut_titular" class="form-control"
+                            value="{{ old('rut_titular', $configuracion->rut_titular ?? '') }}">
+
+                    </div>
                 </div>
 
             </div>
@@ -177,15 +154,18 @@
                 <div class="form-group">
                     <label>Banco</label>
 
-                    <input
-                        type="text"
-                        name="banco"
-                        class="form-control"
-                        value="{{ old(
-                            'banco',
-                            $configuracion->banco ?? ''
-                        ) }}"
-                    >
+                    <div class="input-group">
+
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">
+                                <i class="fas fa-university"></i>
+                            </span>
+                        </div>
+
+                        <input type="text" name="banco" class="form-control"
+                            value="{{ old('banco', $configuracion->banco ?? '') }}">
+
+                    </div>
                 </div>
 
             </div>
@@ -200,16 +180,18 @@
                 <div class="form-group">
                     <label>Tipo de cuenta</label>
 
-                    <input
-                        type="text"
-                        name="tipo_cuenta"
-                        class="form-control"
-                        placeholder="Ej: Cuenta Corriente"
-                        value="{{ old(
-                            'tipo_cuenta',
-                            $configuracion->tipo_cuenta ?? ''
-                        ) }}"
-                    >
+                    <div class="input-group">
+
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">
+                                <i class="fas fa-wallet"></i>
+                            </span>
+                        </div>
+
+                        <input type="text" name="tipo_cuenta" class="form-control" placeholder="Ej: Cuenta Corriente"
+                            value="{{ old('tipo_cuenta', $configuracion->tipo_cuenta ?? '') }}">
+
+                    </div>
                 </div>
 
             </div>
@@ -220,15 +202,18 @@
                 <div class="form-group">
                     <label>Número de cuenta</label>
 
-                    <input
-                        type="text"
-                        name="numero_cuenta"
-                        class="form-control"
-                        value="{{ old(
-                            'numero_cuenta',
-                            $configuracion->numero_cuenta ?? ''
-                        ) }}"
-                    >
+                    <div class="input-group">
+
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">
+                                <i class="fas fa-hashtag"></i>
+                            </span>
+                        </div>
+
+                        <input type="text" name="numero_cuenta" class="form-control"
+                            value="{{ old('numero_cuenta', $configuracion->numero_cuenta ?? '') }}">
+
+                    </div>
                 </div>
 
             </div>
@@ -241,15 +226,18 @@
                         Correo para comprobantes
                     </label>
 
-                    <input
-                        type="email"
-                        name="correo_comprobantes"
-                        class="form-control"
-                        value="{{ old(
-                            'correo_comprobantes',
-                            $configuracion->correo_comprobantes ?? ''
-                        ) }}"
-                    >
+                    <div class="input-group">
+
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">
+                                <i class="fas fa-envelope"></i>
+                            </span>
+                        </div>
+
+                        <input type="email" name="correo_comprobantes" class="form-control"
+                            value="{{ old('correo_comprobantes', $configuracion->correo_comprobantes ?? '') }}">
+
+                    </div>
                 </div>
 
             </div>
@@ -270,14 +258,7 @@
         Política de devoluciones
     </label>
 
-    <textarea
-        name="politica_devoluciones"
-        rows="4"
-        class="form-control"
-    >{{ old(
-        'politica_devoluciones',
-        $configuracion->politica_devoluciones ?? ''
-    ) }}</textarea>
+    <textarea name="politica_devoluciones" rows="4" class="form-control">{{ old('politica_devoluciones', $configuracion->politica_devoluciones ?? '') }}</textarea>
 
 </div>
 
@@ -289,14 +270,7 @@
         Condiciones de visita al Museo
     </label>
 
-    <textarea
-        name="condiciones_museo"
-        rows="5"
-        class="form-control"
-    >{{ old(
-        'condiciones_museo',
-        $configuracion->condiciones_museo ?? ''
-    ) }}</textarea>
+    <textarea name="condiciones_museo" rows="5" class="form-control">{{ old('condiciones_museo', $configuracion->condiciones_museo ?? '') }}</textarea>
 
 </div>
 
@@ -308,15 +282,8 @@
         Instrucciones y recomendaciones del Museo
     </label>
 
-    <textarea
-        name="recomendaciones_museo"
-        rows="7"
-        class="form-control"
-        placeholder="Una recomendación por línea..."
-    >{{ old(
-        'recomendaciones_museo',
-        $configuracion->recomendaciones_museo ?? ''
-    ) }}</textarea>
+    <textarea name="recomendaciones_museo" rows="7" class="form-control"
+        placeholder="Una recomendación por línea...">{{ old('recomendaciones_museo', $configuracion->recomendaciones_museo ?? '') }}</textarea>
 
 </div>
 
@@ -328,15 +295,8 @@
         Recomendaciones para visita al Parque
     </label>
 
-    <textarea
-        name="recomendaciones_parque"
-        rows="7"
-        class="form-control"
-        placeholder="Una recomendación por línea..."
-    >{{ old(
-        'recomendaciones_parque',
-        $configuracion->recomendaciones_parque ?? ''
-    ) }}</textarea>
+    <textarea name="recomendaciones_parque" rows="7" class="form-control"
+        placeholder="Una recomendación por línea...">{{ old('recomendaciones_parque', $configuracion->recomendaciones_parque ?? '') }}</textarea>
 
 </div>
 
@@ -348,14 +308,7 @@
         Nota importante
     </label>
 
-    <textarea
-        name="nota_importante"
-        rows="5"
-        class="form-control"
-    >{{ old(
-        'nota_importante',
-        $configuracion->nota_importante ?? ''
-    ) }}</textarea>
+    <textarea name="nota_importante" rows="5" class="form-control">{{ old('nota_importante', $configuracion->nota_importante ?? '') }}</textarea>
 
 </div>
 
@@ -375,15 +328,18 @@
         <div class="form-group">
             <label>Correo de reservas</label>
 
-            <input
-                type="email"
-                name="correo_reservas"
-                class="form-control"
-                value="{{ old(
-                    'correo_reservas',
-                    $configuracion->correo_reservas ?? ''
-                ) }}"
-            >
+            <div class="input-group">
+
+                <div class="input-group-prepend">
+                    <span class="input-group-text">
+                        <i class="fas fa-envelope"></i>
+                    </span>
+                </div>
+
+                <input type="email" name="correo_reservas" class="form-control"
+                    value="{{ old('correo_reservas', $configuracion->correo_reservas ?? '') }}">
+
+            </div>
         </div>
 
     </div>
@@ -394,15 +350,18 @@
         <div class="form-group">
             <label>Teléfono de reservas</label>
 
-            <input
-                type="text"
-                name="telefono_reservas"
-                class="form-control"
-                value="{{ old(
-                    'telefono_reservas',
-                    $configuracion->telefono_reservas ?? ''
-                ) }}"
-            >
+            <div class="input-group">
+
+                <div class="input-group-prepend">
+                    <span class="input-group-text">
+                        <i class="fas fa-phone"></i>
+                    </span>
+                </div>
+
+                <input type="text" name="telefono_reservas" class="form-control"
+                    value="{{ old('telefono_reservas', $configuracion->telefono_reservas ?? '') }}">
+
+            </div>
         </div>
 
     </div>
@@ -413,16 +372,19 @@
         <div class="form-group">
             <label>Horario de contacto</label>
 
-            <input
-                type="text"
-                name="horario_contacto"
-                class="form-control"
-                placeholder="Ej: 10:00 a 17:00 hrs."
-                value="{{ old(
-                    'horario_contacto',
-                    $configuracion->horario_contacto ?? ''
-                ) }}"
-            >
+            <div class="input-group">
+
+                <div class="input-group-prepend">
+                    <span class="input-group-text">
+                        <i class="fas fa-clock"></i>
+                    </span>
+                </div>
+
+                <input type="text" name="horario_contacto" class="form-control"
+                    placeholder="Ej: 10:00 a 17:00 hrs."
+                    value="{{ old('horario_contacto', $configuracion->horario_contacto ?? '') }}">
+
+            </div>
         </div>
 
     </div>
@@ -432,32 +394,12 @@
 
 <div class="custom-control custom-switch mt-3">
 
-    <input
-        type="hidden"
-        name="activo"
-        value="0"
-    >
+    <input type="hidden" name="activo" value="0">
 
-    <input
-        type="checkbox"
-        name="activo"
-        value="1"
-        class="custom-control-input"
-        id="activo"
-        {{
-            old(
-                'activo',
-                $configuracion->activo ?? true
-            )
-                ? 'checked'
-                : ''
-        }}
-    >
+    <input type="checkbox" name="activo" value="1" class="custom-control-input" id="activo"
+        {{ old('activo', $configuracion->activo ?? true) ? 'checked' : '' }}>
 
-    <label
-        class="custom-control-label"
-        for="activo"
-    >
+    <label class="custom-control-label" for="activo">
         Utilizar esta configuración para las nuevas cotizaciones
     </label>
 
