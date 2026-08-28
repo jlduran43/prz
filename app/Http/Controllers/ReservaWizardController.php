@@ -24,13 +24,91 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
-use Illuminate\View\View;
 use Throwable;
 use Transbank\Webpay\Options;
 use Transbank\Webpay\WebpayPlus\Transaction;
 
 class ReservaWizardController extends Controller
 {
+
+    public function index(Request $request)
+    {
+        $buscar = trim($request->get('buscar', ''));
+        $estado = $request->get('estado', '');
+
+        $reservas = Reserva::query()
+
+            ->when($buscar !== '', function ($query) use ($buscar) {
+
+                $query->where(function ($q) use ($buscar) {
+
+                    /*
+                 * Buscar por ID/Folio.
+                 * Ejemplo: RES-000015 o simplemente 15.
+                 */
+                    $numero = preg_replace('/\D/', '', $buscar);
+
+                    if ($numero !== '') {
+                        $q->orWhere('id', (int) $numero);
+                    }
+
+                    $q->orWhere(
+                        'nombres',
+                        'like',
+                        "%{$buscar}%"
+                    );
+
+                    $q->orWhere(
+                        'apellidos',
+                        'like',
+                        "%{$buscar}%"
+                    );
+
+                    $q->orWhere(
+                        'rut_persona',
+                        'like',
+                        "%{$buscar}%"
+                    );
+
+                    $q->orWhere(
+                        'nombre_entidad',
+                        'like',
+                        "%{$buscar}%"
+                    );
+
+                    $q->orWhere(
+                        'rut_entidad',
+                        'like',
+                        "%{$buscar}%"
+                    );
+
+                    $q->orWhere(
+                        'email',
+                        'like',
+                        "%{$buscar}%"
+                    );
+                });
+            })
+
+            ->when($estado !== '', function ($query) use ($estado) {
+
+                $query->where('estado', $estado);
+            })
+
+            ->orderByDesc('id')
+
+            ->paginate(15);
+
+
+        return view(
+            'reservas.index',
+            compact(
+                'reservas',
+                'buscar',
+                'estado'
+            )
+        );
+    }
 
     public function operacion()
     {
@@ -1603,8 +1681,8 @@ class ReservaWizardController extends Controller
                 $datosCliente,
                 $datosReserva
             ) {
-                
-            /*
+
+                /*
                 |--------------------------------------------------------------------------
                 | Normalizar servicios guardados en sesión
                 |--------------------------------------------------------------------------
@@ -1640,7 +1718,7 @@ class ReservaWizardController extends Controller
                     | Obtener capacidad simultánea general
                     |--------------------------------------------------------------------------
                 */
-                
+
                 $capacidadSimultanea =
                     ConfiguracionReserva::query()
                     ->value(
@@ -1662,7 +1740,7 @@ class ReservaWizardController extends Controller
                     | Obtener identificadores
                     |--------------------------------------------------------------------------
                 */
-                    
+
                 $servicioIds = collect($selecciones)
                     ->pluck('servicio_id')
                     ->map(fn($id) => (int) $id)
@@ -3206,81 +3284,6 @@ class ReservaWizardController extends Controller
         return view(
             'reservas.pago',
             compact('reserva')
-        );
-    }
-
-    public function iniciarPagoWebpay(Reserva $reserva): View|RedirectResponse
-    {
-        if ($reserva->estado !== 'PENDIENTE_PAGO') {
-            return redirect()
-                ->route('reservas.resultado', $reserva);
-        }
-
-        if (
-            $reserva->pago_expira_at &&
-            $reserva->pago_expira_at->isPast()
-        ) {
-            $reserva->update([
-                'estado' => 'VENCIDA_PAGO',
-            ]);
-
-            return redirect()
-                ->route('reservas.resultado', $reserva)
-                ->with(
-                    'error',
-                    'El tiempo para realizar el pago ha expirado.'
-                );
-        }
-
-        $buyOrder = 'RES-' . $reserva->id . '-' . time();
-
-        $sessionId = 'RESERVA-' . $reserva->id;
-
-        $amount = (int) round($reserva->total);
-
-        $returnUrl = route(
-            'reservas.pago.webpay.retorno',
-            $reserva
-        );
-
-        $options = new Options(
-            config('services.transbank.api_key'),
-            config('services.transbank.commerce_code'),
-            Options::ENVIRONMENT_INTEGRATION
-        );
-
-        $transaction = new Transaction($options);
-
-        try {
-            $response = $transaction->create(
-                $buyOrder,
-                $sessionId,
-                $amount,
-                $returnUrl
-            );
-        } catch (\Throwable $exception) {
-            report($exception);
-
-            return redirect()
-                ->route('reservas.pago', $reserva)
-                ->with(
-                    'error',
-                    'No fue posible iniciar el pago con Webpay.'
-                );
-        }
-
-        session([
-            'webpay.reserva_id' => $reserva->id,
-            'webpay.buy_order' => $buyOrder,
-            'webpay.token' => $response->getToken(),
-        ]);
-
-        return view(
-            'reservas.webpay-redireccion',
-            [
-                'url' => $response->getUrl(),
-                'token' => $response->getToken(),
-            ]
         );
     }
 

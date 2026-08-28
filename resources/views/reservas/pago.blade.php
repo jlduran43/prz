@@ -167,15 +167,15 @@
 
 
                     {{-- ================================================= --}}
-                    {{-- TRANSFERENCIA --}}
+                    {{-- TRANSFERENCIA / KHIPU --}}
                     {{-- ================================================= --}}
                     <div class="col-lg-3 col-md-6 mb-3">
 
-                        <label class="medio-pago-card" for="medio_transferencia">
+                        <label class="medio-pago-card" for="medio_khipu">
 
                             <div class="d-flex align-items-start">
 
-                                <input type="radio" name="medio_pago" id="medio_transferencia" value="TRANSFERENCIA"
+                                <input type="radio" name="medio_pago" id="medio_khipu" value="KHIPU"
                                     class="medio-pago-radio mt-1" form="form-pago">
 
                                 <div class="ml-3">
@@ -189,8 +189,8 @@
                                     </div>
 
                                     <small class="text-muted d-block mt-3">
-                                        Realiza una transferencia
-                                        desde tu banco.
+                                        Paga mediante transferencia bancaria
+                                        de forma segura con Khipu.
                                     </small>
 
                                 </div>
@@ -296,15 +296,17 @@
             </a>
 
 
-            <form action="{{ route('reservas.pago.webpay', $reserva) }}" method="POST" id="form-pago">
+            <form action="{{ route('reservas.pago.procesar', $reserva) }}" method="POST" id="form-pago">
+
                 @csrf
 
-                {{-- tus radios actuales --}}
-
                 <button type="submit" class="btn btn-success btn-lg" id="btn-continuar-pago" disabled>
+
                     <i class="fas fa-credit-card mr-1"></i>
                     Continuar al pago
+
                 </button>
+
             </form>
 
         </div>
@@ -541,7 +543,6 @@
 
                 actualizarContador();
 
-
                 /*
                  * =====================================================
                  * BOTÓN CONTINUAR
@@ -561,6 +562,7 @@
                             );
 
                         if (!medioSeleccionado) {
+
                             event.preventDefault();
 
                             alert(
@@ -570,26 +572,36 @@
                             return;
                         }
 
-                        if (medioSeleccionado.value !== 'WEBPAY') {
-                            event.preventDefault();
-
-                            alert(
-                                'Por ahora solamente Webpay está disponible.'
-                            );
-
-                            return;
-                        }
-
                         botonContinuar.disabled = true;
 
-                        botonContinuar.innerHTML = `
-            <span
-                class="spinner-border spinner-border-sm mr-2"
-                role="status"
-                aria-hidden="true"
-            ></span>
-            Conectando con Webpay...
-        `;
+                        if (medioSeleccionado.value === 'WEBPAY') {
+
+                            botonContinuar.innerHTML = `
+                <span
+                    class="spinner-border spinner-border-sm mr-2"
+                    role="status"
+                    aria-hidden="true">
+                </span>
+
+                Conectando con Webpay...
+            `;
+
+                        }
+
+                        if (medioSeleccionado.value === 'KHIPU') {
+
+                            botonContinuar.innerHTML = `
+                <span
+                    class="spinner-border spinner-border-sm mr-2"
+                    role="status"
+                    aria-hidden="true">
+                </span>
+
+                Conectando con Khipu...
+            `;
+
+                        }
+
                     }
                 );
 

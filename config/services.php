@@ -50,4 +50,19 @@ return [
         ),
     ],
 
+    'khipu' => [
+
+        'api_key' => env('KHIPU_API_KEY'),
+
+        'secret' => env('KHIPU_SECRET'),
+
+        'receiver_id' => env('KHIPU_RECEIVER_ID'),
+
+        'base_url' => env(
+            'KHIPU_BASE_URL',
+            'https://payment-api.khipu.com'
+        ),
+
+    ],
+
 ];

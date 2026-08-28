@@ -7,3 +7,30 @@
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
 }
+
+/* Texto e iconos del menú lateral */
+.main-sidebar .nav-sidebar .nav-link,
+.main-sidebar .nav-sidebar .nav-link p,
+.main-sidebar .nav-sidebar .nav-link .nav-icon,
+.main-sidebar .nav-sidebar .nav-link .right,
+.main-sidebar .brand-link,
+.main-sidebar .brand-link .brand-text {
+    color: #ffffff !important;
+}
+
+/* Hover */
+.main-sidebar .nav-sidebar .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.12) !important;
+    color: #ffffff !important;
+}
+
+/* Opción activa */
+.main-sidebar .nav-sidebar .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.20) !important;
+    color: #ffffff !important;
+}
+
+/* Submenús */
+.main-sidebar .nav-treeview .nav-link {
+    color: rgba(255, 255, 255, 0.9) !important;
+}

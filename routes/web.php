@@ -341,10 +341,6 @@ Route::prefix('reservas')
         Route::post('{reserva}/pago/webpay', 'iniciarPagoWebpay')
             ->name('pago.webpay');
 
-        Route::get('{reserva}/pago/webpay/retorno', 'retornoWebpay')
-            ->name('pago.webpay.retorno');
-
-
         /*
         |--------------------------------------------------------------------------
         | AJAX
@@ -436,3 +432,45 @@ Route::get(
 )
     ->middleware('signed')
     ->name('cotizaciones.publica.convertir');
+
+use App\Http\Controllers\KhipuController;
+use App\Http\Controllers\KhipuWebhookController;
+use App\Http\Controllers\PagoController;
+
+Route::post(
+    '/reservas/{reserva}/pago/khipu',
+    [KhipuController::class, 'iniciar']
+)->name('reservas.khipu.iniciar');
+
+
+Route::get(
+    '/reservas/{reserva}/pago/khipu/retorno',
+    [KhipuController::class, 'retorno']
+)->name('reservas.khipu.retorno');
+
+
+Route::get(
+    '/reservas/{reserva}/pago/khipu/cancelado',
+    [KhipuController::class, 'cancelar']
+)->name('reservas.khipu.cancelar');
+
+
+Route::post(
+    '/webhooks/khipu',
+    [KhipuWebhookController::class, 'recibir']
+)->name('webhooks.khipu');
+
+Route::post(
+    '/reservas/{reserva}/pago/procesar',
+    [PagoController::class, 'procesar']
+)->name('reservas.pago.procesar');
+
+Route::get(
+    '/reservas/{reserva}/pago/webpay/retorno',
+    [PagoController::class, 'retornoWebpay']
+)->name('reservas.pago.webpay.retorno');
+
+Route::post(
+    '/cotizaciones/{cotizacion}/reenviar-correo',
+    [CotizacionController::class, 'reenviarCorreo']
+)->name('cotizaciones.reenviar-correo');

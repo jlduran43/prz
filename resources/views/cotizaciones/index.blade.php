@@ -37,7 +37,7 @@
 
     <div class="card">
 
-        div class="card-header">
+        <div class="card-header">
 
         <form action="{{ route('cotizaciones.index') }}" method="GET">
 
