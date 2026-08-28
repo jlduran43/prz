@@ -324,7 +324,7 @@ return [
                 ],
                 [
                     'text' => 'Listado de reservas',
-                    //'route' => 'reservas.index',
+                    'route' => 'reservas.index',
                     'active' => ['reservas'],
                     'icon' => 'fas fa-list',
                 ],

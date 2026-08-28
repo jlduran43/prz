@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class ReservaServicio extends Model
 {
@@ -16,14 +15,14 @@ class ReservaServicio extends Model
         'horario_disponible_id',
         'fecha',
         'cantidad_personas',
-        'precio_unitario',
+        'precio',
         'subtotal',
     ];
 
     protected $casts = [
         'fecha' => 'date',
         'cantidad_personas' => 'integer',
-        'precio_unitario' => 'decimal:2',
+        'precio' => 'decimal:2',
         'subtotal' => 'decimal:2',
     ];
 
@@ -32,22 +31,12 @@ class ReservaServicio extends Model
         return $this->belongsTo(Reserva::class);
     }
 
-    public function servicio(): BelongsToMany
+    public function servicio(): BelongsTo
     {
-        return $this->belongsToMany(
+        return $this->belongsTo(
             ServicioExperiencia::class,
-            'reserva_servicios',
-            'reserva_id',
             'servicio_experiencia_id'
-        )
-            ->withPivot([
-                'horario_disponible_id',
-                'fecha',
-                'cantidad_personas',
-                'precio_unitario',
-                'subtotal',
-            ])
-            ->withTimestamps();
+        );
     }
 
     public function horario(): BelongsTo

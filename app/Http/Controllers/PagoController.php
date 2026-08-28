@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ReservaConfirmadaMail;
 use App\Models\Reserva;
 use App\Services\KhipuService;
 use Illuminate\Http\RedirectResponse;
@@ -9,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Transbank\Webpay\Options;
 use Transbank\Webpay\WebpayPlus\Transaction;
+use Illuminate\Support\Facades\Mail;
 
 class PagoController extends Controller
 {
@@ -203,14 +205,11 @@ class PagoController extends Controller
         );
     }
 
-    public function retornoWebpay(
-        Request $request,
-        Reserva $reserva
-    ) {
+    public function retornoWebpay(Request $request, Reserva $reserva)
+    {
         $token = $request->get('token_ws');
 
         if (!$token) {
-
             return redirect()
                 ->route('reservas.pago', $reserva)
                 ->with(
@@ -218,7 +217,6 @@ class PagoController extends Controller
                     'No se recibió el token de Webpay.'
                 );
         }
-
 
         $options = new Options(
             config('services.transbank.api_key'),
@@ -228,12 +226,9 @@ class PagoController extends Controller
 
         $transaction = new Transaction($options);
 
-
         try {
 
-            $response = $transaction->commit(
-                $token
-            );
+            $response = $transaction->commit($token);
         } catch (\Throwable $exception) {
 
             report($exception);
@@ -246,7 +241,6 @@ class PagoController extends Controller
                 );
         }
 
-
         /*
     |--------------------------------------------------------------------------
     | VALIDAR PAGO APROBADO
@@ -258,12 +252,57 @@ class PagoController extends Controller
             && $response->getResponseCode() === 0
         ) {
 
+            /*
+        |--------------------------------------------------------------------------
+        | GUARDAR PAGO
+        |--------------------------------------------------------------------------
+        */
+
             $reserva->update([
                 'estado' => 'PAGADA',
                 'medio_pago' => 'WEBPAY',
                 'pagada_at' => now(),
             ]);
 
+            /*
+        |--------------------------------------------------------------------------
+        | ENVIAR TICKET POR CORREO
+        |--------------------------------------------------------------------------
+        |
+        | Importante:
+        | Si el correo falla, NO cambiamos el estado PAGADA.
+        |
+        */
+
+            if (!$reserva->ticket_enviado_at) {
+
+                try {
+
+                    Mail::to($reserva->email)
+                        ->send(
+                            new ReservaConfirmadaMail($reserva)
+                        );
+
+                    $reserva->update([
+                        'ticket_enviado_at' => now(),
+                        'ticket_email_error' => null,
+                    ]);
+                } catch (\Throwable $exception) {
+
+                    report($exception);
+
+                    $reserva->update([
+                        'ticket_enviado_at' => null,
+                        'ticket_email_error' => $exception->getMessage(),
+                    ]);
+                }
+            }
+
+            /*
+        |--------------------------------------------------------------------------
+        | LIMPIAR SESIÓN WEBPAY
+        |--------------------------------------------------------------------------
+        */
 
             session()->forget([
                 'webpay.reserva_id',
@@ -271,6 +310,11 @@ class PagoController extends Controller
                 'webpay.token',
             ]);
 
+            /*
+        |--------------------------------------------------------------------------
+        | RESULTADO
+        |--------------------------------------------------------------------------
+        */
 
             return redirect()
                 ->route(
@@ -283,12 +327,21 @@ class PagoController extends Controller
                 );
         }
 
-
         /*
     |--------------------------------------------------------------------------
     | PAGO RECHAZADO
     |--------------------------------------------------------------------------
     */
+
+        $reserva->update([
+            'estado' => 'PAGO_FALLIDO',
+        ]);
+
+        session()->forget([
+            'webpay.reserva_id',
+            'webpay.buy_order',
+            'webpay.token',
+        ]);
 
         return redirect()
             ->route(
@@ -297,7 +350,7 @@ class PagoController extends Controller
             )
             ->with(
                 'error',
-                'El pago con Webpay no fue aprobado.'
+                'El pago con Webpay no fue aprobado. Puedes intentarlo nuevamente.'
             );
     }
 }

@@ -44,6 +44,7 @@ return new class extends Migration
             $table->string('curso', 100)->nullable();
             $table->string('codigo_convenio', 50)->nullable();
             $table->string('nombre_convenio', 150)->nullable();
+            $table->string('medio_pago', 30)->nullable();
             $table->string('estado', 30)->default('PENDIENTE');
 
             $table->date('fecha')->nullable();

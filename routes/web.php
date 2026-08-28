@@ -12,6 +12,9 @@ use App\Http\Controllers\ReservaWizardController;
 use App\Http\Controllers\ServicioExperienciaController;
 use App\Http\Controllers\TipoClienteController;
 use Illuminate\Support\Facades\Route;
+use App\Services\ReservaQrService;
+use App\Mail\ReservaConfirmadaMail;
+use Illuminate\Support\Facades\Mail;
 
 
 /*
@@ -366,6 +369,23 @@ Route::prefix('reservas')
 
 /*
 |--------------------------------------------------------------------------
+| Reservas - Administración
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/reservas',
+    [ReservaWizardController::class, 'index']
+)->name('reservas.index');
+
+Route::get(
+    '/reservas/{reserva}',
+    [ReservaWizardController::class, 'show']
+)
+    ->whereNumber('reserva')
+    ->name('reservas.show');
+/*
+|--------------------------------------------------------------------------
 | NUEVA OPERACIÓN
 |--------------------------------------------------------------------------
 */
@@ -436,6 +456,7 @@ Route::get(
 use App\Http\Controllers\KhipuController;
 use App\Http\Controllers\KhipuWebhookController;
 use App\Http\Controllers\PagoController;
+use App\Models\Reserva;
 
 Route::post(
     '/reservas/{reserva}/pago/khipu',
@@ -474,3 +495,51 @@ Route::post(
     '/cotizaciones/{cotizacion}/reenviar-correo',
     [CotizacionController::class, 'reenviarCorreo']
 )->name('cotizaciones.reenviar-correo');
+
+Route::get(
+    '/reservas/verificar/{token}',
+    [ReservaWizardController::class, 'verificar']
+)->name('reservas.verificar');
+
+Route::get(
+    '/reservas/{reserva}/comprobante',
+    [ReservaWizardController::class, 'descargarComprobante']
+)->name('reservas.comprobante');
+
+Route::get(
+    '/reservas/{reserva}/comprobante/ver',
+    [ReservaWizardController::class, 'verComprobante']
+)->name('reservas.comprobante.ver');
+
+Route::get('/prueba-qr/{id}', function (int $id, ReservaQrService $qrService) {
+
+    $reserva = Reserva::findOrFail($id);
+
+    $ruta = $qrService->generar($reserva);
+
+    return [
+        'qr' => $ruta,
+        'token' => $reserva->fresh()->token_verificacion,
+        'verificacion' => route(
+            'reservas.verificar',
+            [
+                'token' => $reserva->fresh()->token_verificacion,
+            ]
+        ),
+    ];
+});
+
+Route::get('/prueba-correo-reserva/{id}', function ($id) {
+
+    $reserva = Reserva::findOrFail($id);
+
+    Mail::to(
+        $reserva->email
+    )->send(
+        new ReservaConfirmadaMail(
+            $reserva
+        )
+    );
+
+    return 'Correo enviado';
+});

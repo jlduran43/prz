@@ -25,8 +25,8 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 use Throwable;
-use Transbank\Webpay\Options;
-use Transbank\Webpay\WebpayPlus\Transaction;
+use App\Services\ReservaQrService;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReservaWizardController extends Controller
 {
@@ -108,6 +108,11 @@ class ReservaWizardController extends Controller
                 'estado'
             )
         );
+    }
+
+    public function show(Reserva $reserva)
+    {
+        return view('reservas.show', compact('reserva'));
     }
 
     public function operacion()
@@ -3260,7 +3265,11 @@ class ReservaWizardController extends Controller
 
     public function pago(Reserva $reserva)
     {
-        if ($reserva->estado !== 'PENDIENTE_PAGO') {
+        if (! in_array(
+            $reserva->estado,
+            ['PENDIENTE_PAGO', 'PAGO_FALLIDO'],
+            true
+        )) {
             return redirect()
                 ->route('reservas.resultado', $reserva);
         }
@@ -3287,20 +3296,114 @@ class ReservaWizardController extends Controller
         );
     }
 
-    private function webpayTransaction(): Transaction
+    public function verificar(string $token)
     {
-        $environment =
-            config('services.transbank.environment')
-            === 'production'
-            ? Options::ENVIRONMENT_PRODUCTION
-            : Options::ENVIRONMENT_INTEGRATION;
+        $reserva = Reserva::where(
+            'token_verificacion',
+            $token
+        )->firstOrFail();
 
-        $options = new Options(
-            config('services.transbank.api_key'),
-            config('services.transbank.commerce_code'),
-            $environment
+        $reserva->load([
+            'servicios',
+        ]);
+
+        return view(
+            'reservas.verificar',
+            compact('reserva')
+        );
+    }
+
+    public function descargarComprobante(
+        Reserva $reserva,
+        ReservaQrService $qrService
+    ) {
+        $reserva->load([
+            'servicios',
+            'tipoCliente',
+        ]);
+
+        if (!in_array($reserva->estado, ['PAGADA', 'CONFIRMADA'])) {
+            abort(403, 'La reserva todavía no está pagada.');
+        }
+
+        $qrRelativo = $qrService->generar($reserva);
+
+        $qrPath = storage_path(
+            'app/public/' . $qrRelativo
         );
 
-        return new Transaction($options);
+        $folio = 'RES-' .
+            str_pad(
+                $reserva->id,
+                6,
+                '0',
+                STR_PAD_LEFT
+            );
+
+        $pdf = Pdf::loadView(
+            'reservas.comprobante-pdf',
+            compact(
+                'reserva',
+                'qrPath'
+            )
+        );
+
+        $pdf->setPaper(
+            'a4',
+            'landscape'
+        );
+
+        return $pdf->download(
+            'ticket-' . $folio . '.pdf'
+        );
+    }
+
+    public function verComprobante(
+        Reserva $reserva,
+        ReservaQrService $qrService
+    ) {
+        $reserva->load([
+            'servicios',
+            'tipoCliente',
+        ]);
+
+        if (!in_array(
+            $reserva->estado,
+            ['PAGADA', 'CONFIRMADA']
+        )) {
+            abort(
+                403,
+                'La reserva todavía no está pagada.'
+            );
+        }
+
+        $qrRelativo = $qrService->generar($reserva);
+
+        $qrPath = storage_path(
+            'app/public/' . $qrRelativo
+        );
+
+        $folio = 'RES-' .
+            str_pad(
+                $reserva->id,
+                6,
+                '0',
+                STR_PAD_LEFT
+            );
+
+        $pdf = Pdf::loadView(
+            'reservas.comprobante-pdf',
+            compact(
+                'reserva',
+                'qrPath'
+            )
+        )->setPaper(
+            'a4',
+            'landscape'
+        );
+
+        return $pdf->stream(
+            'ticket-' . $folio . '.pdf'
+        );
     }
 }

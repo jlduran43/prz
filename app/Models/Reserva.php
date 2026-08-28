@@ -34,10 +34,14 @@ class Reserva extends Model
         'descuento',
         'total',
         'estado',
+        'medio_pago',
         'pago_expira_at',
         'observaciones',
         'objetivo_visita',
         'cotizacion_id',
+        'token_ticket',
+        'ticket_enviado_at',
+        'ticket_email_error',
     ];
 
     protected $casts = [
@@ -49,6 +53,8 @@ class Reserva extends Model
         'subtotal' => 'decimal:2',
         'descuento' => 'decimal:2',
         'total' => 'decimal:2',
+        'pagada_at' => 'datetime',
+        'ticket_enviado_at' => 'datetime',
     ];
 
     public function tipoCliente(): BelongsTo
