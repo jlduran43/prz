@@ -3298,85 +3298,53 @@ class ReservaWizardController extends Controller
 
     public function verificar(string $token)
     {
-        $resultado = DB::transaction(
-            function () use ($token) {
+        /*
+    |--------------------------------------------------------------------------
+    | Buscar ticket
+    |--------------------------------------------------------------------------
+    |
+    | IMPORTANTE:
+    | Escanear el QR solamente consulta el ticket.
+    | NO lo marca como utilizado.
+    |
+    */
 
-                /*
-            |--------------------------------------------------------------------------
-            | Buscar y bloquear ticket
-            |--------------------------------------------------------------------------
-            */
+        $reserva = Reserva::query()
+            ->where('token_verificacion', $token)
+            ->firstOrFail();
 
-                $reserva = Reserva::query()
-                    ->where('token_verificacion', $token)
-                    ->lockForUpdate()
-                    ->firstOrFail();
-
-
-                /*
-            |--------------------------------------------------------------------------
-            | Reserva no pagada
-            |--------------------------------------------------------------------------
-            */
-
-                if ($reserva->estado !== 'PAGADA') {
-
-                    return [
-                        'reserva' => $reserva,
-                        'estadoTicket' => 'NO_PAGADO',
-                    ];
-                }
-
-
-                /*
-            |--------------------------------------------------------------------------
-            | Ticket ya utilizado
-            |--------------------------------------------------------------------------
-            */
-
-                if ($reserva->validada_at !== null) {
-
-                    return [
-                        'reserva' => $reserva,
-                        'estadoTicket' => 'UTILIZADO',
-                    ];
-                }
-
-
-                /*
-            |--------------------------------------------------------------------------
-            | PRIMER ESCANEO: registrar ingreso
-            |--------------------------------------------------------------------------
-            */
-
-                $reserva->update([
-                    'validada_at' => now(),
-
-                    /*
-                 * Como el escaneo será automático,
-                 * puede no existir un usuario autenticado.
-                 */
-                    'validada_por_user_id' => auth()->id(),
-                ]);
-
-                $reserva->refresh();
-
-                return [
-                    'reserva' => $reserva,
-                    'estadoTicket' => 'VALIDADO',
-                ];
-            }
-        );
-
-
-        $reserva = $resultado['reserva'];
+        /*
+    |--------------------------------------------------------------------------
+    | Cargar funcionario que validó
+    |--------------------------------------------------------------------------
+    */
 
         $reserva->load([
             'validadaPor',
         ]);
 
-        $estadoTicket = $resultado['estadoTicket'];
+        /*
+    |--------------------------------------------------------------------------
+    | Determinar estado visual del ticket
+    |--------------------------------------------------------------------------
+    */
 
+        if ($reserva->estado !== 'PAGADA') {
+
+            $estadoTicket = 'NO_PAGADO';
+        } elseif ($reserva->validada_at !== null) {
+
+            $estadoTicket = 'UTILIZADO';
+        } else {
+
+            $estadoTicket = 'DISPONIBLE';
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Mostrar ticket
+    |--------------------------------------------------------------------------
+    */
 
         return view(
             'reservas.verificar',
@@ -3386,7 +3354,6 @@ class ReservaWizardController extends Controller
             )
         );
     }
-
     public function validarIngreso(
         Request $request,
         string $token
