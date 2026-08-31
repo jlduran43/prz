@@ -17,309 +17,152 @@
 
 @section('content')
 
-<div class="container">
+    <div class="container">
 
-    <div class="row justify-content-center">
+        <div class="row justify-content-center">
 
-        <div class="col-lg-7 col-md-9">
+            <div class="col-lg-7 col-md-9">
 
-            {{-- MENSAJE ÉXITO --}}
+                <div class="card shadow">
 
-            @if(session('success'))
+                    <div class="card-body text-center">
 
-                <div class="alert alert-success text-center">
+                        {{-- FOLIO --}}
 
-                    <h4 class="mb-0">
+                        <h2 class="mb-3">
 
-                        <i class="fas fa-check-circle mr-2"></i>
+                            RES-{{ str_pad($reserva->id, 6, '0', STR_PAD_LEFT) }}
 
-                        {{ session('success') }}
+                        </h2>
 
-                    </h4>
 
-                </div>
+                        {{-- ===================================================== --}}
+                        {{-- TICKET NO PAGADO --}}
+                        {{-- ===================================================== --}}
 
-            @endif
+                        @if ($estadoTicket === 'NO_PAGADO')
 
+                            <div class="alert alert-danger">
 
-            {{-- MENSAJE YA UTILIZADO --}}
+                                <h2>
 
-            @if(session('warning'))
+                                    <i class="fas fa-times-circle"></i>
 
-                <div class="alert alert-warning text-center">
+                                    Ticket no válido
 
-                    <h4 class="mb-0">
+                                </h2>
 
-                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                                <p class="mb-0">
 
-                        {{ session('warning') }}
-
-                    </h4>
-
-                </div>
-
-            @endif
-
-
-            {{-- MENSAJE ERROR --}}
-
-            @if(session('error'))
-
-                <div class="alert alert-danger text-center">
-
-                    <h4 class="mb-0">
-
-                        <i class="fas fa-times-circle mr-2"></i>
-
-                        {{ session('error') }}
-
-                    </h4>
-
-                </div>
-
-            @endif
-
-
-            <div class="card shadow">
-
-                <div class="card-body text-center">
-
-                    {{-- FOLIO --}}
-
-                    <h2 class="mb-3">
-
-                        RES-{{ str_pad(
-                            $reserva->id,
-                            6,
-                            '0',
-                            STR_PAD_LEFT
-                        ) }}
-
-                    </h2>
-
-
-                    {{-- ===================================================== --}}
-                    {{-- RESERVA NO PAGADA --}}
-                    {{-- ===================================================== --}}
-
-                    @if($reserva->estado !== 'PAGADA')
-
-                        <div class="alert alert-danger">
-
-                            <h2>
-
-                                <i class="fas fa-times-circle"></i>
-
-                                Ticket no válido
-
-                            </h2>
-
-                            <p class="mb-0">
-
-                                Estado actual:
-
-                                <strong>
-                                    {{ $reserva->estado }}
-                                </strong>
-
-                            </p>
-
-                        </div>
-
-
-                    {{-- ===================================================== --}}
-                    {{-- TICKET YA UTILIZADO --}}
-                    {{-- ===================================================== --}}
-
-                    @elseif($reserva->validada_at)
-
-                        <div class="alert alert-warning">
-
-                            <h2>
-
-                                <i class="fas fa-exclamation-triangle"></i>
-
-                                Ticket ya utilizado
-
-                            </h2>
-
-                            <p class="mt-3 mb-1">
-
-                                Este ticket ya fue validado anteriormente.
-
-                            </p>
-
-                            <h4 class="mt-3">
-
-                                {{ $reserva->validada_at
-                                    ->format('d/m/Y H:i:s') }}
-
-                            </h4>
-
-
-                            @if($reserva->validadaPor)
-
-                                <p class="mt-3 mb-0">
-
-                                    Validado por:
+                                    Estado actual:
 
                                     <strong>
-
-                                        {{ $reserva->validadaPor->name }}
-
+                                        {{ $reserva->estado }}
                                     </strong>
 
                                 </p>
-
-                            @endif
-
-                        </div>
-
-
-                    {{-- ===================================================== --}}
-                    {{-- TICKET DISPONIBLE --}}
-                    {{-- ===================================================== --}}
-
-                    @else
-
-                        <div class="alert alert-success">
-
-                            <h2>
-
-                                <i class="fas fa-check-circle"></i>
-
-                                Ticket válido
-
-                            </h2>
-
-                            <p class="mb-0">
-
-                                Reserva:
-
-                                <strong>
-                                    PAGADA
-                                </strong>
-
-                            </p>
-
-                        </div>
-
-
-                        {{-- DATOS DE LA RESERVA --}}
-
-                        <div class="mt-4">
-
-                            @if($reserva->fecha)
-
-                                <p>
-
-                                    <strong>
-                                        Fecha de visita:
-                                    </strong>
-
-                                    {{ $reserva->fecha->format('d/m/Y') }}
-
-                                </p>
-
-                            @endif
-
-
-                            @if(isset($reserva->total))
-
-                                <p>
-
-                                    <strong>
-                                        Total pagado:
-                                    </strong>
-
-                                    ${{ number_format(
-                                        $reserva->total,
-                                        0,
-                                        ',',
-                                        '.'
-                                    ) }}
-
-                                </p>
-
-                            @endif
-
-                        </div>
-
-
-                        {{-- ================================================= --}}
-                        {{-- FUNCIONARIO AUTENTICADO --}}
-                        {{-- ================================================= --}}
-
-                        @auth
-
-                            <hr>
-
-                            <div class="mt-4">
-
-                                <h4>
-                                    Control de acceso
-                                </h4>
-
-                                <p class="text-muted">
-
-                                    Confirma el ingreso solamente cuando
-                                    el visitante se encuentre en la entrada.
-
-                                </p>
-
-
-                                <form
-                                    method="POST"
-                                    action="{{ route(
-                                        'reservas.validar-ingreso',
-                                        [
-                                            'token' =>
-                                                $reserva->token_verificacion
-                                        ]
-                                    ) }}"
-                                    onsubmit="
-                                        return confirm(
-                                            '¿Confirmar el ingreso de esta reserva?'
-                                        );
-                                    "
-                                >
-
-                                    @csrf
-
-
-                                    <button
-                                        type="submit"
-                                        class="btn btn-success btn-lg"
-                                    >
-
-                                        <i class="fas fa-check-circle mr-2"></i>
-
-                                        VALIDAR INGRESO
-
-                                    </button>
-
-                                </form>
 
                             </div>
 
-                        @else
 
-                            {{-- ================================================= --}}
-                            {{-- PERSONA NO AUTENTICADA --}}
-                            {{-- ================================================= --}}
+                            {{-- ===================================================== --}}
+                            {{-- TICKET YA UTILIZADO --}}
+                            {{-- ===================================================== --}}
+                        @elseif ($estadoTicket === 'UTILIZADO')
+                            <div class="alert alert-danger">
 
-                            <div class="alert alert-info mt-4">
+                                <h2>
 
-                                <i class="fas fa-info-circle mr-2"></i>
+                                    <i class="fas fa-times-circle"></i>
 
-                                Este ticket está pagado y se encuentra
-                                disponible para validación en la entrada.
+                                    Ticket ya utilizado
+
+                                </h2>
+
+                                <p class="mt-3 mb-1">
+
+                                    Este ticket ya fue utilizado anteriormente.
+
+                                </p>
+
+
+                                @if ($reserva->validada_at)
+                                    <h4 class="mt-3">
+
+                                        {{ $reserva->validada_at->format('d/m/Y H:i:s') }}
+
+                                    </h4>
+                                @endif
+
+
+                                @if ($reserva->validadaPor)
+                                    <p class="mt-3 mb-0">
+
+                                        Validado por:
+
+                                        <strong>
+
+                                            {{ $reserva->validadaPor->name }}
+
+                                        </strong>
+
+                                    </p>
+                                @endif
 
                             </div>
 
-                        @endauth
 
-                    @endif
+                            {{-- ===================================================== --}}
+                            {{-- PRIMER ESCANEO --}}
+                            {{-- ===================================================== --}}
+                        @elseif ($estadoTicket === 'VALIDADO')
+                            <div class="alert alert-success">
+
+                                <h2>
+
+                                    <i class="fas fa-check-circle"></i>
+
+                                    Verificación válida
+
+                                </h2>
+
+                                <p class="mb-0">
+
+                                    Ingreso registrado correctamente.
+
+                                </p>
+
+
+                                @if ($reserva->validada_at)
+                                    <h4 class="mt-3">
+
+                                        {{ $reserva->validada_at->format('d/m/Y H:i:s') }}
+
+                                    </h4>
+                                @endif
+
+                            </div>
+
+                        @endif
+
+
+                        {{-- ===================================================== --}}
+                        {{-- TOTAL PAGADO --}}
+                        {{-- ===================================================== --}}
+
+                        @if (isset($reserva->total))
+                            <p class="mt-4">
+
+                                <strong>
+                                    Total pagado:
+                                </strong>
+
+                                ${{ number_format($reserva->total, 0, ',', '.') }}
+
+                            </p>
+                        @endif
+
+                    </div>
 
                 </div>
 
@@ -328,7 +171,5 @@
         </div>
 
     </div>
-
-</div>
 
 @stop

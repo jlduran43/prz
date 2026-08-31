@@ -25,8 +25,7 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 use Throwable;
-use App\Services\ReservaQrService;
-use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Auth;
 
 class ReservaWizardController extends Controller
 {
@@ -3298,53 +3297,72 @@ class ReservaWizardController extends Controller
 
     public function verificar(string $token)
     {
-        /*
-    |--------------------------------------------------------------------------
-    | Buscar ticket
-    |--------------------------------------------------------------------------
-    |
-    | IMPORTANTE:
-    | Escanear el QR solamente consulta el ticket.
-    | NO lo marca como utilizado.
-    |
-    */
+        $resultado = DB::transaction(
+            function () use ($token) {
 
-        $reserva = Reserva::query()
-            ->where('token_verificacion', $token)
-            ->firstOrFail();
+                $reserva = Reserva::query()
+                    ->where('token_verificacion', $token)
+                    ->lockForUpdate()
+                    ->firstOrFail();
 
-        /*
-    |--------------------------------------------------------------------------
-    | Cargar funcionario que validó
-    |--------------------------------------------------------------------------
-    */
+                /*
+            |--------------------------------------------------------------------------
+            | RESERVA NO PAGADA
+            |--------------------------------------------------------------------------
+            */
+
+                if ($reserva->estado !== 'PAGADA') {
+
+                    return [
+                        'reserva' => $reserva,
+                        'estadoTicket' => 'NO_PAGADO',
+                    ];
+                }
+
+                /*
+            |--------------------------------------------------------------------------
+            | YA FUE UTILIZADO
+            |--------------------------------------------------------------------------
+            */
+
+                if ($reserva->validada_at !== null) {
+
+                    return [
+                        'reserva' => $reserva,
+                        'estadoTicket' => 'UTILIZADO',
+                    ];
+                }
+
+                /*
+            |--------------------------------------------------------------------------
+            | PRIMER ESCANEO
+            |--------------------------------------------------------------------------
+            |
+            | El primer escaneo consume automáticamente el ticket.
+            |
+            */
+
+                $reserva->update([
+                    'validada_at' => now(),
+                    'validada_por_user_id' => Auth::id(),
+                ]);
+
+                $reserva->refresh();
+
+                return [
+                    'reserva' => $reserva,
+                    'estadoTicket' => 'VALIDADO',
+                ];
+            }
+        );
+
+        $reserva = $resultado['reserva'];
 
         $reserva->load([
             'validadaPor',
         ]);
 
-        /*
-    |--------------------------------------------------------------------------
-    | Determinar estado visual del ticket
-    |--------------------------------------------------------------------------
-    */
-
-        if ($reserva->estado !== 'PAGADA') {
-
-            $estadoTicket = 'NO_PAGADO';
-        } elseif ($reserva->validada_at !== null) {
-
-            $estadoTicket = 'UTILIZADO';
-        } else {
-
-            $estadoTicket = 'DISPONIBLE';
-        }
-
-        /*
-    |--------------------------------------------------------------------------
-    | Mostrar ticket
-    |--------------------------------------------------------------------------
-    */
+        $estadoTicket = $resultado['estadoTicket'];
 
         return view(
             'reservas.verificar',
@@ -3352,186 +3370,6 @@ class ReservaWizardController extends Controller
                 'reserva',
                 'estadoTicket'
             )
-        );
-    }
-    public function validarIngreso(
-        Request $request,
-        string $token
-    ) {
-        $resultado = DB::transaction(
-            function () use ($token) {
-
-                /*
-            |--------------------------------------------------------------------------
-            | Bloquear la reserva mientras se valida
-            |--------------------------------------------------------------------------
-            |
-            | Esto evita que dos celulares validen el mismo ticket exactamente
-            | al mismo tiempo.
-            |
-            */
-
-                $reserva = Reserva::query()
-                    ->where('token_verificacion', $token)
-                    ->lockForUpdate()
-                    ->firstOrFail();
-
-
-                /*
-            |--------------------------------------------------------------------------
-            | Debe estar pagada
-            |--------------------------------------------------------------------------
-            */
-
-                if ($reserva->estado !== 'PAGADA') {
-
-                    return [
-                        'tipo' => 'error',
-                        'mensaje' =>
-                        'Este ticket no puede ser utilizado porque la reserva no está pagada.',
-                    ];
-                }
-
-
-                /*
-            |--------------------------------------------------------------------------
-            | Comprobar si ya fue utilizado
-            |--------------------------------------------------------------------------
-            */
-
-                if ($reserva->validada_at !== null) {
-
-                    return [
-                        'tipo' => 'warning',
-                        'mensaje' =>
-                        'Este ticket ya fue utilizado anteriormente.',
-                    ];
-                }
-
-
-                /*
-            |--------------------------------------------------------------------------
-            | Registrar ingreso
-            |--------------------------------------------------------------------------
-            */
-
-                $reserva->update([
-                    'validada_at' => now(),
-                    'validada_por_user_id' => auth()->id(),
-                ]);
-
-
-                return [
-                    'tipo' => 'success',
-                    'mensaje' =>
-                    'Ingreso validado correctamente.',
-                ];
-            }
-        );
-
-
-        return redirect()
-            ->route(
-                'reservas.verificar',
-                ['token' => $token]
-            )
-            ->with(
-                $resultado['tipo'],
-                $resultado['mensaje']
-            );
-    }
-
-    public function descargarComprobante(
-        Reserva $reserva,
-        ReservaQrService $qrService
-    ) {
-        $reserva->load([
-            'servicios',
-            'tipoCliente',
-        ]);
-
-        if (!in_array($reserva->estado, ['PAGADA', 'CONFIRMADA'])) {
-            abort(403, 'La reserva todavía no está pagada.');
-        }
-
-        $qrRelativo = $qrService->generar($reserva);
-
-        $qrPath = storage_path(
-            'app/public/' . $qrRelativo
-        );
-
-        $folio = 'RES-' .
-            str_pad(
-                $reserva->id,
-                6,
-                '0',
-                STR_PAD_LEFT
-            );
-
-        $pdf = Pdf::loadView(
-            'reservas.comprobante-pdf',
-            compact(
-                'reserva',
-                'qrPath'
-            )
-        );
-
-        $pdf->setPaper(
-            'a4',
-            'landscape'
-        );
-
-        return $pdf->download(
-            'ticket-' . $folio . '.pdf'
-        );
-    }
-
-    public function verComprobante(
-        Reserva $reserva,
-        ReservaQrService $qrService
-    ) {
-        $reserva->load([
-            'servicios',
-            'tipoCliente',
-        ]);
-
-        if (!in_array(
-            $reserva->estado,
-            ['PAGADA', 'CONFIRMADA']
-        )) {
-            abort(
-                403,
-                'La reserva todavía no está pagada.'
-            );
-        }
-
-        $qrRelativo = $qrService->generar($reserva);
-
-        $qrPath = storage_path(
-            'app/public/' . $qrRelativo
-        );
-
-        $folio = 'RES-' .
-            str_pad(
-                $reserva->id,
-                6,
-                '0',
-                STR_PAD_LEFT
-            );
-
-        $pdf = Pdf::loadView(
-            'reservas.comprobante-pdf',
-            compact(
-                'reserva',
-                'qrPath'
-            )
-        )->setPaper(
-            'a4',
-            'landscape'
-        );
-
-        return $pdf->stream(
-            'ticket-' . $folio . '.pdf'
         );
     }
 }
