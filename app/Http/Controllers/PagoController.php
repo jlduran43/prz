@@ -160,9 +160,8 @@ class PagoController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function iniciarPagoWebpay(
-        Reserva $reserva
-    ): View|RedirectResponse {
+    public function iniciarPagoWebpay(Reserva $reserva): View|RedirectResponse
+    {
 
         /*
         |--------------------------------------------------------------------------
@@ -274,6 +273,20 @@ class PagoController extends Controller
                     $amount,
                     $returnUrl
                 );
+
+            /*
+                |--------------------------------------------------------------------------
+                | Guardar datos de la transacción Webpay
+                |--------------------------------------------------------------------------
+            */
+
+            $reserva->update([
+                'webpay_token' =>
+                $response->getToken(),
+
+                'webpay_buy_order' =>
+                $buyOrder,
+            ]);
         } catch (\Throwable $exception) {
 
             report($exception);
@@ -331,12 +344,9 @@ class PagoController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function retornoWebpay(
-        Request $request,
-        Reserva $reserva
-    ) {
-        $token =
-            $request->get('token_ws');
+    public function retornoWebpay(Request $request, Reserva $reserva)
+    {
+        $token = $request->get('token_ws');
 
         /*
         |--------------------------------------------------------------------------
@@ -356,6 +366,16 @@ class PagoController extends Controller
                     'El pago fue cancelado o no se recibió respuesta de Webpay.'
                 );
         }
+
+        /*
+            |--------------------------------------------------------------------------
+            | Guardar token devuelto por Webpay
+            |--------------------------------------------------------------------------
+        */
+
+        $reserva->update([
+            'webpay_token' => $token,
+        ]);
 
         /*
         |--------------------------------------------------------------------------

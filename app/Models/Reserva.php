@@ -44,6 +44,8 @@ class Reserva extends Model
         'ticket_email_error',
         'validada_at',
         'validada_por_user_id',
+        'webpay_token',
+        'webpay_buy_order',
     ];
 
     protected $casts = [
