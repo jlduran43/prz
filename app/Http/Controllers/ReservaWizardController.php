@@ -3298,19 +3298,105 @@ class ReservaWizardController extends Controller
 
     public function verificar(string $token)
     {
-        $reserva = Reserva::where(
-            'token_verificacion',
-            $token
-        )->firstOrFail();
+        $reserva = Reserva::query()
+            ->where('token_verificacion', $token)
+            ->firstOrFail();
 
         $reserva->load([
-            'servicios',
+            'validadaPor',
         ]);
 
         return view(
             'reservas.verificar',
             compact('reserva')
         );
+    }
+
+    public function validarIngreso(
+        Request $request,
+        string $token
+    ) {
+        $resultado = DB::transaction(
+            function () use ($token) {
+
+                /*
+            |--------------------------------------------------------------------------
+            | Bloquear la reserva mientras se valida
+            |--------------------------------------------------------------------------
+            |
+            | Esto evita que dos celulares validen el mismo ticket exactamente
+            | al mismo tiempo.
+            |
+            */
+
+                $reserva = Reserva::query()
+                    ->where('token_verificacion', $token)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+
+                /*
+            |--------------------------------------------------------------------------
+            | Debe estar pagada
+            |--------------------------------------------------------------------------
+            */
+
+                if ($reserva->estado !== 'PAGADA') {
+
+                    return [
+                        'tipo' => 'error',
+                        'mensaje' =>
+                        'Este ticket no puede ser utilizado porque la reserva no está pagada.',
+                    ];
+                }
+
+
+                /*
+            |--------------------------------------------------------------------------
+            | Comprobar si ya fue utilizado
+            |--------------------------------------------------------------------------
+            */
+
+                if ($reserva->validada_at !== null) {
+
+                    return [
+                        'tipo' => 'warning',
+                        'mensaje' =>
+                        'Este ticket ya fue utilizado anteriormente.',
+                    ];
+                }
+
+
+                /*
+            |--------------------------------------------------------------------------
+            | Registrar ingreso
+            |--------------------------------------------------------------------------
+            */
+
+                $reserva->update([
+                    'validada_at' => now(),
+                    'validada_por_user_id' => auth()->id(),
+                ]);
+
+
+                return [
+                    'tipo' => 'success',
+                    'mensaje' =>
+                    'Ingreso validado correctamente.',
+                ];
+            }
+        );
+
+
+        return redirect()
+            ->route(
+                'reservas.verificar',
+                ['token' => $token]
+            )
+            ->with(
+                $resultado['tipo'],
+                $resultado['mensaje']
+            );
     }
 
     public function descargarComprobante(

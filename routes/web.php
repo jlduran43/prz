@@ -520,7 +520,12 @@ Route::get(
     [ReservaWizardController::class, 'verificar']
 )->name('reservas.verificar');
 
-
+Route::post(
+    '/reservas/verificar/{token}/validar',
+    [ReservaWizardController::class, 'validarIngreso']
+)
+    ->middleware('auth')
+    ->name('reservas.validar-ingreso');
 /*
 |--------------------------------------------------------------------------
 | COMPROBANTES DE RESERVA

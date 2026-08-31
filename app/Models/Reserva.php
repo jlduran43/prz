@@ -42,6 +42,8 @@ class Reserva extends Model
         'token_ticket',
         'ticket_enviado_at',
         'ticket_email_error',
+        'validada_at',
+        'validada_por_user_id',
     ];
 
     protected $casts = [
@@ -55,6 +57,7 @@ class Reserva extends Model
         'total' => 'decimal:2',
         'pagada_at' => 'datetime',
         'ticket_enviado_at' => 'datetime',
+        'validada_at' => 'datetime',
     ];
 
     public function tipoCliente(): BelongsTo
@@ -98,5 +101,13 @@ class Reserva extends Model
     public function cotizacion()
     {
         return $this->belongsTo(Cotizacion::class);
+    }
+
+    public function validadaPor()
+    {
+        return $this->belongsTo(
+            \App\Models\User::class,
+            'validada_por_user_id'
+        );
     }
 }
