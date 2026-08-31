@@ -3298,17 +3298,92 @@ class ReservaWizardController extends Controller
 
     public function verificar(string $token)
     {
-        $reserva = Reserva::query()
-            ->where('token_verificacion', $token)
-            ->firstOrFail();
+        $resultado = DB::transaction(
+            function () use ($token) {
+
+                /*
+            |--------------------------------------------------------------------------
+            | Buscar y bloquear ticket
+            |--------------------------------------------------------------------------
+            */
+
+                $reserva = Reserva::query()
+                    ->where('token_verificacion', $token)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+
+                /*
+            |--------------------------------------------------------------------------
+            | Reserva no pagada
+            |--------------------------------------------------------------------------
+            */
+
+                if ($reserva->estado !== 'PAGADA') {
+
+                    return [
+                        'reserva' => $reserva,
+                        'estadoTicket' => 'NO_PAGADO',
+                    ];
+                }
+
+
+                /*
+            |--------------------------------------------------------------------------
+            | Ticket ya utilizado
+            |--------------------------------------------------------------------------
+            */
+
+                if ($reserva->validada_at !== null) {
+
+                    return [
+                        'reserva' => $reserva,
+                        'estadoTicket' => 'UTILIZADO',
+                    ];
+                }
+
+
+                /*
+            |--------------------------------------------------------------------------
+            | PRIMER ESCANEO: registrar ingreso
+            |--------------------------------------------------------------------------
+            */
+
+                $reserva->update([
+                    'validada_at' => now(),
+
+                    /*
+                 * Como el escaneo será automático,
+                 * puede no existir un usuario autenticado.
+                 */
+                    'validada_por_user_id' => auth()->id(),
+                ]);
+
+                $reserva->refresh();
+
+                return [
+                    'reserva' => $reserva,
+                    'estadoTicket' => 'VALIDADO',
+                ];
+            }
+        );
+
+
+        $reserva = $resultado['reserva'];
 
         $reserva->load([
             'validadaPor',
         ]);
 
+        $estadoTicket = $resultado['estadoTicket'];
+
+
         return view(
             'reservas.verificar',
-            compact('reserva')
+            compact(
+                'reserva',
+                'estadoTicket'
+            )
         );
     }
 
