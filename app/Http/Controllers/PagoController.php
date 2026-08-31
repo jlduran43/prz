@@ -89,268 +89,37 @@ class PagoController extends Controller
         );
     }
 
-    public function procesar(Request $request, Reserva $reserva, KhipuService $khipuService)
+    public function procesar(Request $request, Reserva $reserva) 
     {
-        /*
-            |--------------------------------------------------------------------------
-            | VALIDAR MEDIO DE PAGO
-            |--------------------------------------------------------------------------
-        */
-
         $request->validate([
-            'medio_pago' => [
-                'required',
-                'in:WEBPAY,KHIPU',
-            ],
+            'medio_pago' => 'required|in:WEBPAY,TRANSFERENCIA',
         ]);
 
+        $medioPago = $request->input('medio_pago');
 
-        /*
-            |--------------------------------------------------------------------------
-            | VALIDAR ESTADO DE LA RESERVA
-            |--------------------------------------------------------------------------
-        */
+        if ($medioPago === 'WEBPAY') {
 
-        if ($reserva->estado !== 'PENDIENTE_PAGO') {
-
-            return back()->with(
-                'error',
-                'Esta reserva ya no se encuentra pendiente de pago.'
-            );
-        }
-
-
-        /*
-            |--------------------------------------------------------------------------
-            | VALIDAR TIEMPO DE PAGO
-            |--------------------------------------------------------------------------
-        */
-
-        if (
-            $reserva->pago_expira_at &&
-            now()->greaterThan($reserva->pago_expira_at)
-        ) {
-
-            $reserva->update([
-                'estado' => 'VENCIDA_PAGO',
-            ]);
-
-            return back()->with(
-                'error',
-                'El tiempo disponible para realizar el pago ha expirado.'
-            );
-        }
-
-
-        /*
-    |--------------------------------------------------------------------------
-    | WEBPAY
-    |--------------------------------------------------------------------------
-    */
-
-        if ($request->medio_pago === 'WEBPAY') {
-
-            return $this->iniciarPagoWebpay(
+            return app(
+                ReservaWizardController::class
+            )->iniciarPagoWebpay(
                 $reserva
             );
         }
 
+        if ($medioPago === 'TRANSFERENCIA') {
 
-        /*
-    |--------------------------------------------------------------------------
-    | KHIPU
-    |--------------------------------------------------------------------------
-    */
+            $khipuService = app(
+                KhipuService::class
+            );
 
-        if ($request->medio_pago === 'KHIPU') {
-
-            try {
-
-                $pago = $khipuService->crearPago(
-                    $reserva
-                );
-
-                if (empty($pago['payment_url'])) {
-
-                    return back()->with(
-                        'error',
-                        'No fue posible obtener la URL de pago de Khipu.'
-                    );
-                }
-
-                return redirect()->away(
-                    $pago['payment_url']
-                );
-            } catch (\Throwable $exception) {
-
-                report($exception);
-
-                return back()->with(
-                    'error',
-                    'No fue posible iniciar el pago mediante transferencia.'
-                );
-            }
+            return $khipuService->crearPago(
+                $reserva
+            );
         }
-
-
-        /*
-    |--------------------------------------------------------------------------
-    | MEDIO NO VÁLIDO
-    |--------------------------------------------------------------------------
-    */
 
         return back()->with(
             'error',
-            'El medio de pago seleccionado no es válido.'
+            'Medio de pago no válido.'
         );
-    }
-
-    public function retornoWebpay(Request $request, Reserva $reserva)
-    {
-        $token = $request->get('token_ws');
-
-        if (!$token) {
-            return redirect()
-                ->route('reservas.pago', $reserva)
-                ->with(
-                    'error',
-                    'No se recibió el token de Webpay.'
-                );
-        }
-
-        $options = new Options(
-            config('services.transbank.api_key'),
-            config('services.transbank.commerce_code'),
-            Options::ENVIRONMENT_INTEGRATION
-        );
-
-        $transaction = new Transaction($options);
-
-        try {
-
-            $response = $transaction->commit($token);
-        } catch (\Throwable $exception) {
-
-            report($exception);
-
-            return redirect()
-                ->route('reservas.pago', $reserva)
-                ->with(
-                    'error',
-                    'No fue posible confirmar el pago con Webpay.'
-                );
-        }
-
-        /*
-    |--------------------------------------------------------------------------
-    | VALIDAR PAGO APROBADO
-    |--------------------------------------------------------------------------
-    */
-
-        if (
-            $response->getStatus() === 'AUTHORIZED'
-            && $response->getResponseCode() === 0
-        ) {
-
-            /*
-        |--------------------------------------------------------------------------
-        | GUARDAR PAGO
-        |--------------------------------------------------------------------------
-        */
-
-            $reserva->update([
-                'estado' => 'PAGADA',
-                'medio_pago' => 'WEBPAY',
-                'pagada_at' => now(),
-            ]);
-
-            /*
-        |--------------------------------------------------------------------------
-        | ENVIAR TICKET POR CORREO
-        |--------------------------------------------------------------------------
-        |
-        | Importante:
-        | Si el correo falla, NO cambiamos el estado PAGADA.
-        |
-        */
-
-            if (!$reserva->ticket_enviado_at) {
-
-                try {
-
-                    Mail::to($reserva->email)
-                        ->send(
-                            new ReservaConfirmadaMail($reserva)
-                        );
-
-                    $reserva->update([
-                        'ticket_enviado_at' => now(),
-                        'ticket_email_error' => null,
-                    ]);
-                } catch (\Throwable $exception) {
-
-                    report($exception);
-
-                    $reserva->update([
-                        'ticket_enviado_at' => null,
-                        'ticket_email_error' => $exception->getMessage(),
-                    ]);
-                }
-            }
-
-            /*
-        |--------------------------------------------------------------------------
-        | LIMPIAR SESIÓN WEBPAY
-        |--------------------------------------------------------------------------
-        */
-
-            session()->forget([
-                'webpay.reserva_id',
-                'webpay.buy_order',
-                'webpay.token',
-            ]);
-
-            /*
-        |--------------------------------------------------------------------------
-        | RESULTADO
-        |--------------------------------------------------------------------------
-        */
-
-            return redirect()
-                ->route(
-                    'reservas.resultado',
-                    $reserva
-                )
-                ->with(
-                    'success',
-                    'El pago fue realizado correctamente.'
-                );
-        }
-
-        /*
-    |--------------------------------------------------------------------------
-    | PAGO RECHAZADO
-    |--------------------------------------------------------------------------
-    */
-
-        $reserva->update([
-            'estado' => 'PAGO_FALLIDO',
-        ]);
-
-        session()->forget([
-            'webpay.reserva_id',
-            'webpay.buy_order',
-            'webpay.token',
-        ]);
-
-        return redirect()
-            ->route(
-                'reservas.resultado',
-                $reserva
-            )
-            ->with(
-                'error',
-                'El pago con Webpay no fue aprobado. Puedes intentarlo nuevamente.'
-            );
     }
 }

@@ -7,14 +7,18 @@ use App\Http\Controllers\ConfiguracionCotizacionController;
 use App\Http\Controllers\ConvenioController;
 use App\Http\Controllers\CotizacionController;
 use App\Http\Controllers\HorarioDisponibleController;
+use App\Http\Controllers\KhipuController;
+use App\Http\Controllers\KhipuWebhookController;
+use App\Http\Controllers\PagoController;
 use App\Http\Controllers\RegionController;
 use App\Http\Controllers\ReservaWizardController;
 use App\Http\Controllers\ServicioExperienciaController;
 use App\Http\Controllers\TipoClienteController;
-use Illuminate\Support\Facades\Route;
-use App\Services\ReservaQrService;
 use App\Mail\ReservaConfirmadaMail;
+use App\Models\Reserva;
+use App\Services\ReservaQrService;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Route;
 
 
 /*
@@ -253,6 +257,25 @@ Route::middleware('auth')->group(function () {
             Route::post('{cotizacion}/reenviar-correo', 'reenviarCorreo')
                 ->name('reenviar-correo');
         });
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | Reservas - Administración
+    |--------------------------------------------------------------------------
+    */
+
+    Route::get(
+        '/reservas',
+        [ReservaWizardController::class, 'index']
+    )->name('reservas.index');
+
+    Route::get(
+        '/reservas/{reserva}',
+        [ReservaWizardController::class, 'show']
+    )
+        ->whereNumber('reserva')
+        ->name('reservas.show');
 });
 
 
@@ -337,12 +360,13 @@ Route::prefix('reservas')
 
         /*
         |--------------------------------------------------------------------------
-        | Webpay
+        | Webpay - compatibilidad con flujo existente
         |--------------------------------------------------------------------------
         */
 
         Route::post('{reserva}/pago/webpay', 'iniciarPagoWebpay')
             ->name('pago.webpay');
+
 
         /*
         |--------------------------------------------------------------------------
@@ -367,23 +391,6 @@ Route::prefix('reservas')
     });
 
 
-/*
-|--------------------------------------------------------------------------
-| Reservas - Administración
-|--------------------------------------------------------------------------
-*/
-
-Route::get(
-    '/reservas',
-    [ReservaWizardController::class, 'index']
-)->name('reservas.index');
-
-Route::get(
-    '/reservas/{reserva}',
-    [ReservaWizardController::class, 'show']
-)
-    ->whereNumber('reserva')
-    ->name('reservas.show');
 /*
 |--------------------------------------------------------------------------
 | NUEVA OPERACIÓN
@@ -453,33 +460,39 @@ Route::get(
     ->middleware('signed')
     ->name('cotizaciones.publica.convertir');
 
-use App\Http\Controllers\KhipuController;
-use App\Http\Controllers\KhipuWebhookController;
-use App\Http\Controllers\PagoController;
-use App\Models\Reserva;
+
+/*
+|--------------------------------------------------------------------------
+| PAGOS - KHIPU
+|--------------------------------------------------------------------------
+*/
 
 Route::post(
     '/reservas/{reserva}/pago/khipu',
     [KhipuController::class, 'iniciar']
 )->name('reservas.khipu.iniciar');
 
-
 Route::get(
     '/reservas/{reserva}/pago/khipu/retorno',
     [KhipuController::class, 'retorno']
 )->name('reservas.khipu.retorno');
-
 
 Route::get(
     '/reservas/{reserva}/pago/khipu/cancelado',
     [KhipuController::class, 'cancelar']
 )->name('reservas.khipu.cancelar');
 
-
 Route::post(
     '/webhooks/khipu',
     [KhipuWebhookController::class, 'recibir']
 )->name('webhooks.khipu');
+
+
+/*
+|--------------------------------------------------------------------------
+| PAGOS - WEBPAY
+|--------------------------------------------------------------------------
+*/
 
 Route::post(
     '/reservas/{reserva}/pago/procesar',
@@ -491,15 +504,28 @@ Route::get(
     [PagoController::class, 'retornoWebpay']
 )->name('reservas.pago.webpay.retorno');
 
-Route::post(
-    '/cotizaciones/{cotizacion}/reenviar-correo',
-    [CotizacionController::class, 'reenviarCorreo']
-)->name('cotizaciones.reenviar-correo');
+
+/*
+|--------------------------------------------------------------------------
+| VERIFICACIÓN PÚBLICA DE RESERVAS / QR
+|--------------------------------------------------------------------------
+|
+| Esta ruta DEBE permanecer fuera del middleware auth.
+| El visitante debe poder escanear el QR sin iniciar sesión.
+|
+*/
 
 Route::get(
     '/reservas/verificar/{token}',
     [ReservaWizardController::class, 'verificar']
 )->name('reservas.verificar');
+
+
+/*
+|--------------------------------------------------------------------------
+| COMPROBANTES DE RESERVA
+|--------------------------------------------------------------------------
+*/
 
 Route::get(
     '/reservas/{reserva}/comprobante',
@@ -511,35 +537,49 @@ Route::get(
     [ReservaWizardController::class, 'verComprobante']
 )->name('reservas.comprobante.ver');
 
-Route::get('/prueba-qr/{id}', function (int $id, ReservaQrService $qrService) {
 
-    $reserva = Reserva::findOrFail($id);
+/*
+|--------------------------------------------------------------------------
+| RUTAS DE PRUEBA - SOLO DESARROLLO
+|--------------------------------------------------------------------------
+|
+| Para evitar exponer herramientas de prueba en producción,
+| estas rutas únicamente se registran cuando APP_ENV=local.
+|
+*/
 
-    $ruta = $qrService->generar($reserva);
+if (app()->environment('local')) {
 
-    return [
-        'qr' => $ruta,
-        'token' => $reserva->fresh()->token_verificacion,
-        'verificacion' => route(
-            'reservas.verificar',
-            [
-                'token' => $reserva->fresh()->token_verificacion,
-            ]
-        ),
-    ];
-});
+    Route::get('/prueba-qr/{id}', function (int $id, ReservaQrService $qrService) {
 
-Route::get('/prueba-correo-reserva/{id}', function ($id) {
+        $reserva = Reserva::findOrFail($id);
 
-    $reserva = Reserva::findOrFail($id);
+        $ruta = $qrService->generar($reserva);
 
-    Mail::to(
-        $reserva->email
-    )->send(
-        new ReservaConfirmadaMail(
-            $reserva
-        )
-    );
+        return [
+            'qr' => $ruta,
+            'token' => $reserva->fresh()->token_verificacion,
+            'verificacion' => route(
+                'reservas.verificar',
+                [
+                    'token' => $reserva->fresh()->token_verificacion,
+                ]
+            ),
+        ];
+    });
 
-    return 'Correo enviado';
-});
+    Route::get('/prueba-correo-reserva/{id}', function (int $id) {
+
+        $reserva = Reserva::findOrFail($id);
+
+        Mail::to(
+            $reserva->email
+        )->send(
+            new ReservaConfirmadaMail(
+                $reserva
+            )
+        );
+
+        return 'Correo enviado';
+    });
+}
