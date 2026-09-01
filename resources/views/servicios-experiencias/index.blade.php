@@ -120,7 +120,6 @@
             <table class="table table-hover table-striped mb-0">
                 <thead>
                     <tr>
-                        <th>Código</th>
                         <th>Nombre</th>
                         <th>Categoría</th>
                         <th>Tipo de cobro</th>
@@ -138,12 +137,6 @@
                 <tbody>
                     @forelse ($servicios as $servicio)
                         <tr>
-                            <td>
-                                <strong>
-                                    {{ $servicio->codigo }}
-                                </strong>
-                            </td>
-
                             <td>{{ $servicio->nombre }}</td>
 
                             <td>
