@@ -160,6 +160,7 @@ class ServicioExperienciaController extends Controller
                 'imagen.image' => 'El archivo seleccionado debe ser una imagen.',
                 'imagen.mimes' => 'La imagen debe ser JPG, JPEG, PNG o WebP.',
                 'imagen.max' => 'La imagen no puede superar los 2 MB.',
+                'capacidad_maxima.gte' => 'La capacidad máxima debe ser mayor o igual que la capacidad mínima.',
             ]
         );
 
