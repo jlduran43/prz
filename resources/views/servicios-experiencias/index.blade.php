@@ -357,7 +357,5 @@
 @stop
 
 @section('js')
-    <script>
-        = "{{ asset('js/servicios_experiencias/index.js') }}"
-    </script>
+    <script>"{{ asset('js/servicios_experiencias/index.js') }}"</script>
 @stop
