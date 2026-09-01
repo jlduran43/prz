@@ -180,6 +180,11 @@ Route::middleware('auth')->group(function () {
                 ->name('activar');
         });
 
+    Route::get(
+        'horarios-disponibles/calendario/eventos',
+        [HorarioDisponibleController::class, 'eventosCalendario']
+    )->name('horarios-disponibles.calendario.eventos');
+
     Route::resource(
         'horarios-disponibles',
         HorarioDisponibleController::class

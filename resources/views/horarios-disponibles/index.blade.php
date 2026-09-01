@@ -47,6 +47,22 @@
         </div>
     @endif
 
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="far fa-calendar-alt mr-2"></i>
+                Calendario de horarios
+            </h3>
+        </div>
+
+        <div class="card-body">
+
+            <div id="calendarioHorarios"></div>
+
+        </div>
+    </div>
+
     <div class="card">
         <div class="card-header">
             <form action="{{ route('horarios-disponibles.index') }}" method="GET">
@@ -307,12 +323,309 @@
             </div>
         </div>
     </div>
+    {{-- Modal detalle horario desde calendario --}}
+    <div class="modal fade" id="modalHorarioCalendario" tabindex="-1" role="dialog" aria-hidden="true">
+
+        <div class="modal-dialog modal-dialog-centered" role="document">
+
+            <div class="modal-content">
+
+                <div class="modal-header">
+
+                    <h5 class="modal-title">
+                        <i class="far fa-calendar-alt mr-2"></i>
+                        Detalle del horario
+                    </h5>
+
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+
+                </div>
+
+                <div class="modal-body">
+
+                    <p>
+                        <strong>Horario:</strong>
+                        <span id="calendarHorario"></span>
+                    </p>
+
+                    <p>
+                        <strong>Estado:</strong>
+                        <span id="calendarEstado"></span>
+                    </p>
+
+                    <p>
+                        <strong>Google Calendar:</strong>
+                        <span id="calendarGoogle"></span>
+                    </p>
+
+                    <hr>
+
+                    <strong>Servicios asociados:</strong>
+
+                    <ul id="calendarServicios" class="mt-2 mb-0">
+                    </ul>
+
+                </div>
+
+                <div class="modal-footer">
+
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">
+                        Cerrar
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
 @stop
 
 @section('css')
     <link rel="stylesheet" href="{{ asset('css/buscador.css') }}">
     <link rel="stylesheet" href="{{ asset('css/acciones_botones.css') }}">
+    <style>
+        #calendarioHorarios .dia-seleccionado {
+            background-color: rgba(40, 167, 69, 0.15);
+        }
+    </style>
 @stop
 @section('js')
     <script src="{{ asset('js/horarios_atencion/index.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/index.global.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.19/locales-all.global.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            const calendarEl = document.getElementById(
+                'calendarioHorarios'
+            );
+
+            if (!calendarEl) {
+                return;
+            }
+
+            const estadoActual = @json($estado ?? '');
+
+            const calendar = new FullCalendar.Calendar(
+                calendarEl, {
+                    locale: 'es',
+
+                    initialView: 'dayGridMonth',
+
+                    initialDate: @json($fecha !== '' ? $fecha : now()->format('Y-m-d')),
+
+                    firstDay: 1,
+
+                    height: 'auto',
+
+                    navLinks: true,
+
+                    nowIndicator: true,
+
+                    dayMaxEvents: true,
+
+                    displayEventTime: false,
+
+                    dayCellDidMount: function(info) {
+
+                        const fechaSeleccionada =
+                            @json($fecha ?? '');
+
+                        if (!fechaSeleccionada) {
+                            return;
+                        }
+
+                        const year = info.date.getFullYear();
+
+                        const month = String(
+                            info.date.getMonth() + 1
+                        ).padStart(2, '0');
+
+                        const day = String(
+                            info.date.getDate()
+                        ).padStart(2, '0');
+
+                        const fecha =
+                            `${year}-${month}-${day}`;
+
+                        if (fecha === fechaSeleccionada) {
+                            info.el.classList.add(
+                                'dia-seleccionado'
+                            );
+                        }
+
+                    },
+
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    },
+
+                    buttonText: {
+                        today: 'Hoy',
+                        month: 'Mes',
+                        week: 'Semana',
+                        day: 'Día'
+                    },
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Obtener horarios desde Laravel
+                    |--------------------------------------------------------------------------
+                    */
+
+                    events: @json(route('horarios-disponibles.calendario.eventos')),
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Clic en una fecha
+                    |--------------------------------------------------------------------------
+                    */
+
+                    dateClick: function(info) {
+
+                        const url = new URL(
+                            @json(route('horarios-disponibles.index')),
+                            window.location.origin
+                        );
+
+                        url.searchParams.set(
+                            'fecha',
+                            info.dateStr
+                        );
+
+                        if (estadoActual !== '') {
+
+                            url.searchParams.set(
+                                'estado',
+                                estadoActual
+                            );
+                        }
+
+                        window.location.href =
+                            url.toString();
+                    },
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Clic en un horario
+                    |--------------------------------------------------------------------------
+                    */
+
+                    eventClick: function(info) {
+
+                        info.jsEvent.preventDefault();
+
+                        const evento = info.event;
+
+                        const propiedades =
+                            evento.extendedProps;
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Horario
+                        |--------------------------------------------------------------------------
+                        */
+
+                        $('#calendarHorario')
+                            .text(evento.title);
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Estado
+                        |--------------------------------------------------------------------------
+                        */
+
+                        const estado =
+                            propiedades.activo ?
+                            'Activo' :
+                            'Inactivo';
+
+                        $('#calendarEstado')
+                            .text(estado);
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Estado Google Calendar
+                        |--------------------------------------------------------------------------
+                        */
+
+                        const google =
+                            propiedades.google ?? 'PENDIENTE';
+
+                        $('#calendarGoogle')
+                            .text(google);
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Servicios
+                        |--------------------------------------------------------------------------
+                        */
+
+                        const lista =
+                            $('#calendarServicios');
+
+                        lista.empty();
+
+                        const servicios =
+                            propiedades.servicios ?? [];
+
+                        if (servicios.length === 0) {
+
+                            lista.append(
+                                '<li>Sin servicios asociados</li>'
+                            );
+
+                        } else {
+
+                            servicios.forEach(
+                                function(servicio) {
+
+                                    $('<li>')
+                                        .text(servicio)
+                                        .appendTo(lista);
+                                }
+                            );
+                        }
+
+                        /*
+                        |--------------------------------------------------------------------------
+                        | Mostrar modal
+                        |--------------------------------------------------------------------------
+                        */
+
+                        $('#modalHorarioCalendario')
+                            .modal('show');
+                    },
+
+                    /*
+                    |--------------------------------------------------------------------------
+                    | Apariencia activo / inactivo
+                    |--------------------------------------------------------------------------
+                    */
+
+                    eventDidMount: function(info) {
+
+                        if (!info.event.extendedProps.activo) {
+
+                            info.el.style.opacity = '0.55';
+
+                            info.el.style.textDecoration =
+                                'line-through';
+                        }
+                    }
+                }
+            );
+
+            calendar.render();
+
+        });
+    </script>
 @stop

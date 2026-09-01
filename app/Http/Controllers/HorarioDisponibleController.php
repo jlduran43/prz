@@ -62,6 +62,105 @@ class HorarioDisponibleController extends Controller
         );
     }
 
+    public function eventosCalendario(Request $request)
+    {
+        $query = HorarioDisponible::query()
+            ->with([
+                'servicios' => function ($query) {
+                    $query->orderBy('nombre');
+                },
+            ]);
+
+        /*
+    |--------------------------------------------------------------------------
+    | FullCalendar envía start y end automáticamente
+    |--------------------------------------------------------------------------
+    */
+
+        if ($request->filled('start')) {
+            $query->whereDate(
+                'fecha',
+                '>=',
+                Carbon::parse($request->start)->toDateString()
+            );
+        }
+
+        if ($request->filled('end')) {
+            $query->whereDate(
+                'fecha',
+                '<',
+                Carbon::parse($request->end)->toDateString()
+            );
+        }
+
+        /*
+    |--------------------------------------------------------------------------
+    | Filtro de estado
+    |--------------------------------------------------------------------------
+    */
+
+        if (
+            $request->has('estado') &&
+            $request->estado !== ''
+        ) {
+            $query->where(
+                'activo',
+                (bool) $request->estado
+            );
+        }
+
+        $horarios = $query
+            ->orderBy('fecha')
+            ->orderBy('hora_inicio')
+            ->get();
+
+        return response()->json(
+            $horarios->map(function ($horario) {
+
+                $servicios = $horario
+                    ->servicios
+                    ->pluck('nombre')
+                    ->values();
+
+                return [
+                    'id' => $horario->id,
+
+                    'title' =>
+                    substr($horario->hora_inicio, 0, 5)
+                        . ' - '
+                        . substr($horario->hora_termino, 0, 5),
+
+                    'start' =>
+                    $horario->fecha->format('Y-m-d')
+                        . 'T'
+                        . substr($horario->hora_inicio, 0, 5),
+
+                    'end' =>
+                    $horario->fecha->format('Y-m-d')
+                        . 'T'
+                        . substr($horario->hora_termino, 0, 5),
+
+                    'extendedProps' => [
+                        'activo' =>
+                        (bool) $horario->activo,
+
+                        'servicios' =>
+                        $servicios->all(),
+
+                        'google' =>
+                        $horario->google_sync_error
+                            ? 'ERROR'
+                            : (
+                                $horario->google_event_id
+                                ? 'SINCRONIZADO'
+                                : 'PENDIENTE'
+                            ),
+                    ],
+                ];
+            })
+        );
+    }
+
     public function create()
     {
 
