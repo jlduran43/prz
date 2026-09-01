@@ -110,6 +110,7 @@
                         <th>Hora de inicio</th>
                         <th>Hora de término</th>
                         <th>Servicios asociados</th>
+                        <th>Estado Google Calendar</th>
                         <th>Estado</th>
                         <th>Acciones</th>
                     </tr>
@@ -148,6 +149,25 @@
                                         </span>
                                     @endforelse
                                 </div>
+                            </td>
+
+                            <td>
+                                @if ($horario->google_sync_error)
+                                    <span class="badge badge-danger">
+                                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                                        Error
+                                    </span>
+                                @elseif($horario->google_event_id)
+                                    <span class="badge badge-success">
+                                        <i class="fas fa-check mr-1"></i>
+                                        Sincronizado
+                                    </span>
+                                @else
+                                    <span class="badge badge-secondary">
+                                        <i class="fas fa-clock mr-1"></i>
+                                        Pendiente
+                                    </span>
+                                @endif
                             </td>
 
                             <td class="align-middle">

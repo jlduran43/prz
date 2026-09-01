@@ -65,4 +65,20 @@ return [
 
     ],
 
+    'google_calendar' => [
+        'calendar_id' => env('GOOGLE_CALENDAR_ID'),
+
+        'credentials' => base_path(
+            env(
+                'GOOGLE_CALENDAR_CREDENTIALS',
+                'storage/app/google/calendar-credentials.json'
+            )
+        ),
+
+        'timezone' => env(
+            'GOOGLE_CALENDAR_TIMEZONE',
+            'America/Santiago'
+        ),
+    ],
+
 ];

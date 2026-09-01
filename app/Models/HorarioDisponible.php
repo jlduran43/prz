@@ -15,6 +15,10 @@ class HorarioDisponible extends Model
         'hora_inicio',
         'hora_termino',
         'activo',
+        'google_event_id',
+        'google_synced_at',
+        'google_sync_error',
+        'google_synced_at' => 'datetime',
     ];
 
     protected $casts = [
@@ -41,10 +45,10 @@ class HorarioDisponible extends Model
     }
 
     public function reservaServicios(): HasMany
-{
-    return $this->hasMany(
-        ReservaServicio::class,
-        'horario_disponible_id'
-    );
-}
+    {
+        return $this->hasMany(
+            ReservaServicio::class,
+            'horario_disponible_id'
+        );
+    }
 }

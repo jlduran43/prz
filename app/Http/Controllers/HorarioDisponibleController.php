@@ -9,6 +9,8 @@ use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
+use App\Services\GoogleCalendarService;
+use Illuminate\Support\Facades\Log;
 
 class HorarioDisponibleController extends Controller
 {
@@ -139,6 +141,35 @@ class HorarioDisponibleController extends Controller
             $datos['servicios']
         );
 
+        try {
+
+            $googleCalendar = app(
+                GoogleCalendarService::class
+            );
+
+            $googleEventId = $googleCalendar
+                ->crearEvento($horario);
+
+            $horario->update([
+                'google_event_id' => $googleEventId,
+                'google_synced_at' => now(),
+                'google_sync_error' => null,
+            ]);
+        } catch (\Throwable $e) {
+
+            Log::error(
+                'Error sincronizando horario con Google Calendar',
+                [
+                    'horario_id' => $horario->id,
+                    'error' => $e->getMessage(),
+                ]
+            );
+
+            $horario->update([
+                'google_sync_error' => $e->getMessage(),
+            ]);
+        }
+
         return redirect()
             ->route('horarios-disponibles.index')
             ->with(
@@ -174,7 +205,7 @@ class HorarioDisponibleController extends Controller
         );
     }
 
-    public function update(Request $request, HorarioDisponible $horario) 
+    public function update(Request $request, HorarioDisponible $horario)
     {
         $datos = $request->validate(
             [
@@ -256,6 +287,42 @@ class HorarioDisponibleController extends Controller
             $datos['servicios']
         );
 
+        /*
+            |--------------------------------------------------------------------------
+            | Sincronizar modificación con Google Calendar
+            |--------------------------------------------------------------------------
+        */
+
+        try {
+
+            $googleCalendar = app(
+                GoogleCalendarService::class
+            );
+
+            $googleCalendar->actualizarEvento(
+                $horario
+            );
+
+            $horario->update([
+                'google_synced_at' => now(),
+                'google_sync_error' => null,
+            ]);
+        } catch (\Throwable $e) {
+
+            Log::error(
+                'Error actualizando horario en Google Calendar',
+                [
+                    'horario_id' => $horario->id,
+                    'google_event_id' => $horario->google_event_id,
+                    'error' => $e->getMessage(),
+                ]
+            );
+
+            $horario->update([
+                'google_sync_error' => $e->getMessage(),
+            ]);
+        }
+
         return redirect()
             ->route('horarios-disponibles.index')
             ->with(
@@ -279,6 +346,31 @@ class HorarioDisponibleController extends Controller
             'activo' => false,
         ]);
 
+        try {
+
+            app(GoogleCalendarService::class)
+                ->actualizarEstadoEvento($horario);
+
+            $horario->update([
+                'google_synced_at' => now(),
+                'google_sync_error' => null,
+            ]);
+        } catch (\Throwable $e) {
+
+            Log::error(
+                'Error desactivando horario en Google Calendar',
+                [
+                    'horario_id' => $horario->id,
+                    'google_event_id' => $horario->google_event_id,
+                    'error' => $e->getMessage(),
+                ]
+            );
+
+            $horario->update([
+                'google_sync_error' => $e->getMessage(),
+            ]);
+        }
+
         return redirect()
             ->route('horarios-disponibles.index')
             ->with(
@@ -301,6 +393,31 @@ class HorarioDisponibleController extends Controller
         $horario->update([
             'activo' => true,
         ]);
+
+        try {
+
+            app(GoogleCalendarService::class)
+                ->actualizarEstadoEvento($horario);
+
+            $horario->update([
+                'google_synced_at' => now(),
+                'google_sync_error' => null,
+            ]);
+        } catch (\Throwable $e) {
+
+            Log::error(
+                'Error reactivando horario en Google Calendar',
+                [
+                    'horario_id' => $horario->id,
+                    'google_event_id' => $horario->google_event_id,
+                    'error' => $e->getMessage(),
+                ]
+            );
+
+            $horario->update([
+                'google_sync_error' => $e->getMessage(),
+            ]);
+        }
 
         return redirect()
             ->route('horarios-disponibles.index')
@@ -427,6 +544,35 @@ class HorarioDisponibleController extends Controller
                 );
 
                 $creados++;
+
+                try {
+
+                    $googleCalendar = app(
+                        GoogleCalendarService::class
+                    );
+
+                    $googleEventId = $googleCalendar
+                        ->crearEvento($horario);
+
+                    $horario->update([
+                        'google_event_id' => $googleEventId,
+                        'google_synced_at' => now(),
+                        'google_sync_error' => null,
+                    ]);
+                } catch (\Throwable $e) {
+
+                    Log::error(
+                        'Error sincronizando horario recurrente con Google Calendar',
+                        [
+                            'horario_id' => $horario->id,
+                            'error' => $e->getMessage(),
+                        ]
+                    );
+
+                    $horario->update([
+                        'google_sync_error' => $e->getMessage(),
+                    ]);
+                }
             }
         });
 
