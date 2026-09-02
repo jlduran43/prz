@@ -547,70 +547,207 @@ class HorarioDisponibleController extends Controller
                 'date',
                 'after_or_equal:today',
             ],
+
             'fecha_hasta' => [
                 'required',
                 'date',
                 'after_or_equal:fecha_desde',
             ],
+
             'dias_semana' => [
                 'required',
                 'array',
                 'min:1',
             ],
+
             'dias_semana.*' => [
                 'required',
                 'integer',
                 'between:0,6',
             ],
-            'hora_inicio' => [
-                'required',
-                'date_format:H:i',
-            ],
-            'hora_termino' => [
-                'required',
-                'date_format:H:i',
-                'after:hora_inicio',
-            ],
-            'capacidad_maxima' => [
-                'required',
-                'integer',
-                'min:1',
-            ],
-            'servicios' => [
+
+            'franjas' => [
                 'required',
                 'array',
                 'min:1',
             ],
-            'servicios.*' => [
+
+            'franjas.*.hora_inicio' => [
+                'required',
+                'date_format:H:i',
+            ],
+
+            'franjas.*.hora_termino' => [
+                'required',
+                'date_format:H:i',
+            ],
+
+            'franjas.*.capacidad_maxima' => [
+                'required',
+                'integer',
+                'min:1',
+            ],
+
+            'franjas.*.servicios' => [
+                'required',
+                'array',
+                'min:1',
+            ],
+
+            'franjas.*.servicios.*' => [
+                'required',
                 'integer',
                 'distinct',
                 'exists:servicios_experiencias,id',
             ],
         ]);
 
+
+        /*
+    |--------------------------------------------------------------------------
+    | Validar hora inicio < hora término
+    |--------------------------------------------------------------------------
+    */
+
+        foreach ($datos['franjas'] as $indice => $franja) {
+
+            if (
+                $franja['hora_termino']
+                <=
+                $franja['hora_inicio']
+            ) {
+                throw ValidationException::withMessages([
+                    "franjas.$indice.hora_termino" =>
+                    'La hora de término debe ser posterior '
+                        . 'a la hora de inicio.',
+                ]);
+            }
+        }
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | Validar franjas duplicadas
+    |--------------------------------------------------------------------------
+    */
+
+        $franjasComparar = collect(
+            $datos['franjas']
+        )->map(function ($franja) {
+
+            return $franja['hora_inicio']
+                . '-'
+                . $franja['hora_termino'];
+        });
+
+
+        if (
+            $franjasComparar->unique()->count()
+            !==
+            $franjasComparar->count()
+        ) {
+            throw ValidationException::withMessages([
+                'franjas' =>
+                'No puedes agregar dos franjas '
+                    . 'con el mismo horario.',
+            ]);
+        }
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | Validar franjas superpuestas
+    |--------------------------------------------------------------------------
+    */
+
+        $franjas = array_values(
+            $datos['franjas']
+        );
+
+
+        for ($i = 0; $i < count($franjas); $i++) {
+
+            for (
+                $j = $i + 1;
+                $j < count($franjas);
+                $j++
+            ) {
+
+                $inicioA =
+                    $franjas[$i]['hora_inicio'];
+
+                $terminoA =
+                    $franjas[$i]['hora_termino'];
+
+                $inicioB =
+                    $franjas[$j]['hora_inicio'];
+
+                $terminoB =
+                    $franjas[$j]['hora_termino'];
+
+
+                $seSuperponen =
+                    $inicioA < $terminoB
+                    &&
+                    $inicioB < $terminoA;
+
+
+                if ($seSuperponen) {
+
+                    throw ValidationException::withMessages([
+                        'franjas' =>
+                        "Las franjas "
+                            . "{$inicioA} - {$terminoA} "
+                            . "y "
+                            . "{$inicioB} - {$terminoB} "
+                            . "se superponen.",
+                    ]);
+                }
+            }
+        }
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | Obtener fechas seleccionadas
+    |--------------------------------------------------------------------------
+    */
+
         $periodo = CarbonPeriod::create(
             $datos['fecha_desde'],
             $datos['fecha_hasta']
         );
 
-        $diasSeleccionados = collect($datos['dias_semana'])
-            ->map(fn($dia) => (int) $dia);
+
+        $diasSeleccionados = collect(
+            $datos['dias_semana']
+        )->map(
+            fn($dia) => (int) $dia
+        );
+
 
         $fechas = collect($periodo)
             ->filter(
                 fn(Carbon $fecha) =>
-                $diasSeleccionados->contains($fecha->dayOfWeek)
+                $diasSeleccionados->contains(
+                    $fecha->dayOfWeek
+                )
             );
 
+
         if ($fechas->isEmpty()) {
+
             throw ValidationException::withMessages([
                 'dias_semana' =>
-                'No existen fechas coincidentes dentro del rango seleccionado.',
+                'No existen fechas coincidentes '
+                    . 'dentro del rango seleccionado.',
             ]);
         }
 
+
         $creados = 0;
         $omitidos = 0;
+
 
         DB::transaction(function () use (
             $fechas,
@@ -618,69 +755,146 @@ class HorarioDisponibleController extends Controller
             &$creados,
             &$omitidos
         ) {
+
             foreach ($fechas as $fecha) {
-                $existe = HorarioDisponible::query()
-                    ->whereDate('fecha', $fecha->toDateString())
-                    ->where('hora_inicio', $datos['hora_inicio'])
-                    ->where('hora_termino', $datos['hora_termino'])
-                    ->exists();
 
-                if ($existe) {
-                    $omitidos++;
-                    continue;
-                }
+                foreach (
+                    $datos['franjas'] as $franja
+                ) {
 
-                $horario = HorarioDisponible::create([
-                    'fecha' => $fecha->toDateString(),
-                    'hora_inicio' => $datos['hora_inicio'],
-                    'hora_termino' => $datos['hora_termino'],
-                    'capacidad_maxima' => $datos['capacidad_maxima'],
-                    'activo' => true,
-                ]);
+                    /*
+                |--------------------------------------------------------------------------
+                | Revisar duplicado
+                |--------------------------------------------------------------------------
+                */
 
-                $horario->servicios()->sync(
-                    $datos['servicios']
-                );
+                    $existe =
+                        HorarioDisponible::query()
+                        ->whereDate(
+                            'fecha',
+                            $fecha->toDateString()
+                        )
+                        ->where(
+                            'hora_inicio',
+                            $franja['hora_inicio']
+                        )
+                        ->where(
+                            'hora_termino',
+                            $franja['hora_termino']
+                        )
+                        ->exists();
 
-                $creados++;
 
-                try {
+                    if ($existe) {
 
-                    $googleCalendar = app(
-                        GoogleCalendarService::class
-                    );
+                        $omitidos++;
 
-                    $googleEventId = $googleCalendar
-                        ->crearEvento($horario);
+                        continue;
+                    }
 
-                    $horario->update([
-                        'google_event_id' => $googleEventId,
-                        'google_synced_at' => now(),
-                        'google_sync_error' => null,
-                    ]);
-                } catch (\Throwable $e) {
 
-                    Log::error(
-                        'Error sincronizando horario recurrente con Google Calendar',
-                        [
-                            'horario_id' => $horario->id,
-                            'error' => $e->getMessage(),
-                        ]
-                    );
+                    /*
+                |--------------------------------------------------------------------------
+                | Crear horario
+                |--------------------------------------------------------------------------
+                */
 
-                    $horario->update([
-                        'google_sync_error' => $e->getMessage(),
-                    ]);
+                    $horario =
+                        HorarioDisponible::create([
+                            'fecha' =>
+                            $fecha->toDateString(),
+
+                            'hora_inicio' =>
+                            $franja['hora_inicio'],
+
+                            'hora_termino' =>
+                            $franja['hora_termino'],
+
+                            'capacidad_maxima' =>
+                            $franja['capacidad_maxima'],
+
+                            'activo' => true,
+                        ]);
+
+
+                    /*
+                |--------------------------------------------------------------------------
+                | Asociar servicios
+                |--------------------------------------------------------------------------
+                */
+
+                    $horario
+                        ->servicios()
+                        ->sync(
+                            $franja['servicios']
+                        );
+
+
+                    $creados++;
+
+
+                    /*
+                |--------------------------------------------------------------------------
+                | Google Calendar
+                |--------------------------------------------------------------------------
+                */
+
+                    try {
+
+                        $googleCalendar = app(
+                            GoogleCalendarService::class
+                        );
+
+
+                        $googleEventId =
+                            $googleCalendar
+                            ->crearEvento($horario);
+
+
+                        $horario->update([
+                            'google_event_id' =>
+                            $googleEventId,
+
+                            'google_synced_at' =>
+                            now(),
+
+                            'google_sync_error' =>
+                            null,
+                        ]);
+                    } catch (\Throwable $e) {
+
+                        Log::error(
+                            'Error sincronizando horario '
+                                . 'recurrente con Google Calendar',
+                            [
+                                'horario_id' =>
+                                $horario->id,
+
+                                'error' =>
+                                $e->getMessage(),
+                            ]
+                        );
+
+
+                        $horario->update([
+                            'google_sync_error' =>
+                            $e->getMessage(),
+                        ]);
+                    }
                 }
             }
         });
 
+
         return redirect()
-            ->route('horarios-disponibles.index')
+            ->route(
+                'horarios-disponibles.index'
+            )
             ->with(
                 'success',
-                "Se crearon {$creados} horarios. " .
-                    "Se omitieron {$omitidos} horarios duplicados."
+                "Se crearon {$creados} horarios. "
+                    . "Se omitieron {$omitidos} "
+                    . "horarios duplicados."
             );
     }
 }
