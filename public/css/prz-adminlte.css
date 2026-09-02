@@ -18,33 +18,33 @@
 }
 
 /* Links principales */
-.main-sidebar .nav-sidebar > .nav-item > .nav-link {
+.main-sidebar .nav-sidebar>.nav-item>.nav-link {
     color: #ffffff !important;
 }
 
 /* Texto */
-.main-sidebar .nav-sidebar > .nav-item > .nav-link p {
+.main-sidebar .nav-sidebar>.nav-item>.nav-link p {
     color: #ffffff !important;
 }
 
 /* Iconos */
-.main-sidebar .nav-sidebar > .nav-item > .nav-link .nav-icon {
+.main-sidebar .nav-sidebar>.nav-item>.nav-link .nav-icon {
     color: #ffffff !important;
 }
 
 /* Flecha derecha */
-.main-sidebar .nav-sidebar > .nav-item > .nav-link .right {
+.main-sidebar .nav-sidebar>.nav-item>.nav-link .right {
     color: #ffffff !important;
 }
 
 /* Hover */
-.main-sidebar .nav-sidebar > .nav-item > .nav-link:hover {
+.main-sidebar .nav-sidebar>.nav-item>.nav-link:hover {
     background-color: rgba(255, 255, 255, 0.15) !important;
     color: #ffffff !important;
 }
 
 /* Seleccionado */
-.main-sidebar .nav-sidebar > .nav-item > .nav-link.active {
+.main-sidebar .nav-sidebar>.nav-item>.nav-link.active {
     background-color: rgba(255, 255, 255, 0.25) !important;
     color: #ffffff !important;
 }
@@ -64,14 +64,14 @@
 }
 
 /* Submenú activo del sidebar */
-.sidebar-dark-success .nav-sidebar > .nav-item > .nav-treeview > .nav-item > .nav-link.active,
-.sidebar-light-success .nav-sidebar > .nav-item > .nav-treeview > .nav-item > .nav-link.active {
+.sidebar-dark-success .nav-sidebar>.nav-item>.nav-treeview>.nav-item>.nav-link.active,
+.sidebar-light-success .nav-sidebar>.nav-item>.nav-treeview>.nav-item>.nav-link.active {
     background-color: #5bc477 !important;
     color: #ffffff !important;
 }
 
 /* Icono del submenú activo */
-.nav-sidebar .nav-treeview > .nav-item > .nav-link.active .nav-icon {
+.nav-sidebar .nav-treeview>.nav-item>.nav-link.active .nav-icon {
     color: #ffffff !important;
 }
 
@@ -80,19 +80,60 @@
    ========================================== */
 
 /* Submenú seleccionado */
-.nav-sidebar .nav-treeview > .nav-item > .nav-link.active {
+.nav-sidebar .nav-treeview>.nav-item>.nav-link.active {
     background-color: #57bd73 !important;
     color: #ffffff !important;
     box-shadow: none !important;
 }
 
 /* Icono seleccionado */
-.nav-sidebar .nav-treeview > .nav-item > .nav-link.active .nav-icon {
+.nav-sidebar .nav-treeview>.nav-item>.nav-link.active .nav-icon {
     color: #ffffff !important;
 }
 
 /* Hover */
-.nav-sidebar .nav-treeview > .nav-item > .nav-link:hover {
+.nav-sidebar .nav-treeview>.nav-item>.nav-link:hover {
     background-color: #45b864 !important;
     color: #ffffff !important;
+}
+
+/* ========================================
+   PERSONALIZACIÓN FULLCALENDAR - PRZ
+======================================== */
+
+/* Encabezados: lun, mar, mié... */
+.fc-col-header-cell-cushion {
+    color: #198754 !important;
+}
+
+/* Número de los días */
+.fc-daygrid-day-number {
+    color: #495057 !important;
+}
+
+/* Texto de los eventos/horarios */
+.fc-event,
+.fc-event-main {
+    color: #198754 !important;
+}
+
+/* Punto de los horarios */
+.fc-daygrid-event-dot {
+    border-color: #198754 !important;
+}
+
+/* Día actual */
+.fc-day-today {
+    background: #e8f5ec !important;
+}
+
+/* Botones Mes / Semana / Día */
+.fc-button-primary {
+    background-color: #198754 !important;
+    border-color: #198754 !important;
+}
+
+.fc-button-primary:hover {
+    background-color: #146c43 !important;
+    border-color: #146c43 !important;
 }
