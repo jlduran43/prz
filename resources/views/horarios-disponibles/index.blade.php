@@ -233,6 +233,23 @@
         #calendarioHorarios .dia-seleccionado {
             background-color: rgba(40, 167, 69, 0.15);
         }
+
+        /* Separación entre botones de navegación y vistas */
+        .fc .fc-button-group {
+            gap: 6px;
+        }
+
+        /* Un poco más de espacio entre los bloques del toolbar */
+        .fc .fc-toolbar-chunk {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Evitar que los botones queden pegados visualmente */
+        .fc .fc-button {
+            border-radius: 4px !important;
+        }
     </style>
 @stop
 @section('js')

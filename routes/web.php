@@ -276,6 +276,11 @@ Route::middleware('auth')->group(function () {
     )->name('reservas.index');
 
     Route::get(
+        '/reservas/calendario/eventos',
+        [ReservaWizardController::class, 'calendarioEventos']
+    )->name('reservas.calendario.eventos');
+
+    Route::get(
         '/reservas/{reserva}',
         [ReservaWizardController::class, 'show']
     )

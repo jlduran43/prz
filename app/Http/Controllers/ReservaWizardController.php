@@ -109,9 +109,375 @@ class ReservaWizardController extends Controller
         );
     }
 
+    public function calendarioEventos(Request $request)
+    {
+        $inicio = $request->get('start');
+        $fin = $request->get('end');
+        $estado = $request->get('estado');
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | Obtener reservas + horarios
+    |--------------------------------------------------------------------------
+    |
+    | Se usa reserva_servicios porque ahí está guardado el
+    | horario_disponible_id seleccionado durante la reserva.
+    |
+    */
+
+        $registros = DB::table('reserva_servicios')
+            ->join(
+                'reservas',
+                'reservas.id',
+                '=',
+                'reserva_servicios.reserva_id'
+            )
+            ->join(
+                'horarios_disponibles',
+                'horarios_disponibles.id',
+                '=',
+                'reserva_servicios.horario_disponible_id'
+            )
+            ->leftJoin(
+                'servicios_experiencias',
+                'servicios_experiencias.id',
+                '=',
+                'reserva_servicios.servicio_experiencia_id'
+            )
+            ->select([
+                'reservas.id as reserva_id',
+                'reservas.nombres',
+                'reservas.apellidos',
+                'reservas.nombre_entidad',
+                'reservas.rut_persona',
+                'reservas.rut_entidad',
+                'reservas.email',
+                'reservas.cantidad_asistentes',
+                'reservas.total',
+                'reservas.medio_pago',
+                'reservas.estado',
+
+                'horarios_disponibles.id as horario_id',
+                'horarios_disponibles.fecha',
+                'horarios_disponibles.hora_inicio',
+                'horarios_disponibles.hora_termino',
+
+                'servicios_experiencias.nombre as servicio_nombre',
+
+                'reserva_servicios.cantidad_personas',
+            ])
+
+            ->when(
+                $inicio,
+                function ($query) use ($inicio) {
+
+                    $query->whereDate(
+                        'horarios_disponibles.fecha',
+                        '>=',
+                        Carbon::parse($inicio)
+                            ->format('Y-m-d')
+                    );
+                }
+            )
+
+            ->when(
+                $fin,
+                function ($query) use ($fin) {
+
+                    $query->whereDate(
+                        'horarios_disponibles.fecha',
+                        '<',
+                        Carbon::parse($fin)
+                            ->format('Y-m-d')
+                    );
+                }
+            )
+
+            ->when(
+                $estado,
+                function ($query) use ($estado) {
+
+                    $query->where(
+                        'reservas.estado',
+                        $estado
+                    );
+                }
+            )
+
+            ->orderBy(
+                'horarios_disponibles.fecha'
+            )
+
+            ->orderBy(
+                'horarios_disponibles.hora_inicio'
+            )
+
+            ->get();
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | Agrupar
+    |--------------------------------------------------------------------------
+    |
+    | Una reserva puede tener dos servicios asociados al mismo horario.
+    | No queremos mostrarla dos veces en el calendario.
+    |
+    */
+
+        $reservas = $registros->groupBy(
+            function ($registro) {
+
+                return
+                    $registro->reserva_id
+                    . '-'
+                    . $registro->horario_id;
+            }
+        );
+
+
+        /*
+    |--------------------------------------------------------------------------
+    | Crear eventos FullCalendar
+    |--------------------------------------------------------------------------
+    */
+
+        $eventos = $reservas->map(
+            function ($grupo) {
+
+                $registro = $grupo->first();
+
+
+                /*
+            |--------------------------------------------------------------------------
+            | Cliente
+            |--------------------------------------------------------------------------
+            */
+
+                if (!empty($registro->nombre_entidad)) {
+
+                    $cliente =
+                        $registro->nombre_entidad;
+
+                    $rut =
+                        $registro->rut_entidad;
+                } else {
+
+                    $cliente = trim(
+                        ($registro->nombres ?? '')
+                            . ' '
+                            . ($registro->apellidos ?? '')
+                    );
+
+                    $rut =
+                        $registro->rut_persona;
+                }
+
+
+                if ($cliente === '') {
+
+                    $cliente =
+                        'Cliente sin nombre';
+                }
+
+
+                /*
+            |--------------------------------------------------------------------------
+            | Folio
+            |--------------------------------------------------------------------------
+            */
+
+                $folio =
+                    'RES-'
+                    . str_pad(
+                        $registro->reserva_id,
+                        6,
+                        '0',
+                        STR_PAD_LEFT
+                    );
+
+
+                /*
+            |--------------------------------------------------------------------------
+            | Servicios
+            |--------------------------------------------------------------------------
+            */
+
+                $servicios = $grupo
+                    ->pluck('servicio_nombre')
+                    ->filter()
+                    ->unique()
+                    ->values();
+
+
+                /*
+            |--------------------------------------------------------------------------
+            | Personas
+            |--------------------------------------------------------------------------
+            */
+
+                $cantidadPersonas =
+                    (int) (
+                        $registro->cantidad_asistentes
+                        ?? $grupo->sum('cantidad_personas')
+                    );
+
+
+                /*
+            |--------------------------------------------------------------------------
+            | Colores por estado
+            |--------------------------------------------------------------------------
+            */
+
+                [$colorFondo, $colorBorde, $colorTexto] =
+                    match ($registro->estado) {
+
+                        'PAGADA' => [
+                            '#28a745',
+                            '#218838',
+                            '#ffffff',
+                        ],
+
+                        'CONFIRMADA' => [
+                            '#198754',
+                            '#146c43',
+                            '#ffffff',
+                        ],
+
+                        'PENDIENTE_PAGO' => [
+                            '#ffc107',
+                            '#d39e00',
+                            '#212529',
+                        ],
+
+                        'VENCIDA_PAGO' => [
+                            '#6c757d',
+                            '#5a6268',
+                            '#ffffff',
+                        ],
+
+                        'CANCELADA' => [
+                            '#dc3545',
+                            '#bd2130',
+                            '#ffffff',
+                        ],
+
+                        'RECHAZADA' => [
+                            '#dc3545',
+                            '#bd2130',
+                            '#ffffff',
+                        ],
+
+                        default => [
+                            '#17a2b8',
+                            '#138496',
+                            '#ffffff',
+                        ],
+                    };
+
+
+                return [
+                    'id' =>
+                    $registro->reserva_id,
+
+                    $folioCorto =
+                        'RES-'
+                        . str_pad(
+                            $registro->reserva_id,
+                            2,
+                            '0',
+                            STR_PAD_LEFT
+                        ),
+
+                    'title' => $folioCorto,
+
+                    'start' =>
+                    $registro->fecha
+                        . 'T'
+                        . substr(
+                            $registro->hora_inicio,
+                            0,
+                            5
+                        ),
+
+                    'end' =>
+                    $registro->fecha
+                        . 'T'
+                        . substr(
+                            $registro->hora_termino,
+                            0,
+                            5
+                        ),
+
+                    'backgroundColor' =>
+                    $colorFondo,
+
+                    'borderColor' =>
+                    $colorBorde,
+
+                    'textColor' =>
+                    $colorTexto,
+
+                    'extendedProps' => [
+
+                        'folio' => $folio,
+
+                        'cliente' => $cliente,
+
+                        'rut' => $rut,
+
+                        'email' => $registro->email,
+
+                        'estado' => $registro->estado,
+
+                        'medio_pago' => $registro->medio_pago,
+
+                        'total' => (float) $registro->total,
+
+                        'cantidad_asistentes' => $cantidadPersonas,
+
+                        'fecha' => $registro->fecha,
+
+                        'hora_inicio' =>
+                        substr(
+                            $registro->hora_inicio,
+                            0,
+                            5
+                        ),
+
+                        'hora_termino' =>
+                        substr(
+                            $registro->hora_termino,
+                            0,
+                            5
+                        ),
+
+                        'horario_id' => $registro->horario_id,
+
+                        'servicios' => $servicios,
+                    ],
+                ];
+            }
+        )
+            ->values();
+
+
+        return response()->json(
+            $eventos
+        );
+    }
+
     public function show(Reserva $reserva)
     {
-        return view('reservas.show', compact('reserva'));
+        $reserva->load([
+            'servicios',
+        ]);
+
+        return view(
+            'reservas.show',
+            compact('reserva')
+        );
     }
 
     public function operacion()
