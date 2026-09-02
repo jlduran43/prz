@@ -214,18 +214,30 @@ class HorarioDisponibleController extends Controller
             ]
         );
 
-        $existeDuplicado = HorarioDisponible::query()
-            ->whereDate('fecha', $datos['fecha'])
-            ->where('hora_inicio', $datos['hora_inicio'])
-            ->where('hora_termino', $datos['hora_termino'])
+        $superpuesto = HorarioDisponible::query()
+            ->whereDate(
+                'fecha',
+                $datos['fecha']
+            )
+            ->where(
+                'hora_inicio',
+                '<',
+                $datos['hora_termino']
+            )
+            ->where(
+                'hora_termino',
+                '>',
+                $datos['hora_inicio']
+            )
             ->exists();
 
-        if ($existeDuplicado) {
+        if ($superpuesto) {
             return back()
                 ->withInput()
                 ->withErrors([
                     'hora_inicio' =>
-                    'Ya existe esta franja horaria para la fecha seleccionada.',
+                    'El horario se superpone con otra franja existente '
+                        . 'para esa fecha.',
                 ]);
         }
 
@@ -336,6 +348,12 @@ class HorarioDisponibleController extends Controller
                     'exists:servicios_experiencias,id',
                 ],
 
+                'capacidad_maxima' => [
+                    'required',
+                    'integer',
+                    'min:1',
+                ],
+
                 'activo' => [
                     'nullable',
                     'boolean',
@@ -357,19 +375,44 @@ class HorarioDisponibleController extends Controller
             ]
         );
 
-        $existeDuplicado = HorarioDisponible::query()
-            ->whereDate('fecha', $datos['fecha'])
-            ->where('hora_inicio', $datos['hora_inicio'])
-            ->where('hora_termino', $datos['hora_termino'])
-            ->where('id', '!=', $horario->id)
+        /*
+            |--------------------------------------------------------------------------
+            | Validar superposición
+            |--------------------------------------------------------------------------
+        */
+
+        $superpuesto = HorarioDisponible::query()
+            ->whereDate(
+                'fecha',
+                $datos['fecha']
+            )
+            ->where(
+                'id',
+                '!=',
+                $horario->id
+            )
+            ->where(
+                'hora_inicio',
+                '<',
+                $datos['hora_termino']
+            )
+            ->where(
+                'hora_termino',
+                '>',
+                $datos['hora_inicio']
+            )
             ->exists();
 
-        if ($existeDuplicado) {
+
+        if ($superpuesto) {
+
             return back()
                 ->withInput()
                 ->withErrors([
                     'hora_inicio' =>
-                    'Ya existe esta franja horaria para la fecha seleccionada.'
+                    'El horario se superpone con '
+                        . 'otra franja existente '
+                        . 'para esa fecha.',
                 ]);
         }
 
@@ -379,6 +422,7 @@ class HorarioDisponibleController extends Controller
             'fecha' => $datos['fecha'],
             'hora_inicio' => $datos['hora_inicio'],
             'hora_termino' => $datos['hora_termino'],
+            'capacidad_maxima' => $datos['capacidad_maxima'],
             'activo' => $request->boolean('activo'),
         ]);
 
@@ -763,29 +807,34 @@ class HorarioDisponibleController extends Controller
                 ) {
 
                     /*
-                |--------------------------------------------------------------------------
-                | Revisar duplicado
-                |--------------------------------------------------------------------------
-                */
+                        |--------------------------------------------------------------------------
+                        | Revisar Superposición
+                        |--------------------------------------------------------------------------
+                    */
 
-                    $existe =
-                        HorarioDisponible::query()
+                    $existeSuperposicion = HorarioDisponible::query()
                         ->whereDate(
                             'fecha',
                             $fecha->toDateString()
                         )
-                        ->where(
-                            'hora_inicio',
-                            $franja['hora_inicio']
-                        )
-                        ->where(
-                            'hora_termino',
-                            $franja['hora_termino']
-                        )
+                        ->where(function ($query) use ($franja) {
+
+                            $query
+                                ->where(
+                                    'hora_inicio',
+                                    '<',
+                                    $franja['hora_termino']
+                                )
+                                ->where(
+                                    'hora_termino',
+                                    '>',
+                                    $franja['hora_inicio']
+                                );
+                        })
                         ->exists();
 
 
-                    if ($existe) {
+                    if ($existeSuperposicion) {
 
                         $omitidos++;
 
@@ -887,14 +936,12 @@ class HorarioDisponibleController extends Controller
 
 
         return redirect()
-            ->route(
-                'horarios-disponibles.index'
-            )
+            ->route('horarios-disponibles.index')
             ->with(
                 'success',
                 "Se crearon {$creados} horarios. "
-                    . "Se omitieron {$omitidos} "
-                    . "horarios duplicados."
+                    . "Se omitieron {$omitidos} horarios"
+                    . "por duplicidad o superposición."
             );
     }
 }
