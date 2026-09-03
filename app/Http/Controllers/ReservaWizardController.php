@@ -3630,7 +3630,7 @@ class ReservaWizardController extends Controller
         );
     }
 
-    public function descargarComprobante(Reserva $reserva, ReservaQrService $qrService) 
+    public function descargarComprobante(Reserva $reserva, ReservaQrService $qrService)
     {
         /*
             |--------------------------------------------------------------------------
@@ -3830,6 +3830,36 @@ class ReservaWizardController extends Controller
                 'reserva',
                 'estadoTicket'
             )
+        );
+    }
+
+    public function verComprobante(Reserva $reserva, ReservaQrService $qrService) 
+    {
+        $reserva->load([
+            'tipoCliente',
+            'servicios'
+        ]);
+
+        $qrPath = $qrService->generar($reserva);
+
+        $pdf = Pdf::loadView(
+            'reservas.comprobante.pdf',
+            [
+                'reserva' => $reserva,
+                'qrPath' => $qrPath,
+            ]
+        )->setPaper('a4', 'landscape');
+
+        $folio = 'RES-' .
+            str_pad(
+                $reserva->id,
+                6,
+                '0',
+                STR_PAD_LEFT
+            );
+
+        return $pdf->stream(
+            'ticket-' . $folio . '.pdf'
         );
     }
 }
