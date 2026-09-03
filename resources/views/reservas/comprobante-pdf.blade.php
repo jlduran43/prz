@@ -6,7 +6,7 @@
 
     <style>
         @page {
-            margin: 10px;
+            margin: 25px;
         }
 
         body {
