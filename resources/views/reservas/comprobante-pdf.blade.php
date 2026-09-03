@@ -738,8 +738,8 @@
                             </div>
 
 
-                            @if (!empty($qrPath))
-                                <img src="{{ $qrPath }}" class="qr" alt="QR">
+                            @if (!empty($qrBase64))
+                                <img src="{{ $qrBase64 }}" class="qr" alt="QR">
                             @endif
 
 
