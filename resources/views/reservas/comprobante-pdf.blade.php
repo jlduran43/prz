@@ -7,288 +7,310 @@
     <style>
         @page {
             size: A4 landscape;
-            margin: 0px;
+            margin: 8mm;
         }
 
-        html,
         body {
             margin: 0;
             padding: 0;
             font-family: DejaVu Sans, sans-serif;
-            font-size: 11px;
-            color: #1f2937;
+            font-size: 9px;
+            color: #222;
         }
 
-        * {
-            box-sizing: border-box;
+        table {
+            border-collapse: collapse;
         }
 
-        .ticket-container {
-            padding: 15px;
-        }
+        /*
+        |--------------------------------------------------------------------------
+        | TICKET COMPLETO
+        |--------------------------------------------------------------------------
+        */
 
         .ticket {
             width: 100%;
-            border: 2px solid #d1d5db;
-            border-radius: 12px;
-            overflow: hidden;
+            border: 1px solid #cccccc;
         }
 
-        .layout {
+        .ticket-layout {
             width: 100%;
-            border-collapse: collapse;
             table-layout: fixed;
         }
 
-        .main {
-            width: 72%;
+        .ticket-layout>tbody>tr>td {
             vertical-align: top;
-            padding: 12px 16px;
-            border-right: 1px dashed #cbd5e1;
         }
 
-        .stub {
-            width: 28%;
-            vertical-align: top;
-            padding: 12px 16px;
+        /*
+        |--------------------------------------------------------------------------
+        | COLUMNA IZQUIERDA
+        |--------------------------------------------------------------------------
+        */
+
+        .contenido {
+            width: 74%;
+            padding: 5mm;
+            border-right: 1px dashed #bbbbbb;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | COLUMNA DERECHA
+        |--------------------------------------------------------------------------
+        */
+
+        .ticket-qr {
+            width: 26%;
+            padding: 5mm 4mm;
             text-align: center;
-            background-color: #fdfdfd;
         }
 
-        .header-table {
+        /*
+        |--------------------------------------------------------------------------
+        | CABECERA
+        |--------------------------------------------------------------------------
+        */
+
+        .cabecera {
             width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 8px;
+            margin-bottom: 3mm;
+        }
+
+        .cabecera td {
+            vertical-align: middle;
         }
 
         .logo-cell {
             width: 60%;
-            vertical-align: middle;
         }
 
         .folio-cell {
             width: 40%;
-            vertical-align: middle;
-            text-align: center;
+            text-align: right;
         }
 
         .logo {
-            height: 75px;
-            width: auto;
+            max-height: 22mm;
+            max-width: 75mm;
         }
 
         .folio-label {
-            color: #6b7280;
-            font-size: 12px;
+            font-size: 8px;
+            color: #666;
             text-transform: uppercase;
         }
 
         .folio {
-            color: #137c3a;
-            font-size: 24px;
+            font-size: 18px;
             font-weight: bold;
-            margin-top: 5px;
+            color: #137c3a;
         }
 
         .fecha-emision {
-            margin-top: 4px;
+            margin-top: 1mm;
+            font-size: 8px;
+            color: #555;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | TÍTULOS
+        |--------------------------------------------------------------------------
+        */
+
+        .titulo {
             font-size: 11px;
-        }
-
-        .section {
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 9px 11px;
-            margin-bottom: 7px;
-        }
-
-        .section-title {
-            font-size: 13px;
             font-weight: bold;
-            margin-bottom: 7px;
-            color: #111827;
+            color: #137c3a;
+            margin-bottom: 2mm;
         }
 
-        .two-cols {
+        /*
+        |--------------------------------------------------------------------------
+        | DATOS RESERVA
+        |--------------------------------------------------------------------------
+        */
+
+        .datos {
             width: 100%;
-            border-collapse: collapse;
+            margin-bottom: 3mm;
+            border: 1px solid #dddddd;
         }
 
-        .two-cols td {
+        .datos td {
             width: 50%;
             vertical-align: top;
-            padding-right: 15px;
+            padding: 2.5mm;
         }
 
-        .label {
+        .datos td+td {
+            border-left: 1px solid #eeeeee;
+        }
+
+        .campo {
+            margin-bottom: 1.5mm;
+        }
+
+        .campo-label {
             font-weight: bold;
-            margin-bottom: 2px;
+            color: #555;
         }
 
-        .value {
-            margin-bottom: 4px;
+        .campo-valor {
+            margin-top: 0.5mm;
         }
 
-        .highlight {
+        .verde {
             color: #137c3a;
             font-weight: bold;
         }
 
-        .services {
+        /*
+        |--------------------------------------------------------------------------
+        | SERVICIOS
+        |--------------------------------------------------------------------------
+        */
+
+        .servicios {
             width: 100%;
-            border-collapse: collapse;
+            margin-bottom: 3mm;
         }
 
-        .services th {
+        .servicios th {
+            background: #f3f5f4;
+            font-size: 8px;
+            padding: 1.8mm;
+            border: 1px solid #dddddd;
             text-align: left;
-            font-size: 10px;
-            padding: 5px 5px;
-            border-bottom: 1px solid #d1d5db;
         }
 
-        .services td {
-            padding: 5px 5px;
-            border-bottom: 1px solid #e5e7eb;
-            vertical-align: top;
+        .servicios td {
+            padding: 1.8mm;
+            border: 1px solid #dddddd;
+            font-size: 8px;
         }
 
-        .services .right {
-            text-align: right;
-        }
-
-        .services .center {
+        .center {
             text-align: center;
         }
 
-        .total-row td {
+        .right {
+            text-align: right;
+        }
+
+        .total-label {
             font-weight: bold;
-            border-bottom: none;
-            font-size: 13px;
+            text-align: right;
         }
 
-        .total-value {
+        .total {
+            font-size: 11px;
             color: #137c3a;
-            font-size: 16px;
+            font-weight: bold;
+            text-align: right;
         }
 
-        .info-box {
+        /*
+        |--------------------------------------------------------------------------
+        | INFORMACIÓN INFERIOR
+        |--------------------------------------------------------------------------
+        */
+
+        .informacion {
+            width: 100%;
             border: 1px solid #b7dfc4;
             background: #f8fffa;
         }
 
-        .info-title {
-            color: #137c3a;
-            font-weight: bold;
-            font-size: 12px;
-            margin-bottom: 6px;
-        }
-
-        .info-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .info-table td {
-            width: 50%;
+        .informacion td {
             vertical-align: top;
+            padding: 2mm;
+            font-size: 7.5px;
         }
 
-        .info-table ul {
-            padding-left: 17px;
-            margin: 0;
+        .informacion ul {
+            margin: 1mm 0 0 4mm;
+            padding: 0;
         }
 
-        .info-table li {
-            margin-bottom: 2px;
+        .informacion li {
+            margin-bottom: 0.8mm;
         }
 
-        .stub-title {
+        /*
+        |--------------------------------------------------------------------------
+        | TALÓN QR
+        |--------------------------------------------------------------------------
+        */
+
+        .ticket-title {
             background: #137c3a;
             color: white;
-            font-weight: bold;
-            padding: 7px 10px;
-            border-radius: 5px;
-            font-size: 13px;
-            margin-bottom: 10px;
-        }
-
-        .stub-label {
-            color: #6b7280;
-            text-transform: uppercase;
             font-size: 11px;
+            font-weight: bold;
+            padding: 2mm;
+            margin-bottom: 3mm;
         }
 
-        .stub-folio {
-            font-size: 22px;
+        .qr-folio-label {
+            font-size: 8px;
+            color: #777;
+        }
+
+        .qr-folio {
             color: #137c3a;
             font-weight: bold;
-            margin: 4px 0 8px;
-        }
-
-        .qr-box {
-            border: 1px solid #e5e7eb;
-            border-radius: 8px;
-            padding: 7px;
-            margin: 0 auto 6px;
-            width: 166px;
+            font-size: 16px;
+            margin: 1mm 0 3mm;
         }
 
         .qr {
-            width: 150px;
-            height: 150px;
+            width: 38mm;
+            height: 38mm;
         }
 
-        .scan-text {
-            font-size: 10px;
-            line-height: 1.3;
-            margin-bottom: 8px;
+        .scan {
+            font-size: 8px;
+            margin: 2mm 0 4mm;
         }
 
-        .stub-divider {
-            border-top: 1px solid #e5e7eb;
-            margin: 8px 0;
+        .separador {
+            border-top: 1px solid #dddddd;
+            margin: 3mm 0;
         }
 
-        .stub-info-label {
-            font-size: 10px;
-            margin-bottom: 3px;
+        .detalle-label {
+            color: #777;
+            font-size: 8px;
+            margin-top: 2mm;
         }
 
-        .stub-info-value {
+        .detalle-valor {
             color: #137c3a;
             font-weight: bold;
-            font-size: 15px;
-            margin-bottom: 7px;
-        }
-
-        .footer-message {
-            color: #137c3a;
-            font-weight: bold;
-            margin-top: 12px;
             font-size: 11px;
+            margin-top: 1mm;
         }
 
-        .contacto-cell {
-            padding-left: 25px;
-            vertical-align: top;
-        }
-
-        .contacto-table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-
-        .contacto-table td {
-            padding: 1px 0;
-            vertical-align: top;
-            font-size: 10px;
-        }
-
-        .contacto-table .contacto-icono {
-            width: 42px;
-            font-weight: bold;
+        .mensaje {
+            margin-top: 5mm;
             color: #137c3a;
-            padding-right: 7px;
+            font-weight: bold;
+            font-size: 9px;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | EVITAR CORTES
+        |--------------------------------------------------------------------------
+        */
+
+        .ticket,
+        .datos,
+        .servicios,
+        .informacion {
+            page-break-inside: avoid;
         }
     </style>
 </head>
@@ -314,106 +336,135 @@
             $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
         }
     @endphp
-    <div class="ticket-container">
-        <div class="ticket">
-
-            <table class="layout">
-                <tr>
-
-                    {{-- PARTE PRINCIPAL --}}
-                    <td class="main">
-
-                        <table class="header-table">
-                            <tr>
-
-                                <td class="logo-cell">
-
-                                    @if ($logoBase64)
-                                        <img src="{{ $logoBase64 }}" class="logo" Parque Pedro del Río Zañartu">
-                                    @else
-                                        <strong style="font-size: 22px; color:#137c3a;">
-                                            PARQUE PEDRO DEL RÍO ZAÑARTU
-                                        </strong>
-                                    @endif
-
-                                </td>
-
-                                <td class="folio-cell">
-
-                                    <div class="folio-label">
-                                        Folio reserva
-                                    </div>
-
-                                    <div class="folio">
-                                        {{ $folio }}
-                                    </div>
-
-                                    <div class="fecha-emision">
-                                        {{ optional($reserva->pagada_at)->format('d/m/Y H:i') ?? now()->format('d/m/Y H:i') }}
-                                    </div>
-
-                                </td>
-
-                            </tr>
-                        </table>
 
 
-                        {{-- DATOS RESERVA --}}
-                        <div class="section">
+    <table class="ticket">
+        <tr>
+            <td>
 
-                            <div class="section-title">
+                <table class="ticket-layout">
+                    <tr>
+
+                        {{-- ==============================
+                        CONTENIDO IZQUIERDO
+                    ============================== --}}
+                        <td class="contenido">
+
+                            {{-- CABECERA --}}
+                            <table class="cabecera">
+                                <tr>
+
+                                    <td class="logo-cell">
+
+                                        @if ($logoBase64)
+                                            <img src="{{ $logoBase64 }}" class="logo" alt="Parque PRZ">
+                                        @else
+                                            <strong
+                                                style="
+                                                color:#137c3a;
+                                                font-size:18px;
+                                            ">
+                                                PARQUE PEDRO DEL RÍO ZAÑARTU
+                                            </strong>
+                                        @endif
+
+                                    </td>
+
+
+                                    <td class="folio-cell">
+
+                                        <div class="folio-label">
+                                            Folio reserva
+                                        </div>
+
+                                        <div class="folio">
+                                            {{ $folio }}
+                                        </div>
+
+                                        <div class="fecha-emision">
+
+                                            {{ optional($reserva->pagada_at)->format('d/m/Y H:i') ?? now()->format('d/m/Y H:i') }}
+
+                                        </div>
+
+                                    </td>
+
+                                </tr>
+                            </table>
+
+
+                            {{-- DATOS RESERVA --}}
+                            <div class="titulo">
                                 Datos de la reserva
                             </div>
 
-                            <table class="two-cols">
+                            <table class="datos">
                                 <tr>
 
                                     <td>
 
-                                        <div class="label">
-                                            Tipo de cliente:
+                                        <div class="campo">
+                                            <div class="campo-label">
+                                                Tipo de cliente
+                                            </div>
+
+                                            <div class="campo-valor">
+                                                {{ $reserva->tipoCliente->nombre ?? '-' }}
+                                            </div>
                                         </div>
 
-                                        <div class="value">
-                                            {{ $reserva->tipoCliente->nombre ?? '-' }}
+
+                                        <div class="campo">
+                                            <div class="campo-label">
+                                                Entidad
+                                            </div>
+
+                                            <div class="campo-valor">
+
+                                                {{ $reserva->entidad ?? ($reserva->nombre_entidad ?? '-') }}
+
+                                            </div>
                                         </div>
 
-                                        <div class="label">
-                                            Entidad:
+
+                                        <div class="campo">
+                                            <div class="campo-label">
+                                                Encargado
+                                            </div>
+
+                                            <div class="campo-valor">
+
+                                                @if ($reserva->nombre_encargado)
+                                                    {{ $reserva->nombre_encargado }}
+                                                @elseif($reserva->nombres)
+                                                    {{ trim($reserva->nombres . ' ' . $reserva->apellidos) }}
+                                                @else
+                                                    -
+                                                @endif
+
+                                            </div>
                                         </div>
 
-                                        <div class="value">
-                                            {{ $reserva->entidad ?? ($reserva->nombre_entidad ?? '-') }}
+
+                                        <div class="campo">
+                                            <div class="campo-label">
+                                                Correo
+                                            </div>
+
+                                            <div class="campo-valor">
+                                                {{ $reserva->email ?: '-' }}
+                                            </div>
                                         </div>
 
-                                        <div class="label">
-                                            Encargado:
-                                        </div>
 
-                                        <div class="value">
-                                            @if ($reserva->nombre_encargado)
-                                                {{ $reserva->nombre_encargado }}
-                                            @elseif($reserva->nombres)
-                                                {{ trim($reserva->nombres . ' ' . $reserva->apellidos) }}
-                                            @else
-                                                -
-                                            @endif
-                                        </div>
+                                        <div class="campo">
+                                            <div class="campo-label">
+                                                Teléfono
+                                            </div>
 
-                                        <div class="label">
-                                            Correo:
-                                        </div>
-
-                                        <div class="value">
-                                            {{ $reserva->email ?: '-' }}
-                                        </div>
-
-                                        <div class="label">
-                                            Teléfono:
-                                        </div>
-
-                                        <div class="value">
-                                            {{ $reserva->telefono ?? '-' }}
+                                            <div class="campo-valor">
+                                                {{ $reserva->telefono ?? '-' }}
+                                            </div>
                                         </div>
 
                                     </td>
@@ -421,72 +472,115 @@
 
                                     <td>
 
-                                        <div class="label">
-                                            Fecha de visita:
+                                        <div class="campo">
+
+                                            <div class="campo-label">
+                                                Fecha de visita
+                                            </div>
+
+                                            <div
+                                                class="
+                                                campo-valor
+                                                verde
+                                            ">
+
+                                                {{ $fechaVisita ? $fechaVisita->translatedFormat('d \d\e F \d\e Y') : '-' }}
+
+                                            </div>
+
                                         </div>
 
-                                        <div class="value highlight">
-                                            {{ $fechaVisita ? $fechaVisita->translatedFormat('d \d\e F \d\e Y') : '-' }}
-                                        </div>
 
-                                        <div class="label">
-                                            Horario:
-                                        </div>
+                                        <div class="campo">
 
-                                        <div class="value">
-                                            @if ($reserva->hora_inicio)
+                                            <div class="campo-label">
+                                                Horario
+                                            </div>
 
-                                                {{ \Carbon\Carbon::parse($reserva->hora_inicio)->format('H:i') }}
+                                            <div class="campo-valor">
 
-                                                @if ($reserva->hora_termino)
+                                                @if ($reserva->hora_inicio)
+
+                                                    {{ \Carbon\Carbon::parse($reserva->hora_inicio)->format('H:i') }}
+
+                                                    @if ($reserva->hora_termino)
+                                                        -
+
+                                                        {{ \Carbon\Carbon::parse($reserva->hora_termino)->format('H:i') }}
+                                                    @endif
+
+                                                    hrs.
+                                                @else
                                                     -
-                                                    {{ \Carbon\Carbon::parse($reserva->hora_termino)->format('H:i') }}
+
                                                 @endif
 
-                                                hrs.
-                                            @else
-                                                -
-                                            @endif
+                                            </div>
+
                                         </div>
 
-                                        <div class="label">
-                                            Cantidad de asistentes:
+
+                                        <div class="campo">
+
+                                            <div class="campo-label">
+                                                Cantidad de asistentes
+                                            </div>
+
+                                            <div class="campo-valor">
+
+                                                {{ $reserva->cantidad_asistentes ?? '-' }}
+
+                                                personas
+
+                                            </div>
+
                                         </div>
 
-                                        <div class="value">
-                                            {{ $reserva->cantidad_personas ?? ($reserva->asistentes ?? '-') }}
-                                            personas
-                                        </div>
                                     </td>
+
                                 </tr>
                             </table>
 
-                        </div>
 
-
-                        {{-- SERVICIOS --}}
-                        <div class="section">
-
-                            <div class="section-title">
+                            {{-- SERVICIOS --}}
+                            <div class="titulo">
                                 Servicios reservados
                             </div>
 
-                            <table class="services">
+                            <table class="servicios">
 
                                 <thead>
                                     <tr>
-                                        <th>Servicio</th>
-                                        <th>Tipo de cobro</th>
-                                        <th class="center">Cantidad</th>
-                                        <th class="right">Valor unitario</th>
-                                        <th class="right">Subtotal</th>
+
+                                        <th style="width:34%;">
+                                            Servicio
+                                        </th>
+
+                                        <th style="width:18%;">
+                                            Tipo
+                                        </th>
+
+                                        <th style="width:12%;" class="center">
+                                            Cant.
+                                        </th>
+
+                                        <th style="width:18%;" class="right">
+                                            Valor
+                                        </th>
+
+                                        <th style="width:18%;" class="right">
+                                            Subtotal
+                                        </th>
+
                                     </tr>
                                 </thead>
+
 
                                 <tbody>
 
                                     @foreach ($reserva->servicios as $servicio)
                                         @php
+
                                             $pivot = $servicio->pivot;
 
                                             $precio = (float) ($pivot->precio ?? 0);
@@ -500,49 +594,55 @@
                                             $subtotal = (float) ($pivot->subtotal ?? $cantidad * $precio);
                                         @endphp
 
+
                                         <tr>
 
                                             <td>
                                                 <strong>
                                                     {{ $servicio->nombre }}
                                                 </strong>
-
-                                                @if (!empty($servicio->descripcion))
-                                                    <br>
-                                                    <span style="font-size:9px;">
-                                                        {{ $servicio->descripcion }}
-                                                    </span>
-                                                @endif
                                             </td>
+
 
                                             <td>
+
                                                 {{ str_replace('_', ' ', $servicio->tipo_cobro ?? '-') }}
+
                                             </td>
+
 
                                             <td class="center">
                                                 {{ $cantidad }}
                                             </td>
 
-                                            <td class="right">
-                                                ${{ number_format($precio, 0, ',', '.') }}
-                                            </td>
 
                                             <td class="right">
+
+                                                ${{ number_format($precio, 0, ',', '.') }}
+
+                                            </td>
+
+
+                                            <td class="right">
+
                                                 ${{ number_format($subtotal, 0, ',', '.') }}
+
                                             </td>
 
                                         </tr>
                                     @endforeach
 
 
-                                    <tr class="total-row">
+                                    <tr>
 
-                                        <td colspan="4" class="right">
+                                        <td colspan="4" class="total-label">
                                             TOTAL PAGADO
                                         </td>
 
-                                        <td class="right total-value">
+                                        <td class="total">
+
                                             ${{ number_format((float) $reserva->total, 0, ',', '.') }}
+
                                         </td>
 
                                     </tr>
@@ -550,178 +650,184 @@
                                 </tbody>
                             </table>
 
-                        </div>
 
+                            {{-- INFORMACIÓN --}}
+                            <table class="informacion">
 
-                        {{-- INFORMACIÓN --}}
-                        <div class="section info-box">
-
-                            <table class="info-table">
                                 <tr>
 
-                                    <td>
+                                    <td style="width:58%;">
 
-                                        <div class="info-title">
+                                        <strong
+                                            style="
+                                            color:#137c3a;
+                                        ">
                                             Información importante
-                                        </div>
+                                        </strong>
 
                                         <ul>
+
                                             <li>
-                                                Presenta este ticket impreso o en tu celular al llegar al parque.
+                                                Presenta este ticket
+                                                impreso o en tu celular.
                                             </li>
 
                                             <li>
-                                                Llega con al menos 15 minutos de anticipación.
+                                                Llega 15 minutos antes.
                                             </li>
 
                                             <li>
-                                                En caso de dudas o cambios, contáctanos con anticipación.
+                                                El ticket será validado
+                                                en el acceso al parque.
                                             </li>
+
                                         </ul>
 
                                     </td>
 
-                                    <td class="contacto-cell">
 
-                                        <table class="contacto-table">
+                                    <td style="width:42%;">
 
-                                            <tr>
-                                                <td class="contacto-icono">
-                                                    Tel:
-                                                </td>
-                                                <td>
-                                                    41 123 4567
-                                                </td>
-                                            </tr>
+                                        <strong>
+                                            Contacto
+                                        </strong>
 
-                                            <tr>
-                                                <td class="contacto-icono">
-                                                    Email:
-                                                </td>
-                                                <td>
-                                                    reservas@prz.cl
-                                                </td>
-                                            </tr>
+                                        <br>
 
-                                            <tr>
-                                                <td class="contacto-icono">
-                                                    Web:
-                                                </td>
-                                                <td>
-                                                    www.prz.cl
-                                                </td>
-                                            </tr>
+                                        Tel: 41 123 4567
 
-                                            <tr>
-                                                <td class="contacto-icono">
-                                                    Lugar:
-                                                </td>
-                                                <td>
-                                                    Hualpén, Región del Biobío
-                                                </td>
-                                            </tr>
+                                        <br>
 
-                                        </table>
+                                        Email: reservas@prz.cl
+
+                                        <br>
+
+                                        Web: www.prz.cl
+
+                                        <br>
+
+                                        Hualpén,
+                                        Región del Biobío
 
                                     </td>
 
                                 </tr>
+
                             </table>
 
-                        </div>
-
-                    </td>
+                        </td>
 
 
-                    {{-- TALÓN DERECHO --}}
-                    <td class="stub">
+                        {{-- ==============================
+                        TALÓN DERECHO / QR
+                    ============================== --}}
 
-                        <div class="stub-title">
-                            TICKET DE RESERVA
-                        </div>
+                        <td class="ticket-qr">
 
-                        <div class="stub-label">
-                            Folio
-                        </div>
-
-                        <div class="stub-folio">
-                            {{ $folio }}
-                        </div>
-
-
-                        @if ($qrBase64)
-                            <div class="qr-box">
-                                <img src="{{ $qrBase64 }}" class="qr" alt="QR">
+                            <div class="ticket-title">
+                                TICKET DE RESERVA
                             </div>
-                        @endif
 
 
-                        <div class="scan-text">
-                            Escanea este código en<br>
-                            el acceso al parque
-                        </div>
+                            <div class="qr-folio-label">
+                                Folio
+                            </div>
+
+                            <div class="qr-folio">
+                                {{ $folio }}
+                            </div>
 
 
-                        <div class="stub-divider"></div>
+                            @if ($qrBase64)
+                                <img src="{{ $qrBase64 }}" class="qr" alt="QR">
+                            @endif
 
 
-                        <div class="stub-info-label">
-                            Fecha de visita
-                        </div>
+                            <div class="scan">
 
-                        <div class="stub-info-value">
-                            {{ $fechaVisita ? $fechaVisita->format('d/m/Y') : '-' }}
-                        </div>
+                                Escanea este código
+                                en el acceso al parque
+
+                            </div>
 
 
-                        <div class="stub-info-label">
-                            Horario
-                        </div>
+                            <div class="separador"></div>
 
-                        <div class="stub-info-value">
-                            @if ($reserva->hora_inicio)
 
-                                {{ \Carbon\Carbon::parse($reserva->hora_inicio)->format('H:i') }}
+                            <div class="detalle-label">
+                                Fecha de visita
+                            </div>
 
-                                @if ($reserva->hora_termino)
+                            <div class="detalle-valor">
+
+                                {{ $fechaVisita ? $fechaVisita->format('d/m/Y') : '-' }}
+
+                            </div>
+
+
+                            <div class="detalle-label">
+                                Horario
+                            </div>
+
+                            <div class="detalle-valor">
+
+                                @if ($reserva->hora_inicio)
+
+                                    {{ \Carbon\Carbon::parse($reserva->hora_inicio)->format('H:i') }}
+
+                                    @if ($reserva->hora_termino)
+                                        -
+
+                                        {{ \Carbon\Carbon::parse($reserva->hora_termino)->format('H:i') }}
+                                    @endif
+                                @else
                                     -
-                                    {{ \Carbon\Carbon::parse($reserva->hora_termino)->format('H:i') }}
+
                                 @endif
-                            @else
-                                -
-                            @endif
-                        </div>
+
+                            </div>
 
 
-                        <div class="stub-info-label">
-                            Asistentes
-                        </div>
+                            <div class="detalle-label">
+                                Asistentes
+                            </div>
 
-                        <div class="stub-info-value">
-                            @if ($reserva->cantidad_asistentes)
-                                {{ $reserva->cantidad_asistentes }} personas
-                            @else
-                                -
-                            @endif
-                        </div>
+                            <div class="detalle-valor">
+
+                                {{ $reserva->cantidad_asistentes ?? '-' }}
+
+                                personas
+
+                            </div>
 
 
-                        <div class="footer-message">
-                            CUIDEMOS<br>
-                            NUESTRO PARQUE
-                        </div>
+                            <div class="mensaje">
 
-                        <div style="margin-top: 8px;">
-                            Gracias por tu visita
-                        </div>
+                                CUIDEMOS
+                                <br>
+                                NUESTRO PARQUE
 
-                    </td>
+                                <br><br>
 
-                </tr>
-            </table>
+                                <span
+                                    style="
+                                    color:#555;
+                                    font-weight:normal;
+                                ">
+                                    Gracias por tu visita
+                                </span>
 
-        </div>
-    </div>
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                </table>
+
+            </td>
+        </tr>
+    </table>
 
 </body>
 
