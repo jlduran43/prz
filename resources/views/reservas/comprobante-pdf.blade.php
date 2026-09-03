@@ -6,7 +6,8 @@
 
     <style>
         @page {
-            margin: 25px;
+            size: A4 landscape;
+            margin: 15px;
         }
 
         body {
@@ -21,19 +22,20 @@
         }
 
         .ticket {
-            width: 100%;
+            width: 96%;
+            margin: 0 auto;
             border: 1px solid #d1d5db;
             border-radius: 12px;
             overflow: hidden;
         }
 
         .layout {
-            width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
         }
 
         .main {
-            width: 74%;
+            width: 71%;
             vertical-align: top;
             padding: 11px 14px;
             border-right: 1px dashed #cbd5e1;
