@@ -3843,7 +3843,7 @@ class ReservaWizardController extends Controller
         $qrPath = $qrService->generar($reserva);
 
         $pdf = Pdf::loadView(
-            'reservas.comprobante.pdf',
+            'reservas.comprobante',
             [
                 'reserva' => $reserva,
                 'qrPath' => $qrPath,
