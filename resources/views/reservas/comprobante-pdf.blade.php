@@ -7,45 +7,58 @@
     <style>
         @page {
             size: A4 landscape;
-            margin: 15px;
+            margin: 0px;
         }
 
+        html,
         body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
             font-family: DejaVu Sans, sans-serif;
             font-size: 11px;
             color: #1f2937;
-            margin: 0;
         }
 
         * {
             box-sizing: border-box;
         }
 
+        .ticket-container {
+            padding: 15px;
+            width: 100%;
+            height: 100%;
+        }
+
         .ticket {
-            width: 96%;
-            margin: 0 auto;
-            border: 1px solid #d1d5db;
+            width: 100%;
+            height: 100%;
+            border: 2px solid #d1d5db;
             border-radius: 12px;
             overflow: hidden;
         }
 
         .layout {
+            width: 100%;
+            height: 100%;
             border-collapse: collapse;
             table-layout: fixed;
         }
 
         .main {
-            width: 71%;
+            width: 72%;
             vertical-align: top;
-            padding: 11px 14px;
+            padding: 12px 16px;
             border-right: 1px dashed #cbd5e1;
         }
 
         .stub {
-            width: 26%;
+            width: 28%;
             vertical-align: top;
-            padding: 11px 14px;
+            padding: 12px 16px;
             text-align: center;
+            background-color: #fdfdfd;
         }
 
         .header-table {
@@ -66,7 +79,7 @@
         }
 
         .logo {
-            height: 90px;
+            height: 75px;
             width: auto;
         }
 
@@ -307,412 +320,413 @@
             $logoBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath));
         }
     @endphp
+    <div class="ticket-container">
+        <div class="ticket">
 
-    <div class="ticket">
+            <table class="layout">
+                <tr>
 
-        <table class="layout">
-            <tr>
+                    {{-- PARTE PRINCIPAL --}}
+                    <td class="main">
 
-                {{-- PARTE PRINCIPAL --}}
-                <td class="main">
-
-                    <table class="header-table">
-                        <tr>
-
-                            <td class="logo-cell">
-
-                                @if ($logoBase64)
-                                    <img src="{{ $logoBase64 }}" class="logo" Parque Pedro del Río Zañartu">
-                                @else
-                                    <strong style="font-size: 22px; color:#137c3a;">
-                                        PARQUE PEDRO DEL RÍO ZAÑARTU
-                                    </strong>
-                                @endif
-
-                            </td>
-
-                            <td class="folio-cell">
-
-                                <div class="folio-label">
-                                    Folio reserva
-                                </div>
-
-                                <div class="folio">
-                                    {{ $folio }}
-                                </div>
-
-                                <div class="fecha-emision">
-                                    {{ optional($reserva->pagada_at)->format('d/m/Y H:i') ?? now()->format('d/m/Y H:i') }}
-                                </div>
-
-                            </td>
-
-                        </tr>
-                    </table>
-
-
-                    {{-- DATOS RESERVA --}}
-                    <div class="section">
-
-                        <div class="section-title">
-                            Datos de la reserva
-                        </div>
-
-                        <table class="two-cols">
+                        <table class="header-table">
                             <tr>
 
-                                <td>
+                                <td class="logo-cell">
 
-                                    <div class="label">
-                                        Tipo de cliente:
+                                    @if ($logoBase64)
+                                        <img src="{{ $logoBase64 }}" class="logo" Parque Pedro del Río Zañartu">
+                                    @else
+                                        <strong style="font-size: 22px; color:#137c3a;">
+                                            PARQUE PEDRO DEL RÍO ZAÑARTU
+                                        </strong>
+                                    @endif
+
+                                </td>
+
+                                <td class="folio-cell">
+
+                                    <div class="folio-label">
+                                        Folio reserva
                                     </div>
 
-                                    <div class="value">
-                                        {{ $reserva->tipoCliente->nombre ?? '-' }}
+                                    <div class="folio">
+                                        {{ $folio }}
                                     </div>
 
-                                    <div class="label">
-                                        Entidad:
-                                    </div>
-
-                                    <div class="value">
-                                        {{ $reserva->entidad ?? ($reserva->nombre_entidad ?? '-') }}
-                                    </div>
-
-                                    <div class="label">
-                                        Encargado:
-                                    </div>
-
-                                    <div class="value">
-                                        @if ($reserva->nombre_encargado)
-                                            {{ $reserva->nombre_encargado }}
-                                        @elseif($reserva->nombres)
-                                            {{ trim($reserva->nombres . ' ' . $reserva->apellidos) }}
-                                        @else
-                                            -
-                                        @endif
-                                    </div>
-
-                                    <div class="label">
-                                        Correo:
-                                    </div>
-
-                                    <div class="value">
-                                        {{ $reserva->email ?: '-' }}
-                                    </div>
-
-                                    <div class="label">
-                                        Teléfono:
-                                    </div>
-
-                                    <div class="value">
-                                        {{ $reserva->telefono ?? '-' }}
+                                    <div class="fecha-emision">
+                                        {{ optional($reserva->pagada_at)->format('d/m/Y H:i') ?? now()->format('d/m/Y H:i') }}
                                     </div>
 
                                 </td>
 
-
-                                <td>
-
-                                    <div class="label">
-                                        Fecha de visita:
-                                    </div>
-
-                                    <div class="value highlight">
-                                        {{ $fechaVisita ? $fechaVisita->translatedFormat('d \d\e F \d\e Y') : '-' }}
-                                    </div>
-
-                                    <div class="label">
-                                        Horario:
-                                    </div>
-
-                                    <div class="value">
-                                        @if ($reserva->hora_inicio)
-
-                                            {{ \Carbon\Carbon::parse($reserva->hora_inicio)->format('H:i') }}
-
-                                            @if ($reserva->hora_termino)
-                                                -
-                                                {{ \Carbon\Carbon::parse($reserva->hora_termino)->format('H:i') }}
-                                            @endif
-
-                                            hrs.
-                                        @else
-                                            -
-                                        @endif
-                                    </div>
-
-                                    <div class="label">
-                                        Cantidad de asistentes:
-                                    </div>
-
-                                    <div class="value">
-                                        {{ $reserva->cantidad_personas ?? ($reserva->asistentes ?? '-') }}
-                                        personas
-                                    </div>
-                                </td>
                             </tr>
                         </table>
 
-                    </div>
+
+                        {{-- DATOS RESERVA --}}
+                        <div class="section">
+
+                            <div class="section-title">
+                                Datos de la reserva
+                            </div>
+
+                            <table class="two-cols">
+                                <tr>
+
+                                    <td>
+
+                                        <div class="label">
+                                            Tipo de cliente:
+                                        </div>
+
+                                        <div class="value">
+                                            {{ $reserva->tipoCliente->nombre ?? '-' }}
+                                        </div>
+
+                                        <div class="label">
+                                            Entidad:
+                                        </div>
+
+                                        <div class="value">
+                                            {{ $reserva->entidad ?? ($reserva->nombre_entidad ?? '-') }}
+                                        </div>
+
+                                        <div class="label">
+                                            Encargado:
+                                        </div>
+
+                                        <div class="value">
+                                            @if ($reserva->nombre_encargado)
+                                                {{ $reserva->nombre_encargado }}
+                                            @elseif($reserva->nombres)
+                                                {{ trim($reserva->nombres . ' ' . $reserva->apellidos) }}
+                                            @else
+                                                -
+                                            @endif
+                                        </div>
+
+                                        <div class="label">
+                                            Correo:
+                                        </div>
+
+                                        <div class="value">
+                                            {{ $reserva->email ?: '-' }}
+                                        </div>
+
+                                        <div class="label">
+                                            Teléfono:
+                                        </div>
+
+                                        <div class="value">
+                                            {{ $reserva->telefono ?? '-' }}
+                                        </div>
+
+                                    </td>
 
 
-                    {{-- SERVICIOS --}}
-                    <div class="section">
+                                    <td>
 
-                        <div class="section-title">
-                            Servicios reservados
+                                        <div class="label">
+                                            Fecha de visita:
+                                        </div>
+
+                                        <div class="value highlight">
+                                            {{ $fechaVisita ? $fechaVisita->translatedFormat('d \d\e F \d\e Y') : '-' }}
+                                        </div>
+
+                                        <div class="label">
+                                            Horario:
+                                        </div>
+
+                                        <div class="value">
+                                            @if ($reserva->hora_inicio)
+
+                                                {{ \Carbon\Carbon::parse($reserva->hora_inicio)->format('H:i') }}
+
+                                                @if ($reserva->hora_termino)
+                                                    -
+                                                    {{ \Carbon\Carbon::parse($reserva->hora_termino)->format('H:i') }}
+                                                @endif
+
+                                                hrs.
+                                            @else
+                                                -
+                                            @endif
+                                        </div>
+
+                                        <div class="label">
+                                            Cantidad de asistentes:
+                                        </div>
+
+                                        <div class="value">
+                                            {{ $reserva->cantidad_personas ?? ($reserva->asistentes ?? '-') }}
+                                            personas
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+
                         </div>
 
-                        <table class="services">
 
-                            <thead>
-                                <tr>
-                                    <th>Servicio</th>
-                                    <th>Tipo de cobro</th>
-                                    <th class="center">Cantidad</th>
-                                    <th class="right">Valor unitario</th>
-                                    <th class="right">Subtotal</th>
-                                </tr>
-                            </thead>
+                        {{-- SERVICIOS --}}
+                        <div class="section">
 
-                            <tbody>
+                            <div class="section-title">
+                                Servicios reservados
+                            </div>
 
-                                @foreach ($reserva->servicios as $servicio)
-                                    @php
-                                        $pivot = $servicio->pivot;
+                            <table class="services">
 
-                                        $precio = (float) ($pivot->precio ?? 0);
-
-                                        if ($servicio->tipo_cobro === 'POR_PERSONA') {
-                                            $cantidad = (int) ($reserva->cantidad_asistentes ?? 0);
-                                        } else {
-                                            $cantidad = 1;
-                                        }
-
-                                        $subtotal = (float) ($pivot->subtotal ?? $cantidad * $precio);
-                                    @endphp
-
+                                <thead>
                                     <tr>
+                                        <th>Servicio</th>
+                                        <th>Tipo de cobro</th>
+                                        <th class="center">Cantidad</th>
+                                        <th class="right">Valor unitario</th>
+                                        <th class="right">Subtotal</th>
+                                    </tr>
+                                </thead>
 
-                                        <td>
-                                            <strong>
-                                                {{ $servicio->nombre }}
-                                            </strong>
+                                <tbody>
 
-                                            @if (!empty($servicio->descripcion))
-                                                <br>
-                                                <span style="font-size:9px;">
-                                                    {{ $servicio->descripcion }}
-                                                </span>
-                                            @endif
+                                    @foreach ($reserva->servicios as $servicio)
+                                        @php
+                                            $pivot = $servicio->pivot;
+
+                                            $precio = (float) ($pivot->precio ?? 0);
+
+                                            if ($servicio->tipo_cobro === 'POR_PERSONA') {
+                                                $cantidad = (int) ($reserva->cantidad_asistentes ?? 0);
+                                            } else {
+                                                $cantidad = 1;
+                                            }
+
+                                            $subtotal = (float) ($pivot->subtotal ?? $cantidad * $precio);
+                                        @endphp
+
+                                        <tr>
+
+                                            <td>
+                                                <strong>
+                                                    {{ $servicio->nombre }}
+                                                </strong>
+
+                                                @if (!empty($servicio->descripcion))
+                                                    <br>
+                                                    <span style="font-size:9px;">
+                                                        {{ $servicio->descripcion }}
+                                                    </span>
+                                                @endif
+                                            </td>
+
+                                            <td>
+                                                {{ str_replace('_', ' ', $servicio->tipo_cobro ?? '-') }}
+                                            </td>
+
+                                            <td class="center">
+                                                {{ $cantidad }}
+                                            </td>
+
+                                            <td class="right">
+                                                ${{ number_format($precio, 0, ',', '.') }}
+                                            </td>
+
+                                            <td class="right">
+                                                ${{ number_format($subtotal, 0, ',', '.') }}
+                                            </td>
+
+                                        </tr>
+                                    @endforeach
+
+
+                                    <tr class="total-row">
+
+                                        <td colspan="4" class="right">
+                                            TOTAL PAGADO
                                         </td>
 
-                                        <td>
-                                            {{ str_replace('_', ' ', $servicio->tipo_cobro ?? '-') }}
-                                        </td>
-
-                                        <td class="center">
-                                            {{ $cantidad }}
-                                        </td>
-
-                                        <td class="right">
-                                            ${{ number_format($precio, 0, ',', '.') }}
-                                        </td>
-
-                                        <td class="right">
-                                            ${{ number_format($subtotal, 0, ',', '.') }}
+                                        <td class="right total-value">
+                                            ${{ number_format((float) $reserva->total, 0, ',', '.') }}
                                         </td>
 
                                     </tr>
-                                @endforeach
+
+                                </tbody>
+                            </table>
+
+                        </div>
 
 
-                                <tr class="total-row">
+                        {{-- INFORMACIÓN --}}
+                        <div class="section info-box">
 
-                                    <td colspan="4" class="right">
-                                        TOTAL PAGADO
+                            <table class="info-table">
+                                <tr>
+
+                                    <td>
+
+                                        <div class="info-title">
+                                            Información importante
+                                        </div>
+
+                                        <ul>
+                                            <li>
+                                                Presenta este ticket impreso o en tu celular al llegar al parque.
+                                            </li>
+
+                                            <li>
+                                                Llega con al menos 15 minutos de anticipación.
+                                            </li>
+
+                                            <li>
+                                                En caso de dudas o cambios, contáctanos con anticipación.
+                                            </li>
+                                        </ul>
+
                                     </td>
 
-                                    <td class="right total-value">
-                                        ${{ number_format((float) $reserva->total, 0, ',', '.') }}
+                                    <td class="contacto-cell">
+
+                                        <table class="contacto-table">
+
+                                            <tr>
+                                                <td class="contacto-icono">
+                                                    Tel:
+                                                </td>
+                                                <td>
+                                                    41 123 4567
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="contacto-icono">
+                                                    Email:
+                                                </td>
+                                                <td>
+                                                    reservas@prz.cl
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="contacto-icono">
+                                                    Web:
+                                                </td>
+                                                <td>
+                                                    www.prz.cl
+                                                </td>
+                                            </tr>
+
+                                            <tr>
+                                                <td class="contacto-icono">
+                                                    Lugar:
+                                                </td>
+                                                <td>
+                                                    Hualpén, Región del Biobío
+                                                </td>
+                                            </tr>
+
+                                        </table>
+
                                     </td>
 
                                 </tr>
+                            </table>
 
-                            </tbody>
-                        </table>
-
-                    </div>
-
-
-                    {{-- INFORMACIÓN --}}
-                    <div class="section info-box">
-
-                        <table class="info-table">
-                            <tr>
-
-                                <td>
-
-                                    <div class="info-title">
-                                        Información importante
-                                    </div>
-
-                                    <ul>
-                                        <li>
-                                            Presenta este ticket impreso o en tu celular al llegar al parque.
-                                        </li>
-
-                                        <li>
-                                            Llega con al menos 15 minutos de anticipación.
-                                        </li>
-
-                                        <li>
-                                            En caso de dudas o cambios, contáctanos con anticipación.
-                                        </li>
-                                    </ul>
-
-                                </td>
-
-                                <td class="contacto-cell">
-
-                                    <table class="contacto-table">
-
-                                        <tr>
-                                            <td class="contacto-icono">
-                                                Tel:
-                                            </td>
-                                            <td>
-                                                41 123 4567
-                                            </td>
-                                        </tr>
-
-                                        <tr>
-                                            <td class="contacto-icono">
-                                                Email:
-                                            </td>
-                                            <td>
-                                                reservas@prz.cl
-                                            </td>
-                                        </tr>
-
-                                        <tr>
-                                            <td class="contacto-icono">
-                                                Web:
-                                            </td>
-                                            <td>
-                                                www.prz.cl
-                                            </td>
-                                        </tr>
-
-                                        <tr>
-                                            <td class="contacto-icono">
-                                                Lugar:
-                                            </td>
-                                            <td>
-                                                Hualpén, Región del Biobío
-                                            </td>
-                                        </tr>
-
-                                    </table>
-
-                                </td>
-
-                            </tr>
-                        </table>
-
-                    </div>
-
-                </td>
-
-
-                {{-- TALÓN DERECHO --}}
-                <td class="stub">
-
-                    <div class="stub-title">
-                        TICKET DE RESERVA
-                    </div>
-
-                    <div class="stub-label">
-                        Folio
-                    </div>
-
-                    <div class="stub-folio">
-                        {{ $folio }}
-                    </div>
-
-
-                    @if ($qrBase64)
-                        <div class="qr-box">
-                            <img src="{{ $qrBase64 }}" class="qr" alt="QR">
                         </div>
-                    @endif
+
+                    </td>
 
 
-                    <div class="scan-text">
-                        Escanea este código en<br>
-                        el acceso al parque
-                    </div>
+                    {{-- TALÓN DERECHO --}}
+                    <td class="stub">
+
+                        <div class="stub-title">
+                            TICKET DE RESERVA
+                        </div>
+
+                        <div class="stub-label">
+                            Folio
+                        </div>
+
+                        <div class="stub-folio">
+                            {{ $folio }}
+                        </div>
 
 
-                    <div class="stub-divider"></div>
+                        @if ($qrBase64)
+                            <div class="qr-box">
+                                <img src="{{ $qrBase64 }}" class="qr" alt="QR">
+                            </div>
+                        @endif
 
 
-                    <div class="stub-info-label">
-                        Fecha de visita
-                    </div>
-
-                    <div class="stub-info-value">
-                        {{ $fechaVisita ? $fechaVisita->format('d/m/Y') : '-' }}
-                    </div>
+                        <div class="scan-text">
+                            Escanea este código en<br>
+                            el acceso al parque
+                        </div>
 
 
-                    <div class="stub-info-label">
-                        Horario
-                    </div>
+                        <div class="stub-divider"></div>
 
-                    <div class="stub-info-value">
-                        @if ($reserva->hora_inicio)
 
-                            {{ \Carbon\Carbon::parse($reserva->hora_inicio)->format('H:i') }}
+                        <div class="stub-info-label">
+                            Fecha de visita
+                        </div>
 
-                            @if ($reserva->hora_termino)
+                        <div class="stub-info-value">
+                            {{ $fechaVisita ? $fechaVisita->format('d/m/Y') : '-' }}
+                        </div>
+
+
+                        <div class="stub-info-label">
+                            Horario
+                        </div>
+
+                        <div class="stub-info-value">
+                            @if ($reserva->hora_inicio)
+
+                                {{ \Carbon\Carbon::parse($reserva->hora_inicio)->format('H:i') }}
+
+                                @if ($reserva->hora_termino)
+                                    -
+                                    {{ \Carbon\Carbon::parse($reserva->hora_termino)->format('H:i') }}
+                                @endif
+                            @else
                                 -
-                                {{ \Carbon\Carbon::parse($reserva->hora_termino)->format('H:i') }}
                             @endif
-                        @else
-                            -
-                        @endif
-                    </div>
+                        </div>
 
 
-                    <div class="stub-info-label">
-                        Asistentes
-                    </div>
+                        <div class="stub-info-label">
+                            Asistentes
+                        </div>
 
-                    <div class="stub-info-value">
-                        @if ($reserva->cantidad_asistentes)
-                            {{ $reserva->cantidad_asistentes }} personas
-                        @else
-                            -
-                        @endif
-                    </div>
+                        <div class="stub-info-value">
+                            @if ($reserva->cantidad_asistentes)
+                                {{ $reserva->cantidad_asistentes }} personas
+                            @else
+                                -
+                            @endif
+                        </div>
 
 
-                    <div class="footer-message">
-                        CUIDEMOS<br>
-                        NUESTRO PARQUE
-                    </div>
+                        <div class="footer-message">
+                            CUIDEMOS<br>
+                            NUESTRO PARQUE
+                        </div>
 
-                    <div style="margin-top: 8px;">
-                        Gracias por tu visita
-                    </div>
+                        <div style="margin-top: 8px;">
+                            Gracias por tu visita
+                        </div>
 
-                </td>
+                    </td>
 
-            </tr>
-        </table>
+                </tr>
+            </table>
 
+        </div>
     </div>
 
 </body>
