@@ -12,8 +12,6 @@
 
         html,
         body {
-            width: 100%;
-            height: 100%;
             margin: 0;
             padding: 0;
             font-family: DejaVu Sans, sans-serif;
@@ -27,13 +25,10 @@
 
         .ticket-container {
             padding: 15px;
-            width: 100%;
-            height: 100%;
         }
 
         .ticket {
             width: 100%;
-            height: 100%;
             border: 2px solid #d1d5db;
             border-radius: 12px;
             overflow: hidden;
@@ -41,7 +36,6 @@
 
         .layout {
             width: 100%;
-            height: 100%;
             border-collapse: collapse;
             table-layout: fixed;
         }
