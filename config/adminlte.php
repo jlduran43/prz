@@ -64,7 +64,7 @@ return [
     */
 
     'logo' => '<b>PRZ</b>',
-    'logo_img' => 'images/logo-dashboard.png',
+    'logo_img' => 'images/logo-prz.png',
     'logo_img_class' => 'brand-image img-circle elevation-3',
     'logo_img_xl' => null,
     'logo_img_xl_class' => 'brand-image-xs',
@@ -113,7 +113,7 @@ return [
         'enabled' => true,
         'mode' => 'fullscreen',
         'img' => [
-            'path' => 'images/logo-dashboard.png',
+            'path' => 'images/logo-prz.png',
             'alt' => 'AdminLTE Preloader Image',
             'effect' => null,
             'width' => 60,

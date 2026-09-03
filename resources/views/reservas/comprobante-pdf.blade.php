@@ -297,7 +297,7 @@
             $qrBase64 = 'data:image/png;base64,' . base64_encode(file_get_contents($qrPath));
         }
 
-        $logoPath = public_path('images/logo-dashboard.png');
+        $logoPath = public_path('images/logo-prz.png');
 
         $logoBase64 = null;
 

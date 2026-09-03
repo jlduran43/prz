@@ -26,6 +26,8 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Validation\Rule;
 use Throwable;
 use Illuminate\Support\Facades\Auth;
+use App\Services\ReservaQrService;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ReservaWizardController extends Controller
 {
@@ -3625,6 +3627,98 @@ class ReservaWizardController extends Controller
                 'reserva',
                 'horarios'
             )
+        );
+    }
+
+    public function descargarComprobante(Reserva $reserva, ReservaQrService $qrService) 
+    {
+        /*
+            |--------------------------------------------------------------------------
+            | VALIDAR ESTADO
+            |--------------------------------------------------------------------------
+        */
+
+        if (!in_array(
+            $reserva->estado,
+            ['PAGADA', 'CONFIRMADA'],
+            true
+        )) {
+            abort(
+                403,
+                'El comprobante solamente está disponible para reservas pagadas.'
+            );
+        }
+
+
+        /*
+            |--------------------------------------------------------------------------
+            | CARGAR RELACIONES
+            |--------------------------------------------------------------------------
+        */
+
+        $reserva->loadMissing([
+            'servicios',
+            'tipoCliente',
+        ]);
+
+
+        /*
+            |--------------------------------------------------------------------------
+            | GENERAR QR
+            |--------------------------------------------------------------------------
+        */
+
+        $qrRelativo = $qrService->generar(
+            $reserva
+        );
+
+        $qrPath = storage_path(
+            'app/public/' . $qrRelativo
+        );
+
+
+        /*
+            |--------------------------------------------------------------------------
+            | GENERAR FOLIO
+            |--------------------------------------------------------------------------
+        */
+
+        $folio =
+            'RES-' .
+            str_pad(
+                $reserva->id,
+                6,
+                '0',
+                STR_PAD_LEFT
+            );
+
+
+        /*
+            |--------------------------------------------------------------------------
+            | GENERAR PDF
+            |--------------------------------------------------------------------------
+        */
+
+        $pdf = Pdf::loadView(
+            'reservas.comprobante-pdf',
+            [
+                'reserva' => $reserva,
+                'qrPath' => $qrPath,
+            ]
+        )->setPaper(
+            'a4',
+            'landscape'
+        );
+
+
+        /*
+            |--------------------------------------------------------------------------
+            | DESCARGAR
+            |--------------------------------------------------------------------------
+        */
+
+        return $pdf->download(
+            'ticket-' . $folio . '.pdf'
         );
     }
 
