@@ -6,7 +6,7 @@
 
     <style>
         @page {
-            margin: 18px;
+            margin: 10px;
         }
 
         body {
@@ -35,21 +35,21 @@
         .main {
             width: 74%;
             vertical-align: top;
-            padding: 18px;
+            padding: 11px 14px;
             border-right: 1px dashed #cbd5e1;
         }
 
         .stub {
             width: 26%;
             vertical-align: top;
-            padding: 18px 16px;
+            padding: 11px 14px;
             text-align: center;
         }
 
         .header-table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 18px;
+            margin-bottom: 8px;
         }
 
         .logo-cell {
@@ -89,14 +89,14 @@
         .section {
             border: 1px solid #e5e7eb;
             border-radius: 8px;
-            padding: 14px;
-            margin-bottom: 12px;
+            padding: 9px 11px;
+            margin-bottom: 7px;
         }
 
         .section-title {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: bold;
-            margin-bottom: 12px;
+            margin-bottom: 7px;
             color: #111827;
         }
 
@@ -117,7 +117,7 @@
         }
 
         .value {
-            margin-bottom: 8px;
+            margin-bottom: 4px;
         }
 
         .highlight {
@@ -133,12 +133,12 @@
         .services th {
             text-align: left;
             font-size: 10px;
-            padding: 7px 5px;
+            padding: 5px 5px;
             border-bottom: 1px solid #d1d5db;
         }
 
         .services td {
-            padding: 8px 5px;
+            padding: 5px 5px;
             border-bottom: 1px solid #e5e7eb;
             vertical-align: top;
         }
@@ -190,17 +190,17 @@
         }
 
         .info-table li {
-            margin-bottom: 5px;
+            margin-bottom: 2px;
         }
 
         .stub-title {
             background: #137c3a;
             color: white;
             font-weight: bold;
-            padding: 8px 10px;
+            padding: 7px 10px;
             border-radius: 5px;
             font-size: 13px;
-            margin-bottom: 18px;
+            margin-bottom: 10px;
         }
 
         .stub-label {
@@ -213,15 +213,15 @@
             font-size: 22px;
             color: #137c3a;
             font-weight: bold;
-            margin: 6px 0 15px;
+            margin: 4px 0 8px;
         }
 
         .qr-box {
             border: 1px solid #e5e7eb;
             border-radius: 8px;
-            padding: 10px;
-            margin: 0 auto 10px;
-            width: 175px;
+            padding: 7px;
+            margin: 0 auto 6px;
+            width: 166px;
         }
 
         .qr {
@@ -231,13 +231,13 @@
 
         .scan-text {
             font-size: 10px;
-            line-height: 1.5;
-            margin-bottom: 15px;
+            line-height: 1.3;
+            margin-bottom: 8px;
         }
 
         .stub-divider {
             border-top: 1px solid #e5e7eb;
-            margin: 14px 0;
+            margin: 8px 0;
         }
 
         .stub-info-label {
@@ -248,14 +248,14 @@
         .stub-info-value {
             color: #137c3a;
             font-weight: bold;
-            font-size: 16px;
-            margin-bottom: 13px;
+            font-size: 15px;
+            margin-bottom: 7px;
         }
 
         .footer-message {
             color: #137c3a;
             font-weight: bold;
-            margin-top: 25px;
+            margin-top: 12px;
             font-size: 11px;
         }
 
@@ -270,7 +270,7 @@
         }
 
         .contacto-table td {
-            padding: 2px 0;
+            padding: 1px 0;
             vertical-align: top;
             font-size: 10px;
         }
